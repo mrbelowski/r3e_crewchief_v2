@@ -97,37 +97,45 @@ namespace CrewChiefV2
             {
                 Choices info1 = new Choices();
                 info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, TRANSMISSION, ENGINE, PACE });
-                GrammarBuilder gb1 = new GrammarBuilder("how is my");
+                GrammarBuilder gb1 = new GrammarBuilder();
+                gb1.Culture = cultureInfo;
+                gb1.Append("how is my");
                 gb1.Append(info1);
                 Grammar g1 = new Grammar(gb1);
 
                 Choices info2 = new Choices();
                 info2.Add(new string[] { GAP_IN_FRONT, GAP_AHEAD, GAP_BEHIND, LAST_LAP, LAP_TIME, LAST_LAP_TIME, POSITION });
-                GrammarBuilder gb2 = new GrammarBuilder("what's my");
+                GrammarBuilder gb2 = new GrammarBuilder();
+                gb2.Culture = cultureInfo;
+                gb2.Append("what's my");
                 gb2.Append(info2);
                 Grammar g2 = new Grammar(gb2);
 
                 Choices info3 = new Choices();
                 info3.Add(new string[] { KEEP_QUIET, SHUT_UP, I_KNOW_WHAT_IM_DOING, LEAVE_ME_ALONE });
                 GrammarBuilder gb3 = new GrammarBuilder();
+                gb3.Culture = cultureInfo;
                 gb3.Append(info3);
                 Grammar g3 = new Grammar(gb3);
 
                 Choices info4 = new Choices();
                 info4.Add(new string[] { KEEP_ME_INFORMED, KEEP_ME_POSTED, KEEP_ME_UPDATED });
                 GrammarBuilder gb4 = new GrammarBuilder();
+                gb4.Culture = cultureInfo;
                 gb4.Append(info4);
                 Grammar g4 = new Grammar(gb4);
 
                 Choices info5 = new Choices();
                 info5.Add(new string[] { HOW_LONGS_LEFT, HOW_MANY_LAPS_LEFT, HOW_MANY_LAPS_TO_GO });
                 GrammarBuilder gb5 = new GrammarBuilder();
+                gb5.Culture = cultureInfo;
                 gb5.Append(info5);
                 Grammar g5 = new Grammar(gb5);
 
                 Choices info6 = new Choices();
                 info6.Add(new string[] { SPOT, DONT_SPOT });
                 GrammarBuilder gb6 = new GrammarBuilder();
+                gb6.Culture = cultureInfo;
                 gb6.Append(info6);
                 Grammar g6 = new Grammar(gb6);
 
