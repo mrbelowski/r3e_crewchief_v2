@@ -234,16 +234,24 @@ namespace CrewChiefV2
 
         private void initialiseSpeechEngine()
         {
-            if (speechRecogniser == null)
+            try
             {
-                speechRecogniser = new SpeechRecogniser(crewChief);
+                if (speechRecogniser == null)
+                {
+                    speechRecogniser = new SpeechRecogniser(crewChief);
+                }
+                if (!speechRecogniser.initialised)
+                {
+                    speechRecogniser.initialiseSpeechEngine();
+                    Console.WriteLine("Attempted to initialise speech engine - success = " + speechRecogniser.initialised);
+                }
+                runListenForChannelOpenThread = speechRecogniser.initialised;
             }
-            if (!speechRecogniser.initialised)
+            catch (Exception e)
             {
-                speechRecogniser.initialiseSpeechEngine();
-                Console.WriteLine("Attempted to initialise speech engine - success = " + speechRecogniser.initialised);
+                Console.WriteLine("Unable to create speech engine, error message: " + e.Message);
+                runListenForChannelOpenThread = false;
             }
-            runListenForChannelOpenThread = speechRecogniser.initialised;
         }
 
         private void assignButton()
