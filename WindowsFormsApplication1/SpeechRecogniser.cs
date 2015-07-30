@@ -82,51 +82,78 @@ namespace CrewChiefV2
                 Console.WriteLine("Exception message: " + e.Message);
                 return;
             }
-            
-            sre.SetInputToDefaultAudioDevice();
-            Choices info1 = new Choices();
-            info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, TRANSMISSION, ENGINE, PACE });
-            GrammarBuilder gb1 = new GrammarBuilder("how is my");
-            gb1.Append(info1);
-            Grammar g1 = new Grammar(gb1);
 
-            Choices info2 = new Choices();
-            info2.Add(new string[] { GAP_IN_FRONT, GAP_AHEAD, GAP_BEHIND, LAST_LAP, LAP_TIME, LAST_LAP_TIME, POSITION });
-            GrammarBuilder gb2 = new GrammarBuilder("what's my");
-            gb2.Append(info2);
-            Grammar g2 = new Grammar(gb2);
+            try
+            {
+                sre.SetInputToDefaultAudioDevice();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Unable to set default audio device");
+                Console.WriteLine("Exception message: " + e.Message);
+                return;
+            }
+            try
+            {
+                Choices info1 = new Choices();
+                info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, TRANSMISSION, ENGINE, PACE });
+                GrammarBuilder gb1 = new GrammarBuilder("how is my");
+                gb1.Append(info1);
+                Grammar g1 = new Grammar(gb1);
 
-            Choices info3 = new Choices();
-            info3.Add(new string[] { KEEP_QUIET, SHUT_UP, I_KNOW_WHAT_IM_DOING, LEAVE_ME_ALONE });
-            GrammarBuilder gb3 = new GrammarBuilder();
-            gb3.Append(info3);
-            Grammar g3 = new Grammar(gb3);
+                Choices info2 = new Choices();
+                info2.Add(new string[] { GAP_IN_FRONT, GAP_AHEAD, GAP_BEHIND, LAST_LAP, LAP_TIME, LAST_LAP_TIME, POSITION });
+                GrammarBuilder gb2 = new GrammarBuilder("what's my");
+                gb2.Append(info2);
+                Grammar g2 = new Grammar(gb2);
 
-            Choices info4 = new Choices();
-            info4.Add(new string[] { KEEP_ME_INFORMED, KEEP_ME_POSTED, KEEP_ME_UPDATED });
-            GrammarBuilder gb4 = new GrammarBuilder();
-            gb4.Append(info4);
-            Grammar g4 = new Grammar(gb4);
+                Choices info3 = new Choices();
+                info3.Add(new string[] { KEEP_QUIET, SHUT_UP, I_KNOW_WHAT_IM_DOING, LEAVE_ME_ALONE });
+                GrammarBuilder gb3 = new GrammarBuilder();
+                gb3.Append(info3);
+                Grammar g3 = new Grammar(gb3);
 
-            Choices info5 = new Choices();
-            info5.Add(new string[] { HOW_LONGS_LEFT, HOW_MANY_LAPS_LEFT, HOW_MANY_LAPS_TO_GO });
-            GrammarBuilder gb5 = new GrammarBuilder();
-            gb5.Append(info5);
-            Grammar g5 = new Grammar(gb5);
+                Choices info4 = new Choices();
+                info4.Add(new string[] { KEEP_ME_INFORMED, KEEP_ME_POSTED, KEEP_ME_UPDATED });
+                GrammarBuilder gb4 = new GrammarBuilder();
+                gb4.Append(info4);
+                Grammar g4 = new Grammar(gb4);
 
-            Choices info6 = new Choices();
-            info6.Add(new string[] { SPOT, DONT_SPOT });
-            GrammarBuilder gb6 = new GrammarBuilder();
-            gb6.Append(info6);
-            Grammar g6 = new Grammar(gb6);
+                Choices info5 = new Choices();
+                info5.Add(new string[] { HOW_LONGS_LEFT, HOW_MANY_LAPS_LEFT, HOW_MANY_LAPS_TO_GO });
+                GrammarBuilder gb5 = new GrammarBuilder();
+                gb5.Append(info5);
+                Grammar g5 = new Grammar(gb5);
 
-            sre.LoadGrammar(g1);
-            sre.LoadGrammar(g2);
-            sre.LoadGrammar(g3);
-            sre.LoadGrammar(g4);
-            sre.LoadGrammar(g5);
-            sre.LoadGrammar(g6);
-            sre.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(sre_SpeechRecognized);
+                Choices info6 = new Choices();
+                info6.Add(new string[] { SPOT, DONT_SPOT });
+                GrammarBuilder gb6 = new GrammarBuilder();
+                gb6.Append(info6);
+                Grammar g6 = new Grammar(gb6);
+
+                sre.LoadGrammar(g1);
+                sre.LoadGrammar(g2);
+                sre.LoadGrammar(g3);
+                sre.LoadGrammar(g4);
+                sre.LoadGrammar(g5);
+                sre.LoadGrammar(g6);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Unable to configure speech engine grammar");
+                Console.WriteLine("Exception message: " + e.Message);
+                return;
+            }
+            try
+            {
+                sre.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(sre_SpeechRecognized);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Unable to add event handler to speech engine");
+                Console.WriteLine("Exception message: " + e.Message);
+                return;
+            }
             initialised = true;
         }
 
