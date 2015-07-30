@@ -229,7 +229,18 @@ namespace CrewChiefV2
                     {
                         Console.WriteLine(key + ", ");
                     }
-                    playQueueContents(immediateClips, true);
+                    try
+                    {
+                        playQueueContents(immediateClips, true);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Exception processing immediate clips: ", e.Message);
+                        lock (immediateClips)
+                        {
+                            immediateClips.Clear();
+                        }
+                    }
                 }
                 if (requestChannelClose)
                 {
@@ -248,7 +259,18 @@ namespace CrewChiefV2
                     continue;
                 }
                 timeLast = timeNow;
-                playQueueContents(queuedClips, false);
+                try
+                {
+                    playQueueContents(queuedClips, false);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Exception processing queued clips: ", e.Message);
+                    lock (queuedClips)
+                    {
+                        queuedClips.Clear();
+                    }
+                }
             }
         }
 
@@ -278,7 +300,14 @@ namespace CrewChiefV2
             while (true)
             {
                 Thread.Sleep(queueMonitorInterval);
-                playQueueContents(queuedClips, false);
+                try
+                {
+                    playQueueContents(queuedClips, false);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Exception processing queued clips: ", e.Message);
+                }
                 if (!holdChannelOpen && channelOpen)
                 {
                     Console.WriteLine("Closing open channel");

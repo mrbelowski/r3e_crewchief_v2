@@ -201,9 +201,39 @@ namespace CrewChiefV2
                     {
                         stateCleared = false;
                         CommonData.setCommonStateData(lastState, currentState);
+                        Dictionary<String, String> faultingEvents = new Dictionary<String, String>();
+                        Dictionary<String, int> faultingEventsCount = new Dictionary<String, int>();
+
                         foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
                         {
-                            entry.Value.trigger(lastState, currentState);
+                            try
+                            {
+                                entry.Value.trigger(lastState, currentState);
+                            }
+                            catch (Exception e)
+                            {
+                                if (faultingEventsCount.ContainsKey(entry.Key))
+                                {
+                                    faultingEventsCount[entry.Key]++;
+                                    if (faultingEventsCount[entry.Key] > 5)
+                                    {
+                                        Console.WriteLine("Event " + entry.Key + 
+                                            " has failed > 5 times in this session");
+                                    }
+                                }
+                                if (!faultingEvents.ContainsKey(entry.Key))
+                                {
+                                    Console.WriteLine("Event " + entry.Key + " threw exception " + e.Message);
+                                    Console.WriteLine("This is the first time this event has failed in this session");
+                                    faultingEvents.Add(entry.Key, e.Message);
+                                    faultingEventsCount.Add(entry.Key, 1);
+                                }
+                                else if (faultingEvents[entry.Key] != e.Message)
+                                {
+                                    Console.WriteLine("Event " + entry.Key + " threw a different exception: " + e.Message);
+                                    faultingEvents[entry.Key] = e.Message;
+                                }
+                            }                            
                         }
                         CommonData.isNew = false;
                     }
