@@ -12,9 +12,14 @@ namespace CrewChiefV2
 {
     public partial class PropertiesForm : Form
     {
-        public PropertiesForm()
+        System.Windows.Forms.Form parent;
+        public PropertiesForm(System.Windows.Forms.Form parent)
         {
+            this.parent = parent;
             InitializeComponent();
+            if (System.Diagnostics.Debugger.IsAttached) {
+                this.button1.Text = "Save (manual restart required)";
+            }
 
             foreach (SettingsProperty strProp in UserSettings.GetUserSettings().getProperties(typeof(String)))
             {
@@ -72,6 +77,11 @@ namespace CrewChiefV2
         private void button1_Click(object sender, EventArgs e)
         {
             save();
+            if (!System.Diagnostics.Debugger.IsAttached)
+            {
+                System.Diagnostics.Process.Start(Application.ExecutablePath); // to start new instance of application
+                parent.Close(); //to turn off current app
+            }
         }
     }
 }

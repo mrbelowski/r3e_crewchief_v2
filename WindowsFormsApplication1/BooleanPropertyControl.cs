@@ -16,7 +16,7 @@ namespace CrewChiefV2
         {
             InitializeComponent();
             this.propertyId = propertyId;
-            this.label1.Text = label;
+            this.checkBox1.Text = label;
             this.checkBox1.Checked = value;
         }
         public Boolean getValue()

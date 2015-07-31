@@ -128,6 +128,7 @@ namespace CrewChiefV2
 
         public void Run()
         {
+            Console.WriteLine("Polling for shared data every " + _timeInterval.Milliseconds + " milliseconds");
             CrewChief.running = true;
             var timeReset = DateTime.UtcNow;
             var timeLast = timeReset;

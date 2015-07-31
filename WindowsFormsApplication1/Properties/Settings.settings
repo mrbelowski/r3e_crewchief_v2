@@ -2,16 +2,16 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CrewChiefV2.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="sound_files_path" Type="System.String" Scope="Application">
+    <Setting Name="sound_files_path" Type="System.String" Scope="User">
       <Value Profile="(Default)">sounds</Value>
     </Setting>
-    <Setting Name="background_sound_files_path" Type="System.String" Scope="Application">
+    <Setting Name="background_sound_files_path" Type="System.String" Scope="User">
       <Value Profile="(Default)">background_sounds</Value>
     </Setting>
     <Setting Name="background_volume" Type="System.Single" Scope="User">
       <Value Profile="(Default)">0.25</Value>
     </Setting>
-    <Setting Name="update_interval" Type="System.Int32" Scope="Application">
+    <Setting Name="update_interval" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">100</Value>
     </Setting>
     <Setting Name="minimum_time_between_pearls_of_wisdom" Type="System.Int32" Scope="User">

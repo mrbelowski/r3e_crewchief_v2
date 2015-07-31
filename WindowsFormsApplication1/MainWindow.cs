@@ -298,7 +298,7 @@ namespace CrewChiefV2
 
         private void editPropertiesButtonClicked(object sender, EventArgs e)
         {
-            var form = new PropertiesForm();
+            var form = new PropertiesForm(this);
             form.ShowDialog(this);
         }
     }

@@ -9,6 +9,7 @@ namespace CrewChiefV2
 {
     class UserSettings
     {
+        private String[] reservedNameStarts = new String[] { "CHANNEL_", "TOGGLE_" };
         private UserSettings()
         {
 
@@ -19,7 +20,17 @@ namespace CrewChiefV2
             List<SettingsProperty> props = new List<SettingsProperty>();
             foreach (SettingsProperty prop in Properties.Settings.Default.Properties)
             {
-                if (!prop.IsReadOnly && prop.PropertyType == requiredType)
+                Boolean isReserved = false;
+                foreach (String reservedNameStart in reservedNameStarts)
+                {
+                    if (prop.Name.StartsWith(reservedNameStart))
+                    {
+                        isReserved = true;
+                        break;
+                    }
+                }
+                if (!isReserved && 
+                    !prop.IsReadOnly && prop.PropertyType == requiredType)
                 {
                     props.Add(prop);
                 }

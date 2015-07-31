@@ -23,21 +23,27 @@ namespace CrewChiefV2.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("sounds")]
         public string sound_files_path {
             get {
                 return ((string)(this["sound_files_path"]));
             }
+            set {
+                this["sound_files_path"] = value;
+            }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("background_sounds")]
         public string background_sound_files_path {
             get {
                 return ((string)(this["background_sound_files_path"]));
+            }
+            set {
+                this["background_sound_files_path"] = value;
             }
         }
         
@@ -53,12 +59,15 @@ namespace CrewChiefV2.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("100")]
         public int update_interval {
             get {
                 return ((int)(this["update_interval"]));
+            }
+            set {
+                this["update_interval"] = value;
             }
         }
         
