@@ -36,7 +36,7 @@
             // 
             this.textBox1.Location = new System.Drawing.Point(3, 20);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 20);
+            this.textBox1.Size = new System.Drawing.Size(288, 20);
             this.textBox1.TabIndex = 0;
             // 
             // label1
@@ -55,7 +55,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
             this.Name = "FloatPropertyControl";
-            this.Size = new System.Drawing.Size(114, 51);
+            this.Size = new System.Drawing.Size(309, 51);
             this.ResumeLayout(false);
             this.PerformLayout();
 

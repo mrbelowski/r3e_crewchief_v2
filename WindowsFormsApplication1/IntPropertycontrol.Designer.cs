@@ -45,7 +45,7 @@
             // 
             this.textBox1.Location = new System.Drawing.Point(4, 21);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(100, 20);
+            this.textBox1.Size = new System.Drawing.Size(254, 20);
             this.textBox1.TabIndex = 1;
             // 
             // IntPropertyControl
@@ -55,7 +55,7 @@
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.label1);
             this.Name = "IntPropertyControl";
-            this.Size = new System.Drawing.Size(119, 54);
+            this.Size = new System.Drawing.Size(272, 54);
             this.ResumeLayout(false);
             this.PerformLayout();
 

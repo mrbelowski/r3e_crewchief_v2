@@ -131,6 +131,7 @@ namespace CrewChiefV2
             {
                 this.assignButtonToAction.Enabled = false;
                 this.deleteAssigmentButton.Enabled = false;
+                this.button1.Enabled = false;
                 ThreadStart crewChiefWork = runApp;
                 Thread crewChiefThread = new Thread(crewChiefWork);
                 crewChiefThread.Start();
@@ -156,6 +157,7 @@ namespace CrewChiefV2
                 this.assignButtonToAction.Enabled = this.buttonActionSelect.SelectedIndex > -1 && this.controllersList.SelectedIndex > -1;
                 stopApp();
                 Console.WriteLine("Application stopped");
+                this.button1.Enabled = true;
             }
         }
 
@@ -297,7 +299,7 @@ namespace CrewChiefV2
         private void editPropertiesButtonClicked(object sender, EventArgs e)
         {
             var form = new PropertiesForm();
-            form.Show(this);
+            form.ShowDialog(this);
         }
     }
 

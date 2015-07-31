@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -14,25 +15,26 @@ namespace CrewChiefV2
         public PropertiesForm()
         {
             InitializeComponent();
-            foreach (String strProp in UserSettings.GetUserSettings().editableStringProperties)
+
+            foreach (SettingsProperty strProp in UserSettings.GetUserSettings().getProperties(typeof(String)))
             {
-                this.flowLayoutPanel1.Controls.Add(new StringPropertyControl(strProp, strProp, 
-                    UserSettings.GetUserSettings().getString(strProp)));
+                this.flowLayoutPanel1.Controls.Add(new StringPropertyControl(strProp.Name, strProp.Name,
+                   UserSettings.GetUserSettings().getString(strProp.Name)));
             }
-            foreach (String boolProp in UserSettings.GetUserSettings().editableBooleanProperties)
+            foreach (SettingsProperty boolProp in UserSettings.GetUserSettings().getProperties(typeof(Boolean)))
             {
-                this.flowLayoutPanel1.Controls.Add(new BooleanPropertyControl(boolProp, boolProp, 
-                    UserSettings.GetUserSettings().getBoolean(boolProp)));
+                this.flowLayoutPanel1.Controls.Add(new BooleanPropertyControl(boolProp.Name, boolProp.Name, 
+                    UserSettings.GetUserSettings().getBoolean(boolProp.Name)));
             }
-            foreach (String floatProp in UserSettings.GetUserSettings().editableFloatProperties)
+            foreach (SettingsProperty floatProp in UserSettings.GetUserSettings().getProperties(typeof(float)))
             {
-                this.flowLayoutPanel1.Controls.Add(new FloatPropertyControl(floatProp, floatProp, 
-                    UserSettings.GetUserSettings().getFloat(floatProp)));
+                this.flowLayoutPanel1.Controls.Add(new FloatPropertyControl(floatProp.Name, floatProp.Name, 
+                    UserSettings.GetUserSettings().getFloat(floatProp.Name)));
             }
-            foreach (String intProp in UserSettings.GetUserSettings().editableIntProperties)
+            foreach (SettingsProperty intProp in UserSettings.GetUserSettings().getProperties(typeof(int)))
             {
-                this.flowLayoutPanel1.Controls.Add(new IntPropertyControl(intProp, intProp, 
-                    UserSettings.GetUserSettings().getInt(intProp)));
+                this.flowLayoutPanel1.Controls.Add(new IntPropertyControl(intProp.Name, intProp.Name, 
+                    UserSettings.GetUserSettings().getInt(intProp.Name)));
             }
         }
         public void save()

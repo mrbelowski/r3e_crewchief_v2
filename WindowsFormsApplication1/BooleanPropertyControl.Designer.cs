@@ -51,14 +51,14 @@
             this.checkBox1.Text = "checkBox1";
             this.checkBox1.UseVisualStyleBackColor = true;
             // 
-            // UserControl1
+            // BooleanPropertyControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.label1);
-            this.Name = "UserControl1";
-            this.Size = new System.Drawing.Size(93, 48);
+            this.Name = "BooleanPropertyControl";
+            this.Size = new System.Drawing.Size(299, 48);
             this.ResumeLayout(false);
             this.PerformLayout();
 

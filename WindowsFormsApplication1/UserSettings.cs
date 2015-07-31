@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,14 +9,22 @@ namespace CrewChiefV2
 {
     class UserSettings
     {
-        public String[] editableBooleanProperties = new String[] { "use_sweary_messages", "enable_spotter"};
-        public String[] editableIntProperties = new String[] { "update_interval", "minimum_time_between_pearls_of_wisdom" };
-        public String[] editableFloatProperties = new String[] {"background_volume", "spotter_car_length" };
-        public String[] editableStringProperties = new String[] {"sound_files_path" };
-
         private UserSettings()
         {
 
+        }
+
+        public List<SettingsProperty> getProperties(Type requiredType)
+        {
+            List<SettingsProperty> props = new List<SettingsProperty>();
+            foreach (SettingsProperty prop in Properties.Settings.Default.Properties)
+            {
+                if (!prop.IsReadOnly && prop.PropertyType == requiredType)
+                {
+                    props.Add(prop);
+                }
+            }
+            return props;
         }
 
         private static readonly UserSettings _userSettings = new UserSettings();
