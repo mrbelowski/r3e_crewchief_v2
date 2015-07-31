@@ -78,6 +78,18 @@
     <Compile Include="AbstractEvent.cs" />
     <Compile Include="AudioPlayer.cs" />
     <Compile Include="ControllerConfiguration.cs" />
+    <Compile Include="FloatPropertyControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FloatPropertyControl.Designer.cs">
+      <DependentUpon>FloatPropertyControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PropertiesForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PropertiesForm.Designer.cs">
+      <DependentUpon>PropertiesForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="LapCounter.cs" />
     <Compile Include="Fuel.cs" />
     <Compile Include="EngineMonitor.cs" />
@@ -111,10 +123,43 @@
     <Compile Include="Spotter.cs" />
     <Compile Include="Timings.cs" />
     <Compile Include="TyreTempMonitor.cs" />
+    <Compile Include="StringPropertyControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="StringPropertyControl.Designer.cs">
+      <DependentUpon>StringPropertyControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="BooleanPropertyControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="BooleanPropertyControl.Designer.cs">
+      <DependentUpon>BooleanPropertyControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IntPropertyControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="IntPropertyControl.Designer.cs">
+      <DependentUpon>IntPropertyControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="UserSettings.cs" />
     <Compile Include="Utilities.cs" />
+    <EmbeddedResource Include="FloatPropertyControl.resx">
+      <DependentUpon>FloatPropertyControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IntPropertycontrol.resx">
+      <DependentUpon>IntPropertyControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PropertiesForm.resx">
+      <DependentUpon>PropertiesForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="StringPropertyControl.resx">
+      <DependentUpon>StringPropertyControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BooleanPropertyControl.resx">
+      <DependentUpon>BooleanPropertyControl.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

@@ -293,6 +293,12 @@ namespace CrewChiefV2
         {
 
         }
+
+        private void editPropertiesButtonClicked(object sender, EventArgs e)
+        {
+            var form = new PropertiesForm();
+            form.Show(this);
+        }
     }
 
     public class ControlWriter : TextWriter

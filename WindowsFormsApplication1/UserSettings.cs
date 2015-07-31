@@ -8,6 +8,11 @@ namespace CrewChiefV2
 {
     class UserSettings
     {
+        public String[] editableBooleanProperties = new String[] { "use_sweary_messages", "enable_spotter"};
+        public String[] editableIntProperties = new String[] { "update_interval", "minimum_time_between_pearls_of_wisdom" };
+        public String[] editableFloatProperties = new String[] {"background_volume", "spotter_car_length" };
+        public String[] editableStringProperties = new String[] {"sound_files_path" };
+
         private UserSettings()
         {
 
@@ -44,8 +49,11 @@ namespace CrewChiefV2
 
         public void setProperty(String name, Object value)
         {
-            Properties.Settings.Default[name] = value;
-            propertiesUpdated = true;
+            if (value != Properties.Settings.Default[name])
+            {
+                Properties.Settings.Default[name] = value;
+                propertiesUpdated = true;
+            }
         }
 
         public void saveUserSettings()
