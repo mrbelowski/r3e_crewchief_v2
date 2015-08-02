@@ -15,7 +15,7 @@ namespace CrewChiefV2
     class CrewChief : IDisposable
     {
         private Boolean keepQuietEnabled = false;
-        private Boolean spotterEnabled = true;
+        private Boolean spotterEnabled = UserSettings.GetUserSettings().getBoolean("enable_spotter");
 
         private bool Mapped
         {
@@ -26,8 +26,6 @@ namespace CrewChiefV2
         private MemoryMappedViewAccessor _view;
 
         public static TimeSpan _timeInterval = TimeSpan.FromMilliseconds(UserSettings.GetUserSettings().getInt("update_interval"));
-
-        private Boolean useSpotter = UserSettings.GetUserSettings().getBoolean("enable_spotter");
 
         private static Dictionary<String, AbstractEvent> eventsList = new Dictionary<String, AbstractEvent>();
 
@@ -105,19 +103,13 @@ namespace CrewChiefV2
         public void enableSpotter()
         {
             spotterEnabled = true;
-            if (eventsList["Spotter"] != null)
-            {
-                ((Spotter)eventsList["Spotter"]).enableSpotter();
-            }
+            ((Spotter)eventsList["Spotter"]).enableSpotter();
         }
 
         public void disableSpotter()
         {
             spotterEnabled = false;
-            if (eventsList["Spotter"] != null)
-            {
-                ((Spotter)eventsList["Spotter"]).disableSpotter();
-            }
+            ((Spotter)eventsList["Spotter"]).disableSpotter();
         }
 
         public void youWot()
@@ -148,11 +140,7 @@ namespace CrewChiefV2
             eventsList.Add("Timings", new Timings(audioPlayer));
             eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
             eventsList.Add("PushNow", new PushNow(audioPlayer));
-            if (useSpotter)
-            {
-                Console.WriteLine("Enabling spotter");
-                eventsList.Add("Spotter", new Spotter(audioPlayer));
-            }
+            eventsList.Add("Spotter", new Spotter(audioPlayer, spotterEnabled));
 
             while (CrewChief.running)
             {

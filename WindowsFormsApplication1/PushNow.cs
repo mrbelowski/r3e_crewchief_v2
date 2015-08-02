@@ -81,7 +81,7 @@ namespace CrewChiefV2.Events
                 }
                 if (CommonData.isNewLap)
                 {
-                    if (CommonData.racingSameCarInFront)
+                    if (CommonData.racingSameCarInFront && currentState.TimeDeltaFront > 1)
                     {
                         pushDataInFront.Add(new PushData(currentState.LapTimePrevious, currentState.TimeDeltaFront));
                     }
@@ -89,7 +89,7 @@ namespace CrewChiefV2.Events
                     {
                         pushDataInFront.Clear();
                     }
-                    if (CommonData.racingSameCarBehind)
+                    if (CommonData.racingSameCarBehind && currentState.TimeDeltaBehind > 1)
                     {
                         pushDataBehind.Add(new PushData(currentState.LapTimePrevious, currentState.TimeDeltaBehind));
                     }

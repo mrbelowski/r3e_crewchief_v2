@@ -60,9 +60,10 @@ namespace CrewChiefV2.Events
 
         private Boolean enabled = true;
 
-        public Spotter(AudioPlayer audioPlayer)
+        public Spotter(AudioPlayer audioPlayer, Boolean initialEnabledState)
         {
             this.audioPlayer = audioPlayer;
+            this.enabled = initialEnabledState;
         }
 
         public override void clearState()

@@ -10,7 +10,9 @@ namespace CrewChiefV2
     {
         public Boolean listenForAssignment = false;
         DirectInput directInput = new DirectInput();
-        DeviceType[] supportedDeviceTypes = new DeviceType[] {DeviceType.Driving, DeviceType.Joystick, DeviceType.Gamepad, DeviceType.Keyboard };
+        DeviceType[] supportedDeviceTypes = new DeviceType[] {DeviceType.Driving, DeviceType.Joystick, DeviceType.Gamepad, 
+            DeviceType.Keyboard, DeviceType.ControlDevice, DeviceType.FirstPerson, DeviceType.Flight, 
+            DeviceType.Supplemental, DeviceType.Remote};
         public List<ButtonAssignment> buttonAssignments = new List<ButtonAssignment>();
         public List<ControllerData> controllers;
 

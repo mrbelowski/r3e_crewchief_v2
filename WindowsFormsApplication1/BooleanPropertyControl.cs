@@ -12,16 +12,23 @@ namespace CrewChiefV2
     public partial class BooleanPropertyControl : UserControl
     {
         public String propertyId;
-        public BooleanPropertyControl(String propertyId, String label, Boolean value)
+        public Boolean defaultValue;
+        public BooleanPropertyControl(String propertyId, String label, Boolean value, Boolean defaultValue)
         {
             InitializeComponent();
             this.propertyId = propertyId;
             this.checkBox1.Text = label;
             this.checkBox1.Checked = value;
+            this.defaultValue = defaultValue;
         }
         public Boolean getValue()
         {
             return this.checkBox1.Checked;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.checkBox1.Checked = defaultValue;
         }
     }
 }

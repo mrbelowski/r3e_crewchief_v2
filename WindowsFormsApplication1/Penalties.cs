@@ -92,7 +92,11 @@ namespace CrewChiefV2.Events
                 Console.WriteLine("checking penalty validity, pen lap = " + penaltyLap + ", completed =" + lapsCompleted);
                 return hasOutstandingPenalty && lapsCompleted == penaltyLap && CommonData.isSessionRunning;
             }
-            else if (eventSubType == folderCutTrackInRace || eventSubType == folderCutTrackPracticeOrQual || eventSubType == folderLapDeleted)
+            else if (eventSubType == folderCutTrackInRace) 
+            {
+                return !hasOutstandingPenalty && CommonData.isRaceStarted;
+            }
+            else if(eventSubType == folderCutTrackPracticeOrQual || eventSubType == folderLapDeleted)
             {
                 return true;
             }

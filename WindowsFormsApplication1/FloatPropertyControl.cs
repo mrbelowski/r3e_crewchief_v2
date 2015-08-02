@@ -13,13 +13,15 @@ namespace CrewChiefV2
     {
         public String propertyId;
         public float originalValue;
-        public FloatPropertyControl (String propertyId, String label, float value)
+        private float defaultValue;
+        public FloatPropertyControl (String propertyId, String label, float value, float defaultValue)
         {
             InitializeComponent();
             this.propertyId = propertyId;
             this.label1.Text = label;
             this.originalValue = value;
             this.textBox1.Text = value.ToString();
+            this.defaultValue = defaultValue;
         }
         public float getValue()
         {
@@ -33,6 +35,12 @@ namespace CrewChiefV2
             {
                 return originalValue;
             }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.textBox1.Text = defaultValue.ToString();
+            this.originalValue = defaultValue;
         }
     }
 }
