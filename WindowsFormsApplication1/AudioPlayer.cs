@@ -31,6 +31,12 @@ namespace CrewChiefV2
 
         private String soundFolderName = UserSettings.GetUserSettings().getString("sound_files_path");
 
+        private String voiceFolderPath;
+
+        private String fxFolderPath;
+
+        private String backgroundFolderPath;
+
         private String backgroundFolderName = UserSettings.GetUserSettings().getString("background_sound_files_path");
 
         private float backgroundVolume = UserSettings.GetUserSettings().getFloat("background_volume");
@@ -82,25 +88,24 @@ namespace CrewChiefV2
             {
                 soundFilesPath = Path.Combine(Path.GetDirectoryName(
                                         System.Reflection.Assembly.GetEntryAssembly().Location), @"..\", @"..\", soundFolderName);
-                backgroundFilesPath = Path.Combine(Path.GetDirectoryName(
-                                        System.Reflection.Assembly.GetEntryAssembly().Location), @"..\", @"..\", backgroundFolderName);
             }
             else
             {
                 soundFilesPath = Path.Combine(Path.GetDirectoryName(
                                         System.Reflection.Assembly.GetEntryAssembly().Location), soundFolderName);
-                backgroundFilesPath = Path.Combine(Path.GetDirectoryName(
-                                            System.Reflection.Assembly.GetEntryAssembly().Location), backgroundFolderName);
             }
-            Console.WriteLine("Sound dir full path = " + soundFilesPath);
+            voiceFolderPath = Path.Combine(soundFilesPath, "voice");
+            fxFolderPath = Path.Combine(soundFilesPath , "fx");
+            backgroundFilesPath = Path.Combine(soundFilesPath, "background_sounds");
+            Console.WriteLine("Voice dir full path = " + voiceFolderPath);
+            Console.WriteLine("FX dir full path = " + fxFolderPath);
             Console.WriteLine("Background sound dir full path = " + backgroundFilesPath);
             pearlsOfWisdom = new PearlsOfWisdom();
             int soundsCount = 0;
             try
             {
-                DirectoryInfo soundDirectory = new DirectoryInfo(soundFilesPath);
-                Console.WriteLine(soundDirectory);
-                FileInfo[] bleepFiles = soundDirectory.GetFiles();
+                DirectoryInfo fxSoundDirectory = new DirectoryInfo(fxFolderPath);
+                FileInfo[] bleepFiles = fxSoundDirectory.GetFiles();
                 foreach (FileInfo bleepFile in bleepFiles)
                 {
                     if (bleepFile.Name.EndsWith(".wav"))
@@ -117,7 +122,8 @@ namespace CrewChiefV2
                         }
                     }
                 }
-                DirectoryInfo[] eventFolders = soundDirectory.GetDirectories();
+                DirectoryInfo voiceSoundDirectory = new DirectoryInfo(voiceFolderPath);
+                DirectoryInfo[] eventFolders = voiceSoundDirectory.GetDirectories();
                 foreach (DirectoryInfo eventFolder in eventFolders)
                 {
                     try
@@ -453,7 +459,7 @@ namespace CrewChiefV2
                 if (backgroundVolume > 0 && loadNewBackground && backgroundToLoad != null)
                 {
                     Console.WriteLine("Setting background sounds file to  " + backgroundToLoad);
-                    String path = Path.Combine(soundFilesPath, backgroundFilesPath, backgroundToLoad);
+                    String path = Path.Combine(backgroundFilesPath, backgroundToLoad);
                     backgroundPlayer.Open(new System.Uri(path, System.UriKind.Absolute));
                     loadNewBackground = false;
                 }
