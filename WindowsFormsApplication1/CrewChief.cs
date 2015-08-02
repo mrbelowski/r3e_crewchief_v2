@@ -118,7 +118,7 @@ namespace CrewChiefV2
             audioPlayer.closeChannel();
         }
 
-        public void Run()
+        public Boolean Run()
         {
             Console.WriteLine("Polling for shared data every " + _timeInterval.Milliseconds + " milliseconds");
             CrewChief.running = true;
@@ -126,109 +126,116 @@ namespace CrewChiefV2
             var timeLast = timeReset;
 
             audioPlayer = new AudioPlayer();
-            audioPlayer.initialise();
-
-            eventsList.Add("LapCounter", new LapCounter(audioPlayer));
-            eventsList.Add("LapTimes", new LapTimes(audioPlayer));
-            eventsList.Add("Penalties", new Penalties(audioPlayer));
-            eventsList.Add("MandatoryPitStops", new MandatoryPitStops(audioPlayer));
-            eventsList.Add("Fuel", new Fuel(audioPlayer));
-            eventsList.Add("Position", new Position(audioPlayer));
-            eventsList.Add("RaceTime", new RaceTime(audioPlayer));
-            eventsList.Add("TyreTempMonitor", new TyreTempMonitor(audioPlayer));
-            eventsList.Add("EngineMonitor", new EngineMonitor(audioPlayer));
-            eventsList.Add("Timings", new Timings(audioPlayer));
-            eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
-            eventsList.Add("PushNow", new PushNow(audioPlayer));
-            eventsList.Add("Spotter", new Spotter(audioPlayer, spotterEnabled));
-
-            while (CrewChief.running)
+            if (audioPlayer.initialise())
             {
-                var timeNow = DateTime.UtcNow;
+                eventsList.Add("LapCounter", new LapCounter(audioPlayer));
+                eventsList.Add("LapTimes", new LapTimes(audioPlayer));
+                eventsList.Add("Penalties", new Penalties(audioPlayer));
+                eventsList.Add("MandatoryPitStops", new MandatoryPitStops(audioPlayer));
+                eventsList.Add("Fuel", new Fuel(audioPlayer));
+                eventsList.Add("Position", new Position(audioPlayer));
+                eventsList.Add("RaceTime", new RaceTime(audioPlayer));
+                eventsList.Add("TyreTempMonitor", new TyreTempMonitor(audioPlayer));
+                eventsList.Add("EngineMonitor", new EngineMonitor(audioPlayer));
+                eventsList.Add("Timings", new Timings(audioPlayer));
+                eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
+                eventsList.Add("PushNow", new PushNow(audioPlayer));
+                eventsList.Add("Spotter", new Spotter(audioPlayer, spotterEnabled));
 
-                if (timeNow.Subtract(timeLast) < _timeInterval)
+                while (CrewChief.running)
                 {
-                    Thread.Sleep(1);
-                    continue;
-                }
+                    var timeNow = DateTime.UtcNow;
 
-                timeLast = timeNow;
-
-                if (Utilities.IsRrreRunning() && !Mapped)
-                {
-                    Console.WriteLine("Found RRRE.exe, mapping shared memory...");
-
-                    if (Map())
+                    if (timeNow.Subtract(timeLast) < _timeInterval)
                     {
-                        Console.WriteLine("Memory mapped successfully");
-                        timeReset = DateTime.UtcNow;
+                        Thread.Sleep(1);
+                        continue;
                     }
-                }
 
-                if (Mapped)
-                {
-                    lastState = currentState;
-                    currentState = new Shared();
-                    _view.Read(0, out currentState);
+                    timeLast = timeNow;
 
-                    // how long has the game been running?
-                    double gameRunningTime = currentState.Player.GameSimulationTime;
-                    // if we've gone back in time, this means a new session has started - 
-                    // clear all the game state
-                    if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
-                        && !stateCleared)
+                    if (Utilities.IsRrreRunning() && !Mapped)
                     {
-                        Console.WriteLine("Clearing game state...");
-                        CommonData.clearState();
-                        foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
+                        Console.WriteLine("Found RRRE.exe, mapping shared memory...");
+
+                        if (Map())
                         {
-                            entry.Value.clearState();
+                            Console.WriteLine("Memory mapped successfully");
+                            timeReset = DateTime.UtcNow;
                         }
-                        stateCleared = true;
                     }
-                    else if (gameRunningTime > _timeInterval.Seconds)
-                    {
-                        stateCleared = false;
-                        CommonData.setCommonStateData(lastState, currentState);
-                        Dictionary<String, String> faultingEvents = new Dictionary<String, String>();
-                        Dictionary<String, int> faultingEventsCount = new Dictionary<String, int>();
 
-                        foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
+                    if (Mapped)
+                    {
+                        lastState = currentState;
+                        currentState = new Shared();
+                        _view.Read(0, out currentState);
+
+                        // how long has the game been running?
+                        double gameRunningTime = currentState.Player.GameSimulationTime;
+                        // if we've gone back in time, this means a new session has started - 
+                        // clear all the game state
+                        if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
+                            && !stateCleared)
                         {
-                            try
+                            Console.WriteLine("Clearing game state...");
+                            CommonData.clearState();
+                            foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
                             {
-                                entry.Value.trigger(lastState, currentState);
+                                entry.Value.clearState();
                             }
-                            catch (Exception e)
+                            stateCleared = true;
+                        }
+                        else if (gameRunningTime > _timeInterval.Seconds)
+                        {
+                            stateCleared = false;
+                            CommonData.setCommonStateData(lastState, currentState);
+                            Dictionary<String, String> faultingEvents = new Dictionary<String, String>();
+                            Dictionary<String, int> faultingEventsCount = new Dictionary<String, int>();
+
+                            foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
                             {
-                                if (faultingEventsCount.ContainsKey(entry.Key))
+                                try
                                 {
-                                    faultingEventsCount[entry.Key]++;
-                                    if (faultingEventsCount[entry.Key] > 5)
+                                    entry.Value.trigger(lastState, currentState);
+                                }
+                                catch (Exception e)
+                                {
+                                    if (faultingEventsCount.ContainsKey(entry.Key))
                                     {
-                                        Console.WriteLine("Event " + entry.Key + 
-                                            " has failed > 5 times in this session");
+                                        faultingEventsCount[entry.Key]++;
+                                        if (faultingEventsCount[entry.Key] > 5)
+                                        {
+                                            Console.WriteLine("Event " + entry.Key +
+                                                " has failed > 5 times in this session");
+                                        }
+                                    }
+                                    if (!faultingEvents.ContainsKey(entry.Key))
+                                    {
+                                        Console.WriteLine("Event " + entry.Key + " threw exception " + e.Message);
+                                        Console.WriteLine("This is the first time this event has failed in this session");
+                                        faultingEvents.Add(entry.Key, e.Message);
+                                        faultingEventsCount.Add(entry.Key, 1);
+                                    }
+                                    else if (faultingEvents[entry.Key] != e.Message)
+                                    {
+                                        Console.WriteLine("Event " + entry.Key + " threw a different exception: " + e.Message);
+                                        faultingEvents[entry.Key] = e.Message;
                                     }
                                 }
-                                if (!faultingEvents.ContainsKey(entry.Key))
-                                {
-                                    Console.WriteLine("Event " + entry.Key + " threw exception " + e.Message);
-                                    Console.WriteLine("This is the first time this event has failed in this session");
-                                    faultingEvents.Add(entry.Key, e.Message);
-                                    faultingEventsCount.Add(entry.Key, 1);
-                                }
-                                else if (faultingEvents[entry.Key] != e.Message)
-                                {
-                                    Console.WriteLine("Event " + entry.Key + " threw a different exception: " + e.Message);
-                                    faultingEvents[entry.Key] = e.Message;
-                                }
-                            }                            
+                            }
+                            CommonData.isNew = false;
                         }
-                        CommonData.isNew = false;
+                        lastGameStateTime = currentState.Player.GameSimulationTime;
                     }
-                    lastGameStateTime = currentState.Player.GameSimulationTime;
                 }
             }
+            else
+            {
+                Console.WriteLine("Unable to initalise audio player");
+                return false;
+            }
+            return true;
         }
 
         public void stop()

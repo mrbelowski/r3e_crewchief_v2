@@ -168,7 +168,15 @@ namespace CrewChiefV2
 
         private void runApp()
         {
-            crewChief.Run();
+            if (!crewChief.Run())
+            {
+                this.deleteAssigmentButton.Enabled = this.buttonActionSelect.SelectedIndex > -1 &&
+                    this.controllerConfiguration.buttonAssignments[this.buttonActionSelect.SelectedIndex].joystick != null;
+                this.assignButtonToAction.Enabled = this.buttonActionSelect.SelectedIndex > -1 && this.controllersList.SelectedIndex > -1;
+                stopApp();
+                this.button1.Enabled = true;
+                IsAppRunning = false;
+            }
         }
 
         private void tableLayoutPanel2_Paint(object sender, PaintEventArgs e)

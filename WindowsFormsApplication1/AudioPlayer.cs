@@ -13,6 +13,8 @@ namespace CrewChiefV2
 {
     class AudioPlayer
     {
+        public static float minimumSoundPackVersion = 2.0f;
+
         public static String folderAcknowlegeOK = "acknowledge/OK";
         public static String folderAcknowlegeDisableKeepQuiet = "acknowledge/keepQuietDisabled";
         public static String folderDidntUnderstand = "acknowledge/didnt_understand";
@@ -34,8 +36,6 @@ namespace CrewChiefV2
         private String voiceFolderPath;
 
         private String fxFolderPath;
-
-        private String backgroundFolderPath;
 
         private String backgroundFolderName = UserSettings.GetUserSettings().getString("background_sound_files_path");
 
@@ -82,7 +82,7 @@ namespace CrewChiefV2
 
         DateTime timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
 
-        public void initialise()
+        public Boolean initialise()
         {
             if (System.Diagnostics.Debugger.IsAttached)
             {
@@ -100,6 +100,21 @@ namespace CrewChiefV2
             Console.WriteLine("Voice dir full path = " + voiceFolderPath);
             Console.WriteLine("FX dir full path = " + fxFolderPath);
             Console.WriteLine("Background sound dir full path = " + backgroundFilesPath);
+            float soundPackVersion = getSoundPackVersion();
+            if (soundPackVersion == -1)
+            {
+                Console.WriteLine("Unable to get sound pack version - expected a file called version_info with a single line containing a version number, e.g. 2.0");
+            }
+            else if (soundPackVersion < minimumSoundPackVersion)
+            {
+                Console.WriteLine("The sound pack version in use is " + soundPackVersion + " but this version of the app requires version " 
+                    + minimumSoundPackVersion + " or greater.");
+                return false;
+            }
+            else
+            {
+                Console.WriteLine("Minimum sound pack version = " + minimumSoundPackVersion + " using sound pack version " + soundPackVersion);
+            }
             pearlsOfWisdom = new PearlsOfWisdom();
             int soundsCount = 0;
             try
@@ -182,11 +197,35 @@ namespace CrewChiefV2
                 Thread thread = new Thread(work);
                 thread.Start();
                 new SmokeTest(this).trigger(new Data.Shared(), new Data.Shared());
+                return true;
             }
             catch (DirectoryNotFoundException e)
             {
                 Console.WriteLine("Unable to find sounds directory - path: " + soundFolderName);
             }
+            return false;
+        }
+
+        public float getSoundPackVersion()
+        {
+            DirectoryInfo soundDirectory = new DirectoryInfo(soundFilesPath);
+            FileInfo[] filesInSoundDirectory = soundDirectory.GetFiles();
+            
+            float soundfilesVersion = -1f;
+            foreach (FileInfo fileInSoundDirectory in filesInSoundDirectory)
+            {
+                if (fileInSoundDirectory.Name == "version_info")
+                {
+                    String[] lines = File.ReadAllLines(Path.Combine(soundFilesPath, fileInSoundDirectory.Name));
+                    foreach (String line in lines) {
+                        if (float.TryParse(line, out soundfilesVersion))
+                        {
+                            return soundfilesVersion;
+                        }
+                    }
+                }
+            }
+            return soundfilesVersion;
         }
 
         public void setBackgroundSound(String backgroundSoundName)
