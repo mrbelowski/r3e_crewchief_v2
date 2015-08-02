@@ -1,0 +1,33 @@
+CrewChief version 2.
+
+Quick start
+-----------
+You need to install .net 4 or above to use the app. Download the CrewChiefV2_with_sounds.zip file, extract it somewhere (anywhere, the app's not fussy), and run the enclosed CrewChiefV2.exe. Click the "Start Application" button. Then fire up R3E and be amazed at my poor voice acting.
+
+
+Running with voice recognition
+------------------------------
+
+If you want to use voice recognition, download the correct speech recognition installers for your system (speech_recognition_32bit.zip or speech_recognition_64bit.zip). Run SpeechPlatformRuntime.msi (this is the MS speech recognition engine), then run MSSpeech_SR_en-GB_TELE.msi or MSSpeech_SR_en-US_TELE.msi depending on your preferred accent (these are the 'cultural info' installers). If you want to use US speech recognition (MSSpeech_SR_en-US_TELE.msi) you must modify the "speech_recognition_location" property to "en-US". This can be done by editing CrewChiefV2.exe.config, or by modifying the property value in the application's Properties area. If you're happy with en-GB you don't need to do anything other than run the 2 speech recognition installers.
+
+For speech recognition, you need a microphone configured as the default "Recording" device. Run the app, select a controller device ("Available controllers" list, bottom left), choose "Talk to crew chief" in the ""Available actions" list and click "Assign control". Then press the button you want to assign to your radio button. Then start the application. To talk to the crew chief, hold down this button. Speak one of the phrases the app can recognise, then release the button. You need to speak clearly and your mic needs to be properly set up - you might need to experiment with levels and gain (Microphone boost) in the Windows control panel. If he understood he'll respond - perhaps with helpful info, perhaps with "we don't have that data". If he doesn't quite understand he'll ask you to repeat yourself. If he can't even tell if you've said something he'll remain silent. There's some debug logging in the main window that might be useful.
+
+I've not finished implementing this but currently the app understands and responds to the following commands:
+
+"how is my [fuel / tyre temps]"
+"what's my [gap in front / gap ahead / gap behind / last lap / last lap time / lap time / position]"
+"keep quiet / I know what I'm doing / leave me alone" (switches off messages)
+"keep me informed / keep me posted / keep me updated" (switches messages back on)
+"how long's left / how many laps are left / how many laps to go"
+"spot / don't spot" (switches the spotter on and off - note even in "leave me alone" mode the spotter still operates unless you explicitly switch it off)
+
+
+
+Other button assignments
+------------------------
+
+You can assign the 'toggle spotter on/off' and 'toggle race updates on/off' to separate buttons if you want to be able to toggle the spotter function and toggle the crew chief's updates on or off during the race. This doesn't require voice recognition to be installed - simply run the app, assign a button to one or both of these functions, and when in-race pressing that button will toggle the spotter or crew chief on and off.
+
+
+Updating the app
+----------------
