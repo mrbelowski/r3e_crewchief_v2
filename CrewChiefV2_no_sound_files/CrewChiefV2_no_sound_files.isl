@@ -1877,6 +1877,7 @@
 		<col def="S72">ISComponentSubFolder_</col>
 		<row><td>crewchiefv2.primary_output</td><td>CrewChiefV2.Primary_output</td><td>CrewChiefV2.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CrewChiefV2&gt;|Built</td><td>3</td><td/></row>
 		<row><td>readme.txt</td><td>ISX_DEFAULTCOMPONENT</td><td>README.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\projects\crewchief_c_sharp\WindowsFormsApplication1\README.txt</td><td>1</td><td/></row>
+		<row><td>sharpdx_licence.txt</td><td>ISX_DEFAULTCOMPONENT</td><td>SHARPD~1.TXT|SharpDX_licence.txt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\projects\crewchief_c_sharp\WindowsFormsApplication1\SharpDX_licence.txt</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
