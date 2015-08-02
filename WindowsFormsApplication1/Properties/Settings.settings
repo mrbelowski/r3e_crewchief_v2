@@ -116,5 +116,8 @@
     <Setting Name="TOGGLE_SPOTTER_FUNCTION_device_type" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="VOICE_OPTION" Type="System.String" Scope="User">
+      <Value Profile="(Default)">HOLD</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

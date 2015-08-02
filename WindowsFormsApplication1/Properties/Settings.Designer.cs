@@ -472,5 +472,17 @@ namespace CrewChiefV2.Properties {
                 this["TOGGLE_SPOTTER_FUNCTION_device_type"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("HOLD")]
+        public string VOICE_OPTION {
+            get {
+                return ((string)(this["VOICE_OPTION"]));
+            }
+            set {
+                this["VOICE_OPTION"] = value;
+            }
+        }
     }
 }

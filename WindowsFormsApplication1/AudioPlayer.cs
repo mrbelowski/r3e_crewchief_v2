@@ -109,6 +109,7 @@ namespace CrewChiefV2
             {
                 Console.WriteLine("The sound pack version in use is " + soundPackVersion + " but this version of the app requires version " 
                     + minimumSoundPackVersion + " or greater.");
+                Console.WriteLine("You must update your sound pack to run this application");
                 return false;
             }
             else

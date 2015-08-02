@@ -5,7 +5,12 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrewChiefV2", "WindowsFormsApplication1\CrewChiefV2.csproj", "{4240B0E2-69BC-4260-9706-C0CC5AAE04A5}"
 EndProject
-Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "Setup1", "Setup1\Setup1.isproj", "{A41BE1D7-3361-4391-AEA1-8B4F9B183082}"
+Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "CrewChiefV2_with_sound_pack", "Setup1\CrewChiefV2_with_sound_pack.isproj", "{A41BE1D7-3361-4391-AEA1-8B4F9B183082}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4240B0E2-69BC-4260-9706-C0CC5AAE04A5} = {4240B0E2-69BC-4260-9706-C0CC5AAE04A5}
+	EndProjectSection
+EndProject
+Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "CrewChiefV2_no_sound_files", "CrewChiefV2_no_sound_files\CrewChiefV2_no_sound_files.isproj", "{63DF477B-E005-4D23-B3CA-2A118D88383D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4240B0E2-69BC-4260-9706-C0CC5AAE04A5} = {4240B0E2-69BC-4260-9706-C0CC5AAE04A5}
 	EndProjectSection
@@ -39,6 +44,16 @@ Global
 		{A41BE1D7-3361-4391-AEA1-8B4F9B183082}.Release|Any CPU.Build.0 = SingleImage
 		{A41BE1D7-3361-4391-AEA1-8B4F9B183082}.SingleImage|Any CPU.ActiveCfg = SingleImage
 		{A41BE1D7-3361-4391-AEA1-8B4F9B183082}.SingleImage|Any CPU.Build.0 = SingleImage
+		{63DF477B-E005-4D23-B3CA-2A118D88383D}.CD_ROM|Any CPU.ActiveCfg = CD_ROM
+		{63DF477B-E005-4D23-B3CA-2A118D88383D}.CD_ROM|Any CPU.Build.0 = CD_ROM
+		{63DF477B-E005-4D23-B3CA-2A118D88383D}.Debug|Any CPU.ActiveCfg = DVD-5
+		{63DF477B-E005-4D23-B3CA-2A118D88383D}.Debug|Any CPU.Build.0 = DVD-5
+		{63DF477B-E005-4D23-B3CA-2A118D88383D}.DVD-5|Any CPU.ActiveCfg = DVD-5
+		{63DF477B-E005-4D23-B3CA-2A118D88383D}.DVD-5|Any CPU.Build.0 = DVD-5
+		{63DF477B-E005-4D23-B3CA-2A118D88383D}.Release|Any CPU.ActiveCfg = SingleImage
+		{63DF477B-E005-4D23-B3CA-2A118D88383D}.Release|Any CPU.Build.0 = SingleImage
+		{63DF477B-E005-4D23-B3CA-2A118D88383D}.SingleImage|Any CPU.ActiveCfg = SingleImage
+		{63DF477B-E005-4D23-B3CA-2A118D88383D}.SingleImage|Any CPU.Build.0 = SingleImage
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

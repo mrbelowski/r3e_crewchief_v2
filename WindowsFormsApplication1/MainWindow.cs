@@ -32,6 +32,8 @@ namespace CrewChiefV2
 
         private TimeSpan buttonCheckInterval = TimeSpan.FromMilliseconds(100);
 
+        private VoiceOptionEnum voiceOption;
+
         public bool IsAppRunning
         {
             get
@@ -52,13 +54,29 @@ namespace CrewChiefV2
             Console.SetOut(new ControlWriter(textBox1));
             crewChief = new CrewChief();
             getControllers();
-            controllerConfiguration.loadSettings(this);
-            runListenForChannelOpenThread = controllerConfiguration.listenForChannelOpen();
+            controllerConfiguration.loadSettings(this);            
+            voiceOption = getVoiceOptionEnum(UserSettings.GetUserSettings().getString("VOICE_OPTION"));
+            if (voiceOption == VoiceOptionEnum.DISABLED)
+            {
+                this.voiceDisableButton.Checked = true;
+            }
+            else if (voiceOption == VoiceOptionEnum.ALWAYS_ON)
+            {
+                this.alwaysOnButton.Checked = true;
+            } else if (voiceOption == VoiceOptionEnum.HOLD)
+            {
+                this.holdButton.Checked = true;
+            }
+            else if (voiceOption == VoiceOptionEnum.TOGGLE)
+            {
+                this.toggleButton.Checked = true;
+            }
+            runListenForChannelOpenThread = controllerConfiguration.listenForChannelOpen() && voiceOption != VoiceOptionEnum.DISABLED;
             speechRecogniser = new SpeechRecogniser(crewChief);
             if (runListenForChannelOpenThread) {
                 initialiseSpeechEngine();
             }
-            runListenForButtonPressesThread = controllerConfiguration.listenForButtons();
+            runListenForButtonPressesThread = controllerConfiguration.listenForButtons(voiceOption == VoiceOptionEnum.TOGGLE);
             updateActions();
             this.assignButtonToAction.Enabled = false;
             this.deleteAssigmentButton.Enabled = false;
@@ -67,8 +85,9 @@ namespace CrewChiefV2
         private void listenForChannelOpen()
         {
             Boolean channelOpen = false;
-            if (speechRecogniser != null && speechRecogniser.initialised)
+            if (speechRecogniser != null && speechRecogniser.initialised && voiceOption == VoiceOptionEnum.HOLD)
             {
+                speechRecogniser.continuousMode = false;
                 while (runListenForChannelOpenThread)
                 {
                     if (!channelOpen && controllerConfiguration.isChannelOpen())
@@ -83,18 +102,19 @@ namespace CrewChiefV2
                         speechRecogniser.recognizeAsyncCancel();
                         channelOpen = false;
                     }
-                }
+                }        
             }            
         }
 
         private void listenForButtons()
         {
             DateTime lastButtoncheck = DateTime.Now;
+            Boolean channelOpen = false;
             while (runListenForButtonPressesThread)
             {
                 DateTime now = DateTime.Now;
-                controllerConfiguration.pollForButtonClicks();
-                Boolean hadClick = false;
+                controllerConfiguration.pollForButtonClicks(voiceOption == VoiceOptionEnum.TOGGLE);
+                int nextPollWait = 0;
                 if (now > lastButtoncheck.Add(buttonCheckInterval))
                 {
                     lastButtoncheck = now;
@@ -102,20 +122,34 @@ namespace CrewChiefV2
                     {
                         Console.WriteLine("Toggling keep quiet mode");
                         crewChief.toggleKeepQuietMode();
-                        hadClick = true;
+                        nextPollWait = 1000;
                     }
                     else if (controllerConfiguration.hasOutstandingClick(ControllerConfiguration.TOGGLE_SPOTTER_FUNCTION))
                     {
                         Console.WriteLine("Toggling spotter mode");
                         crewChief.toggleSpotterMode();
-                        hadClick = true;
+                        nextPollWait = 1000;
+                    }
+                    else if (speechRecogniser.initialised && voiceOption == VoiceOptionEnum.TOGGLE && 
+                        controllerConfiguration.hasOutstandingClick(ControllerConfiguration.CHANNEL_OPEN_FUNCTION))
+                    {
+                        speechRecogniser.continuousMode = false;
+                        if (!channelOpen)
+                        {
+                            Console.WriteLine("Listening...");
+                            channelOpen = true;
+                            speechRecogniser.recognizeAsync();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Finished listening...");
+                            channelOpen = false;
+                            speechRecogniser.recognizeAsyncCancel();
+                        }
+                        nextPollWait = 1000;
                     }
                 }
-                if (hadClick)
-                {
-                    // don't poll for a second
-                    Thread.Sleep(1000);
-                }
+                Thread.Sleep(nextPollWait);
             }
         }
         
@@ -131,16 +165,22 @@ namespace CrewChiefV2
             {
                 this.assignButtonToAction.Enabled = false;
                 this.deleteAssigmentButton.Enabled = false;
+                this.groupBox1.Enabled = false;
                 this.button1.Enabled = false;
                 ThreadStart crewChiefWork = runApp;
                 Thread crewChiefThread = new Thread(crewChiefWork);
                 crewChiefThread.Start();
-                if (runListenForChannelOpenThread)
+                if (runListenForChannelOpenThread && voiceOption == VoiceOptionEnum.HOLD && speechRecogniser.initialised)
                 {
                     Console.WriteLine("Listening on default audio input device");
                     ThreadStart channelOpenButtonListenerWork = listenForChannelOpen;
                     Thread channelOpenButtonListenerThread = new Thread(channelOpenButtonListenerWork);
                     channelOpenButtonListenerThread.Start();
+                }
+                else if (voiceOption == VoiceOptionEnum.ALWAYS_ON && speechRecogniser.initialised)
+                {
+                    speechRecogniser.continuousMode = true;
+                    speechRecogniser.recognizeAsync();
                 }
                 if (runListenForButtonPressesThread)
                 {
@@ -152,12 +192,18 @@ namespace CrewChiefV2
             }
             else
             {
+                if (voiceOption == VoiceOptionEnum.ALWAYS_ON)
+                {
+                    Console.WriteLine("Stopping listening...");
+                    speechRecogniser.recognizeAsyncCancel();
+                }
                 this.deleteAssigmentButton.Enabled = this.buttonActionSelect.SelectedIndex > -1 &&
                     this.controllerConfiguration.buttonAssignments[this.buttonActionSelect.SelectedIndex].joystick != null;
                 this.assignButtonToAction.Enabled = this.buttonActionSelect.SelectedIndex > -1 && this.controllersList.SelectedIndex > -1;
                 stopApp();
                 Console.WriteLine("Application stopped");
                 this.button1.Enabled = true;
+                this.groupBox1.Enabled = true;
             }
         }
 
@@ -271,12 +317,12 @@ namespace CrewChiefV2
                 updateActions();
                 isAssigningButton = false;
                 controllerConfiguration.saveSettings();
-                runListenForChannelOpenThread = controllerConfiguration.listenForChannelOpen();
+                runListenForChannelOpenThread = controllerConfiguration.listenForChannelOpen() && voiceOption != VoiceOptionEnum.DISABLED;
                 if (runListenForChannelOpenThread)
                 {
                     initialiseSpeechEngine();
                 }
-                runListenForButtonPressesThread = controllerConfiguration.listenForButtons();
+                runListenForButtonPressesThread = controllerConfiguration.listenForButtons(voiceOption == VoiceOptionEnum.TOGGLE);
             }
             this.assignButtonToAction.Text = "Assign";
             controllerConfiguration.saveSettings();
@@ -289,19 +335,9 @@ namespace CrewChiefV2
                 this.controllerConfiguration.buttonAssignments[this.buttonActionSelect.SelectedIndex].unassign();                
                 updateActions();
                 runListenForChannelOpenThread = controllerConfiguration.listenForChannelOpen();
-                runListenForButtonPressesThread = controllerConfiguration.listenForButtons();
+                runListenForButtonPressesThread = controllerConfiguration.listenForButtons(voiceOption == VoiceOptionEnum.TOGGLE);
             }
             controllerConfiguration.saveSettings();
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void help_TextChanged(object sender, EventArgs e)
-        {
-
         }
 
         private void editPropertiesButtonClicked(object sender, EventArgs e)
@@ -309,6 +345,113 @@ namespace CrewChiefV2
             var form = new PropertiesForm(this);
             form.ShowDialog(this);
         }
+
+        private void voiceDisableButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (((RadioButton)sender).Checked)
+            {
+                runListenForChannelOpenThread = false;
+                voiceOption = VoiceOptionEnum.DISABLED;
+                UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
+                UserSettings.GetUserSettings().saveUserSettings();
+            }            
+        }
+        private void holdButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (((RadioButton)sender).Checked)
+            {
+                try
+                {
+                    if (speechRecogniser == null)
+                    {
+                        speechRecogniser = new SpeechRecogniser(crewChief);
+                    }
+                    speechRecogniser.initialiseSpeechEngine();
+                    speechRecogniser.continuousMode = true;
+                    voiceOption = VoiceOptionEnum.HOLD;
+                    runListenForChannelOpenThread = true;
+                    UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
+                    UserSettings.GetUserSettings().saveUserSettings();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Unable to initialise speech engine, message = " + ex.Message);
+                }  
+            }            
+        }
+        private void toggleButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (((RadioButton)sender).Checked)
+            {
+                runListenForChannelOpenThread = false;
+                try
+                {
+                    if (speechRecogniser == null)
+                    {
+                        speechRecogniser = new SpeechRecogniser(crewChief);
+                    }
+                    speechRecogniser.initialiseSpeechEngine();
+                    speechRecogniser.continuousMode = true;
+                    voiceOption = VoiceOptionEnum.TOGGLE;
+                    UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
+                    UserSettings.GetUserSettings().saveUserSettings();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Unable to initialise speech engine, message = " + ex.Message);
+                }  
+            }
+        }
+        private void alwaysOnButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (((RadioButton)sender).Checked)
+            {
+                runListenForChannelOpenThread = false;
+                try
+                {
+                    if (speechRecogniser == null)
+                    {
+                        speechRecogniser = new SpeechRecogniser(crewChief);
+                    }
+                    speechRecogniser.initialiseSpeechEngine();
+                    speechRecogniser.continuousMode = true;
+                    voiceOption = VoiceOptionEnum.ALWAYS_ON;
+                    UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
+                    UserSettings.GetUserSettings().saveUserSettings();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Unable to initialise speech engine, message = " + ex.Message);
+                }                
+            }
+        }
+            
+        private VoiceOptionEnum getVoiceOptionEnum(String enumStr)
+        {
+            VoiceOptionEnum enumVal = VoiceOptionEnum.DISABLED;
+            if (enumStr != null && enumStr.Length > 0) {
+                 enumVal = (VoiceOptionEnum)VoiceOptionEnum.Parse(typeof(VoiceOptionEnum), enumStr, true);
+            }
+            return enumVal;
+        }
+
+        private String getVoiceOptionString()
+        {
+            if (this.voiceOption == null)
+            {
+                return VoiceOptionEnum.DISABLED.ToString();
+            }
+            else
+            {
+                return voiceOption.ToString();
+            }
+        }
+
+        private enum VoiceOptionEnum
+        {
+            DISABLED, HOLD, TOGGLE, ALWAYS_ON
+        }
+    
     }
 
     public class ControlWriter : TextWriter

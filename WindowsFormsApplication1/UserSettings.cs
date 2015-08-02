@@ -9,7 +9,7 @@ namespace CrewChiefV2
 {
     class UserSettings
     {
-        private String[] reservedNameStarts = new String[] { "CHANNEL_", "TOGGLE_" };
+        private String[] reservedNameStarts = new String[] { "CHANNEL_", "TOGGLE_", "VOICE_OPTION" };
         private UserSettings()
         {
 

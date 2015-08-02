@@ -39,6 +39,12 @@
             this.label2 = new System.Windows.Forms.Label();
             this.help = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.alwaysOnButton = new System.Windows.Forms.RadioButton();
+            this.toggleButton = new System.Windows.Forms.RadioButton();
+            this.holdButton = new System.Windows.Forms.RadioButton();
+            this.voiceDisableButton = new System.Windows.Forms.RadioButton();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // textBox1
@@ -49,7 +55,7 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox1.Size = new System.Drawing.Size(892, 424);
+            this.textBox1.Size = new System.Drawing.Size(1093, 424);
             this.textBox1.TabIndex = 1;
             this.textBox1.Click += new System.EventHandler(this.assignButtonToActionClick);
             // 
@@ -83,7 +89,7 @@
             // 
             // assignButtonToAction
             // 
-            this.assignButtonToAction.Location = new System.Drawing.Point(766, 520);
+            this.assignButtonToAction.Location = new System.Drawing.Point(967, 520);
             this.assignButtonToAction.Name = "assignButtonToAction";
             this.assignButtonToAction.Size = new System.Drawing.Size(167, 39);
             this.assignButtonToAction.TabIndex = 9;
@@ -93,7 +99,7 @@
             // 
             // deleteAssigmentButton
             // 
-            this.deleteAssigmentButton.Location = new System.Drawing.Point(766, 575);
+            this.deleteAssigmentButton.Location = new System.Drawing.Point(967, 565);
             this.deleteAssigmentButton.Name = "deleteAssigmentButton";
             this.deleteAssigmentButton.Size = new System.Drawing.Size(167, 40);
             this.deleteAssigmentButton.TabIndex = 10;
@@ -130,11 +136,10 @@
             this.help.Size = new System.Drawing.Size(701, 59);
             this.help.TabIndex = 13;
             this.help.Text = resources.GetString("help.Text");
-            this.help.TextChanged += new System.EventHandler(this.help_TextChanged);
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(790, 12);
+            this.button1.Location = new System.Drawing.Point(991, 12);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(143, 41);
             this.button1.TabIndex = 14;
@@ -142,11 +147,73 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.editPropertiesButtonClicked);
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.alwaysOnButton);
+            this.groupBox1.Controls.Add(this.toggleButton);
+            this.groupBox1.Controls.Add(this.holdButton);
+            this.groupBox1.Controls.Add(this.voiceDisableButton);
+            this.groupBox1.Location = new System.Drawing.Point(761, 501);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(200, 121);
+            this.groupBox1.TabIndex = 15;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Voice recognition mode";
+            // 
+            // alwaysOnButton
+            // 
+            this.alwaysOnButton.AutoSize = true;
+            this.alwaysOnButton.Location = new System.Drawing.Point(7, 91);
+            this.alwaysOnButton.Name = "alwaysOnButton";
+            this.alwaysOnButton.Size = new System.Drawing.Size(73, 17);
+            this.alwaysOnButton.TabIndex = 3;
+            this.alwaysOnButton.TabStop = true;
+            this.alwaysOnButton.Text = "Always on";
+            this.alwaysOnButton.UseVisualStyleBackColor = true;
+            this.alwaysOnButton.CheckedChanged += new System.EventHandler(this.alwaysOnButton_CheckedChanged);
+            // 
+            // toggleButton
+            // 
+            this.toggleButton.AutoSize = true;
+            this.toggleButton.Location = new System.Drawing.Point(7, 67);
+            this.toggleButton.Name = "toggleButton";
+            this.toggleButton.Size = new System.Drawing.Size(91, 17);
+            this.toggleButton.TabIndex = 2;
+            this.toggleButton.TabStop = true;
+            this.toggleButton.Text = "Toggle button";
+            this.toggleButton.UseVisualStyleBackColor = true;
+            this.toggleButton.CheckedChanged += new System.EventHandler(this.toggleButton_CheckedChanged);
+            // 
+            // holdButton
+            // 
+            this.holdButton.AutoSize = true;
+            this.holdButton.Location = new System.Drawing.Point(7, 44);
+            this.holdButton.Name = "holdButton";
+            this.holdButton.Size = new System.Drawing.Size(80, 17);
+            this.holdButton.TabIndex = 1;
+            this.holdButton.TabStop = true;
+            this.holdButton.Text = "Hold button";
+            this.holdButton.UseVisualStyleBackColor = true;
+            this.holdButton.CheckedChanged += new System.EventHandler(this.holdButton_CheckedChanged);
+            // 
+            // voiceDisableButton
+            // 
+            this.voiceDisableButton.AutoSize = true;
+            this.voiceDisableButton.Location = new System.Drawing.Point(7, 20);
+            this.voiceDisableButton.Name = "voiceDisableButton";
+            this.voiceDisableButton.Size = new System.Drawing.Size(66, 17);
+            this.voiceDisableButton.TabIndex = 0;
+            this.voiceDisableButton.TabStop = true;
+            this.voiceDisableButton.Text = "Disabled";
+            this.voiceDisableButton.UseVisualStyleBackColor = true;
+            this.voiceDisableButton.CheckedChanged += new System.EventHandler(this.voiceDisableButton_CheckedChanged);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(968, 692);
+            this.ClientSize = new System.Drawing.Size(1146, 692);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.help);
             this.Controls.Add(this.label2);
@@ -160,6 +227,8 @@
             this.Name = "MainWindow";
             this.Text = "Crew Chief V2";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.stopApp);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -177,6 +246,11 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox help;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.RadioButton alwaysOnButton;
+        private System.Windows.Forms.RadioButton toggleButton;
+        private System.Windows.Forms.RadioButton holdButton;
+        private System.Windows.Forms.RadioButton voiceDisableButton;
 
     }
 }

@@ -52,6 +52,8 @@ namespace CrewChiefV2
 
         public Boolean initialised = false;
 
+        public Boolean continuousMode = false;
+
         public SpeechRecogniser(CrewChief crewChief)
         {
             this.crewChief = crewChief;
@@ -179,13 +181,26 @@ namespace CrewChiefV2
             else
             {
                 crewChief.youWot();
+            }            
+            if (continuousMode)
+            {
+                recognizeAsyncCancel();
+                recognizeAsync();
+            }
+            else
+            {
+                recognizeAsyncStop();
             }
         }
 
         public void recognizeAsync()
         {
-            sre.RecognizeAsyncCancel();
             sre.RecognizeAsync();
+        }
+
+        public void recognizeAsyncStop()
+        {
+            sre.RecognizeAsyncStop();
         }
 
         public void recognizeAsyncCancel()

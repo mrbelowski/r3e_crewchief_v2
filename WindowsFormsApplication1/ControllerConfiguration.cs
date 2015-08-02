@@ -31,10 +31,14 @@ namespace CrewChiefV2
             controllers = getControllers();
         }
 
-        public void pollForButtonClicks()
+        public void pollForButtonClicks(Boolean channelOpenIsToggle)
         {
             pollForButtonClicks(buttonAssignments[buttonAssignmentIndexes[TOGGLE_RACE_UPDATES_FUNCTION]]);
             pollForButtonClicks(buttonAssignments[buttonAssignmentIndexes[TOGGLE_SPOTTER_FUNCTION]]);
+            if (channelOpenIsToggle) 
+            {
+                pollForButtonClicks(buttonAssignments[buttonAssignmentIndexes[CHANNEL_OPEN_FUNCTION]]);
+            }
         }
 
         private void pollForButtonClicks(ButtonAssignment ba)
@@ -72,11 +76,12 @@ namespace CrewChiefV2
             return false;            
         }
 
-        public Boolean listenForButtons()
+        public Boolean listenForButtons(Boolean channelOpenIsToggle)
         {
             foreach (ButtonAssignment buttonAssignment in buttonAssignments)
             {
-                if (buttonAssignment.action != CHANNEL_OPEN_FUNCTION && buttonAssignment.joystick != null && buttonAssignment.buttonIndex != -1)
+                if ((channelOpenIsToggle || buttonAssignment.action != CHANNEL_OPEN_FUNCTION) &&
+                    buttonAssignment.joystick != null && buttonAssignment.buttonIndex != -1)
                 {
                     return true;
                 }
