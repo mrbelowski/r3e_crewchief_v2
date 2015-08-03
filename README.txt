@@ -36,5 +36,6 @@ Updating the app
 ----------------
 The app, the voice recognition packs, and the sound pack are all separate. To install a new version simply download the CrewChiefV2_with_no_sounds and unzip it over the top of your existing installation. If the sound pack also needs to be updated, when you run the app you'll get an error in the console window telling you to update the sound pack. To do this, download the latest sound pack and replace the existing one with this new one. 
 
-At the time of writing, the sound pack can be downloaded here : https://drive.google.com/file/d/0B4KQS820QNFbQTZHX2tlWVdMTFk/view?usp=sharing
-At the time of writing, the application can be downloaded here: https://drive.google.com/file/d/0B4KQS820QNFbd21UNnI4RFMtV1k/view?usp=sharing
+At the time of writing, the sound pack can be downloaded here          : https://drive.google.com/file/d/0B4KQS820QNFbQTZHX2tlWVdMTFk/view?usp=sharing
+At the time of writing, the application can be downloaded here         : https://drive.google.com/file/d/0B4KQS820QNFbd21UNnI4RFMtV1k/view?usp=sharing
+At the time of writing, the full app with sounds can be downloaded here: https://drive.google.com/file/d/0B4KQS820QNFbZjBpamNsdWxhZUE/view?usp=sharing
