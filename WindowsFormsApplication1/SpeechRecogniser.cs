@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CrewChiefV2.Events;
+using System.Threading;
 
 namespace CrewChiefV2
 {
@@ -193,15 +194,14 @@ namespace CrewChiefV2
             else
             {
                 crewChief.youWot();
-            }            
+            }          
+            
+            recognizeAsyncStop();
+            Thread.Sleep(500);
             if (continuousMode)
             {
-                recognizeAsyncCancel();
+                Console.WriteLine("restarting speech recognition");
                 recognizeAsync();
-            }
-            else
-            {
-                recognizeAsyncStop();
             }
         }
 

@@ -253,6 +253,11 @@ namespace CrewChiefV2.Events
 
         public override void respond(string voiceMessage)
         {
+            if (!hasHadAPenalty)
+            {
+                audioPlayer.playClipImmediately(folderYouDontHaveAPenalty, new QueuedMessage(0, null));
+                return;
+            }
             if (voiceMessage.Contains(SpeechRecogniser.DO_I_HAVE_A_PENALTY))
             {
                 if (hasOutstandingPenalty) {
@@ -286,10 +291,7 @@ namespace CrewChiefV2.Events
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_noYouStillHaveAPenalty",
                         new QueuedMessage(messages, 0, null));
                 }
-                else if (!hasHadAPenalty)
-                {
-                    audioPlayer.playClipImmediately(folderYouDontHaveAPenalty, new QueuedMessage(0, null));
-                } else
+                else
                 {
                     List<String> messages = new List<String>();
                     messages.Add(AudioPlayer.folderYes);
@@ -310,10 +312,6 @@ namespace CrewChiefV2.Events
                     }
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesYouStillHaveAPenalty",
                         new QueuedMessage(messages, 0, null));
-                }
-                else if (!hasHadAPenalty)
-                {
-                    audioPlayer.playClipImmediately(folderYouDontHaveAPenalty, new QueuedMessage(0, null));
                 }
                 else
                 {
