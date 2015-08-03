@@ -100,7 +100,13 @@ namespace CrewChiefV2
             Console.WriteLine("Voice dir full path = " + voiceFolderPath);
             Console.WriteLine("FX dir full path = " + fxFolderPath);
             Console.WriteLine("Background sound dir full path = " + backgroundFilesPath);
-            float soundPackVersion = getSoundPackVersion();
+            DirectoryInfo soundDirectory = new DirectoryInfo(soundFilesPath);
+            if (!soundDirectory.Exists)
+            {
+                Console.WriteLine("Unable to find sound directory " + soundDirectory.FullName);
+                return false;
+            }
+            float soundPackVersion = getSoundPackVersion(soundDirectory);
             if (soundPackVersion == -1)
             {
                 Console.WriteLine("Unable to get sound pack version - expected a file called version_info with a single line containing a version number, e.g. 2.0");
@@ -121,6 +127,11 @@ namespace CrewChiefV2
             try
             {
                 DirectoryInfo fxSoundDirectory = new DirectoryInfo(fxFolderPath);
+                if (!fxSoundDirectory.Exists)
+                {
+                    Console.WriteLine("Unable to find fx directory " + fxSoundDirectory.FullName);
+                    return false;
+                }
                 FileInfo[] bleepFiles = fxSoundDirectory.GetFiles();
                 foreach (FileInfo bleepFile in bleepFiles)
                 {
@@ -139,6 +150,11 @@ namespace CrewChiefV2
                     }
                 }
                 DirectoryInfo voiceSoundDirectory = new DirectoryInfo(voiceFolderPath);
+                if (!voiceSoundDirectory.Exists)
+                {
+                    Console.WriteLine("Unable to find voice directory " + voiceSoundDirectory.FullName);
+                    return false;
+                }
                 DirectoryInfo[] eventFolders = voiceSoundDirectory.GetDirectories();
                 foreach (DirectoryInfo eventFolder in eventFolders)
                 {
@@ -207,9 +223,8 @@ namespace CrewChiefV2
             return false;
         }
 
-        public float getSoundPackVersion()
+        public float getSoundPackVersion(DirectoryInfo soundDirectory)
         {
-            DirectoryInfo soundDirectory = new DirectoryInfo(soundFilesPath);
             FileInfo[] filesInSoundDirectory = soundDirectory.GetFiles();
             
             float soundfilesVersion = -1f;
