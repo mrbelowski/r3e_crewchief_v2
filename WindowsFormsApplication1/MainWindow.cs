@@ -90,9 +90,9 @@ namespace CrewChiefV2
             {
                 this.toggleButton.Checked = true;
             }
-            runListenForChannelOpenThread = controllerConfiguration.listenForChannelOpen() && voiceOption != VoiceOptionEnum.DISABLED;
             speechRecogniser = new SpeechRecogniser(crewChief);
-            if (runListenForChannelOpenThread) {
+            if (voiceOption != VoiceOptionEnum.DISABLED)
+            {
                 initialiseSpeechEngine();
             }
             runListenForButtonPressesThread = controllerConfiguration.listenForButtons(voiceOption == VoiceOptionEnum.TOGGLE);
@@ -196,6 +196,11 @@ namespace CrewChiefV2
                 ThreadStart crewChiefWork = runApp;
                 Thread crewChiefThread = new Thread(crewChiefWork);
                 crewChiefThread.Start();
+                // TODO: this listen flag controls the while loop. It's set to false in the 
+                // 'stop' method, but isn't reset to true before getting back to this point.
+                // 
+                runListenForChannelOpenThread = controllerConfiguration.listenForChannelOpen()
+                    && voiceOption == VoiceOptionEnum.HOLD && speechRecogniser.initialised;
                 if (runListenForChannelOpenThread && voiceOption == VoiceOptionEnum.HOLD && speechRecogniser.initialised)
                 {
                     Console.WriteLine("Listening on default audio input device");
@@ -328,7 +333,6 @@ namespace CrewChiefV2
                     speechRecogniser.initialiseSpeechEngine();
                     Console.WriteLine("Attempted to initialise speech engine - success = " + speechRecogniser.initialised);
                 }
-                runListenForChannelOpenThread = speechRecogniser.initialised;
             }
             catch (Exception e)
             {
