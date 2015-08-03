@@ -20,6 +20,7 @@ namespace CrewChiefV2
         public static String TYRE_WEAR = "tyre wear";
         public static String TYRE_TEMPS = "tyre temps";
         public static String AERO = "aero";
+        public static String BODY_WORK = "body work";
         public static String TRANSMISSION = "transmission";
         public static String ENGINE = "engine";
         public static String PACE = "pace";
@@ -103,7 +104,7 @@ namespace CrewChiefV2
             try
             {
                 Choices info1 = new Choices();
-                info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, TRANSMISSION, ENGINE, PACE });
+                info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, BODY_WORK, TRANSMISSION, ENGINE, PACE });
                 GrammarBuilder gb1 = new GrammarBuilder();
                 gb1.Culture = cultureInfo;
                 gb1.Append("how is my");
@@ -236,6 +237,13 @@ namespace CrewChiefV2
                 recognisedSpeech.Contains(LEAVE_ME_ALONE))
             {
                 crewChief.enableKeepQuietMode();
+            }
+            else if (recognisedSpeech.Contains(AERO) ||
+               recognisedSpeech.Contains(BODY_WORK) ||
+               recognisedSpeech.Contains(TRANSMISSION) ||
+               recognisedSpeech.Contains(ENGINE))
+            {
+                return CrewChief.getEvent("DamageReporting");
             }
             else if (recognisedSpeech.Contains(KEEP_ME_UPDATED) ||
                 recognisedSpeech.Contains(KEEP_ME_POSTED) ||

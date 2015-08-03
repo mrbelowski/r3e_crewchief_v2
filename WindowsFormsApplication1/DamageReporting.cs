@@ -20,6 +20,10 @@ namespace CrewChiefV2.Events
         private String folderBustedTransmission = "damage_reporting/busted_transmission";
         private String folderBustedEngine = "damage_reporting/busted_engine";
 
+        private String folderNoTransmissionDamage = "damage_reporting/no_transmission_damage";
+        private String folderNoEngineDamage = "damage_reporting/no_engine_damage";
+        private String folderNoAeroDamage = "damage_reporting/no_aero_damage";
+
         Boolean playedMinorTransmissionDamage;
         Boolean playedMinorEngineDamage;
         Boolean playedMinorAeroDamage;
@@ -40,6 +44,10 @@ namespace CrewChiefV2.Events
         float bustedTransmissionThreshold = 0.0f;
         float bustedEngineThreshold = 0.0f;
 
+        float engineDamage = 1f;
+        float trannyDamage = 1f;
+        float aeroDamage = 1f;
+
         Boolean damageEnabled;
 
         public DamageReporting(AudioPlayer audioPlayer)
@@ -52,6 +60,9 @@ namespace CrewChiefV2.Events
         {
             playedMinorTransmissionDamage = false; playedMinorEngineDamage = false; playedMinorAeroDamage = false; playedSevereAeroDamage = false;
             playedSevereTransmissionDamage = false; playedSevereEngineDamage = false; playedBustedTransmission = false; playedBustedEngine = false;
+            engineDamage = 1;
+            trannyDamage = 1;
+            aeroDamage = 1;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -83,6 +94,9 @@ namespace CrewChiefV2.Events
             }
             if (damageEnabled)
             {
+                aeroDamage = currentState.CarDamage.Aerodynamics;
+                trannyDamage = currentState.CarDamage.Transmission;
+                engineDamage = currentState.CarDamage.Engine;
                 if (!playedBustedEngine && currentState.CarDamage.Engine <= bustedEngineThreshold)
                 {
                     audioPlayer.queueClip(folderBustedEngine, 0, this);
@@ -140,6 +154,63 @@ namespace CrewChiefV2.Events
                 {
                     audioPlayer.queueClip(folderMinorAeroDamage, 5, this);
                     playedMinorAeroDamage = true;
+                }
+            }
+        }
+
+        public override void respond(String voiceMessage)
+        {
+            if (voiceMessage.Contains(SpeechRecogniser.AERO) || voiceMessage.Contains(SpeechRecogniser.BODY_WORK))
+            {
+                if (aeroDamage == 1 || aeroDamage == -1)
+                {
+                    audioPlayer.playClipImmediately(folderNoAeroDamage, new QueuedMessage(0, null));
+                }
+                else if (aeroDamage <= severeAeroDamageThreshold)
+                {
+                    audioPlayer.playClipImmediately(folderSevereAeroDamage, new QueuedMessage(0, null));
+                }
+                else if (aeroDamage <= minorAeroDamageThreshold)
+                {
+                    audioPlayer.playClipImmediately(folderMinorAeroDamage, new QueuedMessage(0, null));
+                }
+            }
+            if (voiceMessage.Contains(SpeechRecogniser.TRANSMISSION))
+            {
+                if (trannyDamage == 1 || trannyDamage == -1)
+                {
+                    audioPlayer.playClipImmediately(folderNoTransmissionDamage, new QueuedMessage(0, null));
+                }
+                else if (trannyDamage <= bustedTransmissionThreshold)
+                {
+                    audioPlayer.playClipImmediately(folderBustedTransmission, new QueuedMessage(0, null));
+                }
+                else if (trannyDamage <= severeTransmissionDamageThreshold)
+                {
+                    audioPlayer.playClipImmediately(folderSevereTransmissionDamage, new QueuedMessage(0, null));
+                }
+                else if (trannyDamage <= minorTransmissionDamageThreshold)
+                {
+                    audioPlayer.playClipImmediately(folderMinorTransmissionDamage, new QueuedMessage(0, null));
+                }
+            }
+            if (voiceMessage.Contains(SpeechRecogniser.ENGINE))
+            {
+                if (engineDamage == 1 || engineDamage == -1)
+                {
+                    audioPlayer.playClipImmediately(folderNoEngineDamage, new QueuedMessage(0, null));
+                }
+                else if (engineDamage <= bustedEngineThreshold)
+                {
+                    audioPlayer.playClipImmediately(folderBustedEngine, new QueuedMessage(0, null));
+                }
+                else if (engineDamage <= severeEngineDamageThreshold)
+                {
+                    audioPlayer.playClipImmediately(folderSevereEngineDamage, new QueuedMessage(0, null));
+                }
+                else if (engineDamage <= minorEngineDamageThreshold)
+                {
+                    audioPlayer.playClipImmediately(folderMinorEngineDamage, new QueuedMessage(0, null));
                 }
             }
         }
