@@ -13,18 +13,17 @@ For speech recognition, you need a microphone configured as the default "Recordi
 
 I've not finished implementing this but currently the app understands and responds to the following commands:
 
-"how is my [fuel / tyre temps]"
+"how is my [fuel / tyre temps / body work / aero / engine / transmission]"
 "what's my [gap in front / gap ahead / gap behind / last lap / last lap time / lap time / position]"
 "keep quiet / I know what I'm doing / leave me alone" (switches off messages)
 "keep me informed / keep me posted / keep me updated" (switches messages back on)
 "how long's left / how many laps are left / how many laps to go"
 "spot / don't spot" (switches the spotter on and off - note even in "leave me alone" mode the spotter still operates unless you explicitly switch it off)
-
+"do I still have a penalty / do I have a penalty / have I served my penalty"
 
 
 Other button assignments
 ------------------------
-
 You can assign the 'toggle spotter on/off' and 'toggle race updates on/off' to separate buttons if you want to be able to toggle the spotter function and toggle the crew chief's updates on or off during the race. This doesn't require voice recognition to be installed - simply run the app, assign a button to one or both of these functions, and when in-race pressing that button will toggle the spotter or crew chief on and off.
 
 
@@ -35,4 +34,7 @@ This is untested. If your controller doesn't show up in the list of available co
 
 Updating the app
 ----------------
-The app, the voice recognition packs, and the sound pack are all separate. To install a new version simply download the CrewChiefV2_with_no_sounds and unzip it over the top of your existing installation. If the sound pack also needs to be updated, when you run the app you'll get an error in the console window telling you to update the sound pack. To do this, download the latest sound pack and replace the existing one with this new one.
+The app, the voice recognition packs, and the sound pack are all separate. To install a new version simply download the CrewChiefV2_with_no_sounds and unzip it over the top of your existing installation. If the sound pack also needs to be updated, when you run the app you'll get an error in the console window telling you to update the sound pack. To do this, download the latest sound pack and replace the existing one with this new one. 
+
+At the time of writing, the sound pack can be downloaded here : 
+At the time of writing, the application can be downloaded here: 

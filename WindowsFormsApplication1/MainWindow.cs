@@ -106,6 +106,7 @@ namespace CrewChiefV2
             Boolean channelOpen = false;
             if (speechRecogniser != null && speechRecogniser.initialised && voiceOption == VoiceOptionEnum.HOLD)
             {
+                Console.WriteLine("Running speech recognition in 'hold button' mode");
                 speechRecogniser.continuousMode = false;
                 while (runListenForChannelOpenThread)
                 {
@@ -130,6 +131,10 @@ namespace CrewChiefV2
         {
             DateTime lastButtoncheck = DateTime.Now;
             Boolean channelOpen = false;
+            if (speechRecogniser.initialised && voiceOption == VoiceOptionEnum.TOGGLE) 
+            {
+                Console.WriteLine("Running speech recognition in 'toggle button' mode");
+            }
             while (runListenForButtonPressesThread)
             {
                 Thread.Sleep(100);
@@ -200,6 +205,7 @@ namespace CrewChiefV2
                 }
                 else if (voiceOption == VoiceOptionEnum.ALWAYS_ON && speechRecogniser.initialised)
                 {
+                    Console.WriteLine("Running speech recognition in 'always on' mode");
                     speechRecogniser.continuousMode = true;
                     speechRecogniser.recognizeAsync();
                 }
@@ -372,6 +378,7 @@ namespace CrewChiefV2
             if (((RadioButton)sender).Checked)
             {
                 runListenForChannelOpenThread = false;
+                runListenForButtonPressesThread = controllerConfiguration.listenForButtons(false);
                 voiceOption = VoiceOptionEnum.DISABLED;
                 UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
                 UserSettings.GetUserSettings().saveUserSettings();
@@ -381,6 +388,7 @@ namespace CrewChiefV2
         {
             if (((RadioButton)sender).Checked)
             {
+                runListenForButtonPressesThread = controllerConfiguration.listenForButtons(false);
                 try
                 {
                     if (speechRecogniser == null)
@@ -404,6 +412,7 @@ namespace CrewChiefV2
         {
             if (((RadioButton)sender).Checked)
             {
+                runListenForButtonPressesThread = true;
                 runListenForChannelOpenThread = false;
                 try
                 {
@@ -428,6 +437,7 @@ namespace CrewChiefV2
             if (((RadioButton)sender).Checked)
             {
                 runListenForChannelOpenThread = false;
+                runListenForButtonPressesThread = controllerConfiguration.listenForButtons(false);
                 try
                 {
                     if (speechRecogniser == null)

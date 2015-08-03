@@ -23,7 +23,6 @@ namespace CrewChiefV2
         public static String BODY_WORK = "body work";
         public static String TRANSMISSION = "transmission";
         public static String ENGINE = "engine";
-        public static String PACE = "pace";
         public static String GAP_IN_FRONT = "gap in front";
         public static String GAP_AHEAD = "gap ahead";
         public static String GAP_BEHIND = "gap behind";
@@ -50,7 +49,7 @@ namespace CrewChiefV2
 
         public static String DO_I_STILL_HAVE_A_PENALTY = "do I still have a penalty";
         public static String DO_I_HAVE_A_PENALTY = "do I have a penalty";
-        public static String HAVE_I_SERVED_MY_PENALTY = "I served my penalty";
+        public static String HAVE_I_SERVED_MY_PENALTY = "have I served my penalty";
 
         private float confidenceLimit = 0.5f;
 
@@ -104,7 +103,7 @@ namespace CrewChiefV2
             try
             {
                 Choices info1 = new Choices();
-                info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, BODY_WORK, TRANSMISSION, ENGINE, PACE });
+                info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, BODY_WORK, TRANSMISSION, ENGINE });
                 GrammarBuilder gb1 = new GrammarBuilder();
                 gb1.Culture = cultureInfo;
                 gb1.Append("how is my");
