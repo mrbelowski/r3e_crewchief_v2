@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace CrewChiefV2
 {
@@ -29,6 +30,20 @@ namespace CrewChiefV2
             addButtonAssignment(TOGGLE_RACE_UPDATES_FUNCTION);
             addButtonAssignment(TOGGLE_SPOTTER_FUNCTION);
             controllers = getControllers();
+        }
+
+        public void addCustomController(Guid guid)
+        {
+            var joystick = new Joystick(directInput, guid);
+            String productName = " custom device";
+            try
+            {
+                productName = ": " + joystick.Properties.ProductName;
+            }
+            catch (Exception e)
+            {
+            }
+            controllers.Add(new ControllerData(productName, DeviceType.Joystick, guid));
         }
 
         public void pollForButtonClicks(Boolean channelOpenIsToggle)
@@ -63,17 +78,17 @@ namespace CrewChiefV2
             }
             return false;
         }
-
+        
         public Boolean listenForChannelOpen()
         {
             foreach (ButtonAssignment buttonAssignment in buttonAssignments)
             {
-                if (buttonAssignment.action == CHANNEL_OPEN_FUNCTION && buttonAssignment.joystick != null && buttonAssignment.buttonIndex != -1) 
+                if (buttonAssignment.action == CHANNEL_OPEN_FUNCTION && buttonAssignment.joystick != null && buttonAssignment.buttonIndex != -1)
                 {
                     return true;
                 }
             }
-            return false;            
+            return false;
         }
 
         public Boolean listenForButtons(Boolean channelOpenIsToggle)
@@ -294,12 +309,13 @@ namespace CrewChiefV2
                     return action + " (not assigned)";
                 }
             }
-
+            
             public void unassign()
             {
                 this.controller = null;
                 this.buttonIndex = -1;
                 this.joystick.Unacquire();
+                this.joystick.SetNotification(null);
                 this.joystick = null;
             }
         }

@@ -46,6 +46,10 @@ namespace CrewChiefV2
         private static String SPOT = "spot";
         private static String DONT_SPOT = "don't spot";
 
+        public static String DO_I_STILL_HAVE_A_PENALTY = "do I still have a penalty";
+        public static String DO_I_HAVE_A_PENALTY = "do I have a penalty";
+        public static String HAVE_I_SERVED_MY_PENALTY = "I served my penalty";
+
         private float confidenceLimit = 0.5f;
 
         private CrewChief crewChief;
@@ -141,12 +145,20 @@ namespace CrewChiefV2
                 gb6.Append(info6);
                 Grammar g6 = new Grammar(gb6);
 
+                Choices info7 = new Choices();
+                info7.Add(new string[] { HAVE_I_SERVED_MY_PENALTY, DO_I_HAVE_A_PENALTY, DO_I_STILL_HAVE_A_PENALTY });
+                GrammarBuilder gb7 = new GrammarBuilder();
+                gb7.Culture = cultureInfo;
+                gb7.Append(info7);
+                Grammar g7 = new Grammar(gb7);
+
                 sre.LoadGrammar(g1);
                 sre.LoadGrammar(g2);
                 sre.LoadGrammar(g3);
                 sre.LoadGrammar(g4);
                 sre.LoadGrammar(g5);
                 sre.LoadGrammar(g6);
+                sre.LoadGrammar(g7);
             }
             catch (Exception e)
             {
@@ -260,6 +272,12 @@ namespace CrewChiefV2
                 recognisedSpeech.Contains(HOW_MANY_LAPS_LEFT))
             {
                 return CrewChief.getEvent("RaceTime");
+            }
+            else if (recognisedSpeech.Contains(DO_I_STILL_HAVE_A_PENALTY) || 
+                recognisedSpeech.Contains(DO_I_HAVE_A_PENALTY) ||
+                recognisedSpeech.Contains(HAVE_I_SERVED_MY_PENALTY))
+            {
+                return CrewChief.getEvent("Penalties");
             }
             return null;
         }

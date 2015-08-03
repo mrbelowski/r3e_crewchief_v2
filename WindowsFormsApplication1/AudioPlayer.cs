@@ -19,6 +19,8 @@ namespace CrewChiefV2
         public static String folderAcknowlegeDisableKeepQuiet = "acknowledge/keepQuietDisabled";
         public static String folderDidntUnderstand = "acknowledge/didnt_understand";
         public static String folderNoData = "acknowledge/no_data";
+        public static String folderYes = "acknowledge/yes";
+        public static String folderNo = "acknowledge/no";
 
         private Boolean keepQuiet = false;
         private Boolean channelOpen = false;

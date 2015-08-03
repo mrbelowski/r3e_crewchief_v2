@@ -54,7 +54,26 @@ namespace CrewChiefV2
             Console.SetOut(new ControlWriter(textBox1));
             crewChief = new CrewChief();
             getControllers();
-            controllerConfiguration.loadSettings(this);            
+            controllerConfiguration.loadSettings(this);
+            String customDeviceGuid = UserSettings.GetUserSettings().getString("custom_device_guid");
+            if (customDeviceGuid != null && customDeviceGuid.Length > 0)
+            {
+                try
+                {
+                    Guid guid;
+                    if (Guid.TryParse(customDeviceGuid, out guid)) {
+                        controllerConfiguration.addCustomController(guid);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Failed to add custom device, unable to process GUID");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Failed to add custom device, message: " + e.Message);
+                }
+            }
             voiceOption = getVoiceOptionEnum(UserSettings.GetUserSettings().getString("VOICE_OPTION"));
             if (voiceOption == VoiceOptionEnum.DISABLED)
             {
@@ -90,6 +109,7 @@ namespace CrewChiefV2
                 speechRecogniser.continuousMode = false;
                 while (runListenForChannelOpenThread)
                 {
+                    Thread.Sleep(100);
                     if (!channelOpen && controllerConfiguration.isChannelOpen())
                     {
                         channelOpen = true;
@@ -112,6 +132,7 @@ namespace CrewChiefV2
             Boolean channelOpen = false;
             while (runListenForButtonPressesThread)
             {
+                Thread.Sleep(100);
                 DateTime now = DateTime.Now;
                 controllerConfiguration.pollForButtonClicks(voiceOption == VoiceOptionEnum.TOGGLE);
                 int nextPollWait = 0;

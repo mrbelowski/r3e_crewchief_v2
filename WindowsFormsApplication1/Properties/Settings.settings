@@ -5,9 +5,6 @@
     <Setting Name="sound_files_path" Type="System.String" Scope="User">
       <Value Profile="(Default)">sounds</Value>
     </Setting>
-    <Setting Name="background_sound_files_path" Type="System.String" Scope="User">
-      <Value Profile="(Default)">background_sounds</Value>
-    </Setting>
     <Setting Name="background_volume" Type="System.Single" Scope="User">
       <Value Profile="(Default)">0.25</Value>
     </Setting>
@@ -118,6 +115,9 @@
     </Setting>
     <Setting Name="VOICE_OPTION" Type="System.String" Scope="User">
       <Value Profile="(Default)">HOLD</Value>
+    </Setting>
+    <Setting Name="custom_device_guid" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

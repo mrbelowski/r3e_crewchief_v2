@@ -39,6 +39,17 @@ namespace CrewChiefV2.Events
 
         private String folderCutTrackPracticeOrQual = "penalties/cut_track_in_prac_or_qual";
 
+        // for voice requests
+        private String folderYouStillHavePenalty = "penalties/you_still_have_a_penalty";
+
+        private String folderYouHavePenalty = "penalties/you_have_a_penalty";
+
+        private String folderPenaltyServed = "penalties/penalty_served";
+
+        private String folderYouDontHaveAPenalty = "penalties/you_dont_have_a_penalty";
+
+        private Boolean hasHadAPenalty;
+
         private int penaltyLap;
 
         private int lapsCompleted;
@@ -67,6 +78,7 @@ namespace CrewChiefV2.Events
             clearPenaltyState();
             lastCutTrackWarningTime = DateTime.Now;
             cutTrackWarningsCount = 0;
+            hasHadAPenalty = false;
         }
 
         private void clearPenaltyState()
@@ -148,6 +160,7 @@ namespace CrewChiefV2.Events
                         penaltyLap = currentState.CompletedLaps;
                     }
                     hasOutstandingPenalty = true;
+                    hasHadAPenalty = true;
                 }
                 else if (hasNewStopGo(lastState, currentState))
                 {
@@ -162,6 +175,7 @@ namespace CrewChiefV2.Events
                         penaltyLap = currentState.CompletedLaps;
                     }
                     hasOutstandingPenalty = true;
+                    hasHadAPenalty = true;
                 }
                 else if (CommonData.isNewLap && (hasDriveThrough(currentState) || hasStopGo(currentState)))
                 {
@@ -233,6 +247,81 @@ namespace CrewChiefV2.Events
             {
                 // TODO: this ain't right...
                 clearPenaltyState();
+            }
+        }
+
+        public override void respond(string voiceMessage)
+        {
+            if (voiceMessage.Contains(SpeechRecogniser.DO_I_HAVE_A_PENALTY))
+            {
+                if (hasOutstandingPenalty) {
+                    if (lapsCompleted - penaltyLap == 2) {
+                        List<String> messages = new List<String>();
+                        messages.Add(folderYouHavePenalty);
+                        messages.Add(MandatoryPitStops.folderMandatoryPitStopsPitThisLap);
+                        audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_youHaveAPenaltyBoxThisLap",
+                            new QueuedMessage(messages, 0, null));
+                    } else
+                    {
+                        audioPlayer.playClipImmediately(folderYouHavePenalty, new QueuedMessage(0, null));
+                    }
+                }
+                else
+                {
+                    audioPlayer.playClipImmediately(folderYouDontHaveAPenalty, new QueuedMessage(0, null));
+                }
+            }
+            else if (voiceMessage.Contains(SpeechRecogniser.HAVE_I_SERVED_MY_PENALTY))
+            {
+                if (hasOutstandingPenalty)
+                {
+                    List<String> messages = new List<String>();
+                    messages.Add(AudioPlayer.folderNo);
+                    messages.Add(folderYouStillHavePenalty);
+                    if (lapsCompleted - penaltyLap == 2)
+                    {
+                        messages.Add(MandatoryPitStops.folderMandatoryPitStopsPitThisLap);
+                    }
+                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_noYouStillHaveAPenalty",
+                        new QueuedMessage(messages, 0, null));
+                }
+                else if (!hasHadAPenalty)
+                {
+                    audioPlayer.playClipImmediately(folderYouDontHaveAPenalty, new QueuedMessage(0, null));
+                } else
+                {
+                    List<String> messages = new List<String>();
+                    messages.Add(AudioPlayer.folderYes);
+                    messages.Add(folderPenaltyServed);
+                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesYouServedYourPenalty",
+                        new QueuedMessage(messages, 0, null));
+                }
+            } else if (voiceMessage.Contains(SpeechRecogniser.DO_I_STILL_HAVE_A_PENALTY))
+            {
+                if (hasOutstandingPenalty)
+                {
+                    List<String> messages = new List<String>();
+                    messages.Add(AudioPlayer.folderYes);
+                    messages.Add(folderYouStillHavePenalty);
+                    if (lapsCompleted - penaltyLap == 2)
+                    {
+                        messages.Add(MandatoryPitStops.folderMandatoryPitStopsPitThisLap);
+                    }
+                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesYouStillHaveAPenalty",
+                        new QueuedMessage(messages, 0, null));
+                }
+                else if (!hasHadAPenalty)
+                {
+                    audioPlayer.playClipImmediately(folderYouDontHaveAPenalty, new QueuedMessage(0, null));
+                }
+                else
+                {
+                    List<String> messages = new List<String>();
+                    messages.Add(AudioPlayer.folderNo);
+                    messages.Add(folderPenaltyServed);
+                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_noYouServedYourPenalty",
+                        new QueuedMessage(messages, 0, null));
+                }                
             }
         }
     }

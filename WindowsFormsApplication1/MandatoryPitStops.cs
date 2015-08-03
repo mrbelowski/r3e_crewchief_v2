@@ -28,7 +28,7 @@ namespace CrewChiefV2.Events
 
         private String folderMandatoryPitStopsPitWindowClosed = "mandatory_pit_stops/pit_window_closed";
 
-        private String folderMandatoryPitStopsPitThisLap = "mandatory_pit_stops/pit_this_lap";
+        public static String folderMandatoryPitStopsPitThisLap = "mandatory_pit_stops/pit_this_lap";
 
         private String folderMandatoryPitStopsPitThisLapTooLate = "mandatory_pit_stops/pit_this_lap_too_late";
 

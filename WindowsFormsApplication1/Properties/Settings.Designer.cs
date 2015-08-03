@@ -37,18 +37,6 @@ namespace CrewChiefV2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("background_sounds")]
-        public string background_sound_files_path {
-            get {
-                return ((string)(this["background_sound_files_path"]));
-            }
-            set {
-                this["background_sound_files_path"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0.25")]
         public float background_volume {
             get {
@@ -482,6 +470,18 @@ namespace CrewChiefV2.Properties {
             }
             set {
                 this["VOICE_OPTION"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string custom_device_guid {
+            get {
+                return ((string)(this["custom_device_guid"]));
+            }
+            set {
+                this["custom_device_guid"] = value;
             }
         }
     }
