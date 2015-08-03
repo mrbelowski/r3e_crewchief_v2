@@ -107,7 +107,7 @@ namespace CrewChiefV2
             if (speechRecogniser != null && speechRecogniser.initialised && voiceOption == VoiceOptionEnum.HOLD)
             {
                 Console.WriteLine("Running speech recognition in 'hold button' mode");
-                speechRecogniser.continuousMode = false;
+                speechRecogniser.voiceOptionEnum = VoiceOptionEnum.HOLD;
                 while (runListenForChannelOpenThread)
                 {
                     Thread.Sleep(100);
@@ -159,7 +159,7 @@ namespace CrewChiefV2
                     else if (speechRecogniser.initialised && voiceOption == VoiceOptionEnum.TOGGLE && 
                         controllerConfiguration.hasOutstandingClick(ControllerConfiguration.CHANNEL_OPEN_FUNCTION))
                     {
-                        speechRecogniser.continuousMode = false;
+                        speechRecogniser.voiceOptionEnum = VoiceOptionEnum.TOGGLE;
                         if (!channelOpen)
                         {
                             Console.WriteLine("Listening...");
@@ -206,7 +206,7 @@ namespace CrewChiefV2
                 else if (voiceOption == VoiceOptionEnum.ALWAYS_ON && speechRecogniser.initialised)
                 {
                     Console.WriteLine("Running speech recognition in 'always on' mode");
-                    speechRecogniser.continuousMode = true;
+                    speechRecogniser.voiceOptionEnum = VoiceOptionEnum.ALWAYS_ON;
                     speechRecogniser.recognizeAsync();
                 }
                 if (runListenForButtonPressesThread)
@@ -396,7 +396,7 @@ namespace CrewChiefV2
                         speechRecogniser = new SpeechRecogniser(crewChief);
                     }
                     speechRecogniser.initialiseSpeechEngine();
-                    speechRecogniser.continuousMode = true;
+                    speechRecogniser.voiceOptionEnum = VoiceOptionEnum.HOLD;
                     voiceOption = VoiceOptionEnum.HOLD;
                     runListenForChannelOpenThread = true;
                     UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
@@ -421,7 +421,7 @@ namespace CrewChiefV2
                         speechRecogniser = new SpeechRecogniser(crewChief);
                     }
                     speechRecogniser.initialiseSpeechEngine();
-                    speechRecogniser.continuousMode = true;
+                    speechRecogniser.voiceOptionEnum = VoiceOptionEnum.TOGGLE;
                     voiceOption = VoiceOptionEnum.TOGGLE;
                     UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
                     UserSettings.GetUserSettings().saveUserSettings();
@@ -445,7 +445,7 @@ namespace CrewChiefV2
                         speechRecogniser = new SpeechRecogniser(crewChief);
                     }
                     speechRecogniser.initialiseSpeechEngine();
-                    speechRecogniser.continuousMode = true;
+                    speechRecogniser.voiceOptionEnum = VoiceOptionEnum.ALWAYS_ON;
                     voiceOption = VoiceOptionEnum.ALWAYS_ON;
                     UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
                     UserSettings.GetUserSettings().saveUserSettings();
@@ -478,7 +478,7 @@ namespace CrewChiefV2
             }
         }
 
-        private enum VoiceOptionEnum
+        public enum VoiceOptionEnum
         {
             DISABLED, HOLD, TOGGLE, ALWAYS_ON
         }

@@ -57,7 +57,7 @@ namespace CrewChiefV2
 
         public Boolean initialised = false;
 
-        public Boolean continuousMode = false;
+        public MainWindow.VoiceOptionEnum voiceOptionEnum;
 
         public SpeechRecogniser(CrewChief crewChief)
         {
@@ -194,11 +194,12 @@ namespace CrewChiefV2
             else
             {
                 crewChief.youWot();
-            }          
-            
+            }
+
             recognizeAsyncStop();
             Thread.Sleep(500);
-            if (continuousMode)
+            if (voiceOptionEnum == MainWindow.VoiceOptionEnum.ALWAYS_ON ||
+                voiceOptionEnum == MainWindow.VoiceOptionEnum.TOGGLE)
             {
                 Console.WriteLine("restarting speech recognition");
                 recognizeAsync();
