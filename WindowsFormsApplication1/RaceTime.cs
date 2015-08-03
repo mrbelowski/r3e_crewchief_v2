@@ -29,6 +29,8 @@ namespace CrewChiefV2.Events
         private String folderMinutesLeft = "race_time/minutes_remaining";
         private String folderLapsLeft = "race_time/laps_remaining";
 
+        private String folderLessThanOneMinute = "race_time/less_than_one_minute";
+
         private Boolean played2mins, played5mins, played10mins, played15mins, played20mins, playedHalfWayHome, playedLastLap;
 
         private float halfTime;
@@ -192,18 +194,30 @@ namespace CrewChiefV2.Events
                 messages.Add(QueuedMessage.folderNameStub + lapsLeft);
                 messages.Add(folderLapsLeft);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/laps_remaining",
-                    new QueuedMessage(messages, 0, this));
+                    new QueuedMessage(messages, 0, null));
                 audioPlayer.closeChannel();
             }
-            else if (timeLeft > 0)
+            else if (lapsLeft == 0)
+            {
+                audioPlayer.playClipImmediately(folderLastLap, new QueuedMessage(0, null));
+            }
+            else if (timeLeft >= 1)
             {
                 TimeSpan timeLeftTimeSpan = TimeSpan.FromSeconds(timeLeft);
                 List<String> messages = new List<String>();
                 messages.Add(QueuedMessage.folderNameStub + timeLeftTimeSpan.Minutes);
                 messages.Add(folderMinutesLeft);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/time_remaining",
-                    new QueuedMessage(messages, 0, this));
+                    new QueuedMessage(messages, 0, null));
                 audioPlayer.closeChannel();
+            }
+            else if (timeLeft <= 1)
+            {
+                audioPlayer.playClipImmediately(folderLessThanOneMinute, new QueuedMessage(0, null));
+            }
+            else if (timeLeft <= 0)
+            {
+                audioPlayer.playClipImmediately(folderLastLap, new QueuedMessage(0, null));
             }
         }
     }
