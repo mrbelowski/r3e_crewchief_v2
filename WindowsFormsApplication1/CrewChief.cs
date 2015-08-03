@@ -141,7 +141,7 @@ namespace CrewChiefV2
                 eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
                 eventsList.Add("PushNow", new PushNow(audioPlayer));
                 eventsList.Add("Spotter", new Spotter(audioPlayer, spotterEnabled));
-
+                Boolean displayedMappingMessage = false;
                 while (CrewChief.running)
                 {
                     var timeNow = DateTime.UtcNow;
@@ -156,7 +156,11 @@ namespace CrewChiefV2
 
                     if (Utilities.IsRrreRunning() && !Mapped)
                     {
-                        Console.WriteLine("Found RRRE.exe, mapping shared memory...");
+                        if (!displayedMappingMessage)
+                        {
+                            Console.WriteLine("Found RRRE.exe, mapping shared memory...");
+                            displayedMappingMessage = true;
+                        }
 
                         if (Map())
                         {

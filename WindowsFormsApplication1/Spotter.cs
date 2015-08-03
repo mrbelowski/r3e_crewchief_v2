@@ -58,12 +58,15 @@ namespace CrewChiefV2.Events
         private Boolean newlyClear = true;
         private Boolean newlyOverlapping = true;
 
-        private Boolean enabled = true;
+        private Boolean enabled;
+
+        private Boolean initialEnabledState;
 
         public Spotter(AudioPlayer audioPlayer, Boolean initialEnabledState)
         {
             this.audioPlayer = audioPlayer;
             this.enabled = initialEnabledState;
+            this.initialEnabledState = initialEnabledState;
         }
 
         public override void clearState()
@@ -72,7 +75,7 @@ namespace CrewChiefV2.Events
             timeOfLastHoldMessage = DateTime.Now;
             newlyClear = true;
             newlyOverlapping = true;
-            enabled = true;
+            enabled = initialEnabledState;
         }
 
         public override bool isClipStillValid(string eventSubType)
