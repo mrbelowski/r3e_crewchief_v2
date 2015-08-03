@@ -39,8 +39,6 @@ namespace CrewChiefV2
 
         private String fxFolderPath;
 
-        private String backgroundFolderName = UserSettings.GetUserSettings().getString("background_sound_files_path");
-
         private float backgroundVolume = UserSettings.GetUserSettings().getFloat("background_volume");
 
         private readonly TimeSpan minTimeBetweenPearlsOfWisdom = TimeSpan.FromSeconds(UserSettings.GetUserSettings().getInt("minimum_time_between_pearls_of_wisdom"));
