@@ -117,16 +117,17 @@ namespace CrewChiefV2.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (CommonData.isRaceStarted &&
-                currentState.PitWindowStatus != (int)Constant.PitWindow.Disabled && currentState.PitWindowStart != -1 &&
+            // once the pit window is closed, the pit data get removed from the data block...
+            if (CommonData.isRaceStarted && (pitDataInitialised ||
+                (currentState.PitWindowStatus != (int)Constant.PitWindow.Disabled && currentState.PitWindowStart != -1)) &&
                 currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int)Constant.Session.Race)
-            {
-                mandatoryStopCompleted = false;
-                mandatoryStopRequired = true;
-                mandatoryStopBoxThisLap = false;
-                mandatoryStopMissed = false;
+            {                
                 if (!pitDataInitialised)
                 {
+                    mandatoryStopCompleted = false;
+                    mandatoryStopRequired = true;
+                    mandatoryStopBoxThisLap = false;
+                    mandatoryStopMissed = false;
                     Console.WriteLine("pit start = " + currentState.PitWindowStart + ", pit end = " + currentState.PitWindowEnd);
                     if (currentState.NumberOfLaps > 0)
                     {
@@ -207,7 +208,7 @@ namespace CrewChiefV2.Events
                             audioPlayer.setBackgroundSound(AudioPlayer.dtmPitWindowOpenBackground);
                             audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen, 0, this);
                         }
-                        else if (currentState.CompletedLaps == pitWindowClosedLap)
+                        else if (currentState.CompletedLaps == pitWindowClosedLap -1 )
                         {
                             audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosing, 0, this);
                             if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed)
@@ -216,7 +217,7 @@ namespace CrewChiefV2.Events
                                 playBoxNowMessage = true;
                             }
                         }
-                        else if (currentState.CompletedLaps == pitWindowClosedLap + 1)
+                        else if (currentState.CompletedLaps == pitWindowClosedLap)
                         {
                             audioPlayer.setBackgroundSound(AudioPlayer.dtmPitWindowClosedBackground);
                             audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosed, 0, this);
@@ -350,7 +351,7 @@ namespace CrewChiefV2.Events
             {
                 List<String> messages = new List<String>();
                 messages.Add(folderMandatoryPitStopsYesStopAfter);
-                messages.Add(QueuedMessage.folderNameNumbersStub + pitWindowOpenLap);
+                messages.Add(QueuedMessage.folderNameNumbersStub + pitWindowOpenTime);
                 messages.Add(folderMandatoryPitStopsMinutes);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesBoxAfter", new QueuedMessage(messages, 0, null));
             }

@@ -36,8 +36,8 @@ namespace CrewChiefV2.Events
 
         float minorTransmissionDamageThreshold = 0.97f;
         float minorEngineDamageThreshold = 0.97f;
-        float minorAeroDamageThreshold = 0.97f;
-        float trivialAeroDamageThreshold = 0.999f;
+        float minorAeroDamageThreshold = 0.99f;
+        float trivialAeroDamageThreshold = 0.9999f;
 
         float severeTransmissionDamageThreshold = 0.4f;
         float severeEngineDamageThreshold = 0.4f;
@@ -164,6 +164,7 @@ namespace CrewChiefV2.Events
         {
             if (voiceMessage.Contains(SpeechRecogniser.AERO) || voiceMessage.Contains(SpeechRecogniser.BODY_WORK))
             {
+                Console.WriteLine("Aero damage = " + aeroDamage);
                 if (aeroDamage == 1 || aeroDamage == -1)
                 {
                     audioPlayer.playClipImmediately(folderNoAeroDamage, new QueuedMessage(0, null));

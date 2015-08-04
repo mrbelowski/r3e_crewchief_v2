@@ -52,6 +52,7 @@ namespace CrewChiefV2
         public static String HAVE_I_SERVED_MY_PENALTY = "have I served my penalty";
 
         public static String DO_I_HAVE_TO_PIT = "do I have to pit";
+        public static String DO_I_NEED_TO_PIT = "do I need to pit";
         public static String DO_I_HAVE_A_MANDATORY_PIT_STOP = "do I have a mandatory pit stop";
         public static String DO_I_HAVE_A_MANDATORY_STOP = "do I have a mandatory stop";
         public static String DO_I_HAVE_TO_MAKE_A_PIT_STOP = "do I have to make a pit stop";
@@ -159,7 +160,7 @@ namespace CrewChiefV2
                 Grammar g7 = new Grammar(gb7);
 
                 Choices info8 = new Choices();
-                info8.Add(new string[] { DO_I_HAVE_A_MANDATORY_PIT_STOP, DO_I_HAVE_A_MANDATORY_STOP, DO_I_HAVE_TO_MAKE_A_PIT_STOP, DO_I_HAVE_TO_PIT });
+                info8.Add(new string[] { DO_I_HAVE_A_MANDATORY_PIT_STOP, DO_I_NEED_TO_PIT, DO_I_HAVE_A_MANDATORY_STOP, DO_I_HAVE_TO_MAKE_A_PIT_STOP, DO_I_HAVE_TO_PIT });
                 GrammarBuilder gb8 = new GrammarBuilder();
                 gb8.Culture = cultureInfo;
                 gb8.Append(info8);
@@ -303,6 +304,7 @@ namespace CrewChiefV2
             else if (recognisedSpeech.Contains(DO_I_HAVE_TO_PIT) ||
                recognisedSpeech.Contains(DO_I_HAVE_A_MANDATORY_PIT_STOP) ||
                recognisedSpeech.Contains(DO_I_HAVE_A_MANDATORY_STOP) ||
+               recognisedSpeech.Contains(DO_I_NEED_TO_PIT) ||
                 recognisedSpeech.Contains(DO_I_HAVE_TO_MAKE_A_PIT_STOP))
             {
                 return CrewChief.getEvent("MandatoryPitStops");

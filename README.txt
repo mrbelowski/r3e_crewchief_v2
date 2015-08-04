@@ -26,7 +26,7 @@ I've not finished implementing this but currently the app understands and respon
 "how long's left / how many laps are left / how many laps to go"
 "spot / don't spot" (switches the spotter on and off - note even in "leave me alone" mode the spotter still operates unless you explicitly switch it off)
 "do I still have a penalty / do I have a penalty / have I served my penalty"
-"do I have to pit / do I have a mandatory pit stop / do I have a mandatory stop / do I have to make a pit stop"
+"do I have to pit / do I need to pit / do I have a mandatory pit stop / do I have a mandatory stop / do I have to make a pit stop"
 
 
 Other button assignments
