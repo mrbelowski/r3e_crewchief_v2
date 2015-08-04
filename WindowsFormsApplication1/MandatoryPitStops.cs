@@ -38,6 +38,7 @@ namespace CrewChiefV2.Events
         private String folderMandatoryPitStopsYesStopOnLap = "mandatory_pit_stops/yes_stop_on_lap";
         private String folderMandatoryPitStopsYesStopAfter = "mandatory_pit_stops/yes_stop_after";
         private String folderMandatoryPitStopsMinutes = "mandatory_pit_stops/minutes";
+        private String folderMandatoryPitStopsMissedStop = "mandatory_pit_stops/missed_stop";
 
 
         private int pitWindowOpenLap;
@@ -168,6 +169,8 @@ namespace CrewChiefV2.Events
                     playPitThisLap = false;
                     playBoxNowMessage = false;
                     mandatoryStopCompleted = true;
+                    mandatoryStopBoxThisLap = false;
+                    mandatoryStopMissed = false;
                 }
                 else
                 {
@@ -327,7 +330,7 @@ namespace CrewChiefV2.Events
             }
             else if (mandatoryStopMissed)
             {
-                audioPlayer.playClipImmediately(AudioPlayer.folderNo, new QueuedMessage(0, null));
+                audioPlayer.playClipImmediately(folderMandatoryPitStopsMissedStop, new QueuedMessage(0, null));
             }
             else if (mandatoryStopBoxThisLap)
             {
