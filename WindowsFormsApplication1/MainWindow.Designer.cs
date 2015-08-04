@@ -89,7 +89,7 @@
             // 
             // assignButtonToAction
             // 
-            this.assignButtonToAction.Location = new System.Drawing.Point(967, 520);
+            this.assignButtonToAction.Location = new System.Drawing.Point(748, 520);
             this.assignButtonToAction.Name = "assignButtonToAction";
             this.assignButtonToAction.Size = new System.Drawing.Size(167, 39);
             this.assignButtonToAction.TabIndex = 9;
@@ -99,7 +99,7 @@
             // 
             // deleteAssigmentButton
             // 
-            this.deleteAssigmentButton.Location = new System.Drawing.Point(967, 565);
+            this.deleteAssigmentButton.Location = new System.Drawing.Point(748, 565);
             this.deleteAssigmentButton.Name = "deleteAssigmentButton";
             this.deleteAssigmentButton.Size = new System.Drawing.Size(167, 40);
             this.deleteAssigmentButton.TabIndex = 10;
@@ -153,7 +153,7 @@
             this.groupBox1.Controls.Add(this.toggleButton);
             this.groupBox1.Controls.Add(this.holdButton);
             this.groupBox1.Controls.Add(this.voiceDisableButton);
-            this.groupBox1.Location = new System.Drawing.Point(761, 501);
+            this.groupBox1.Location = new System.Drawing.Point(934, 520);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(200, 121);
             this.groupBox1.TabIndex = 15;

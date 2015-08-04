@@ -73,7 +73,7 @@ namespace CrewChiefV2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool use_sweary_messages {
             get {
                 return ((bool)(this["use_sweary_messages"]));
@@ -295,7 +295,7 @@ namespace CrewChiefV2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0.8")]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.7")]
         public float pearls_of_wisdom_likelihood {
             get {
                 return ((float)(this["pearls_of_wisdom_likelihood"]));
@@ -319,7 +319,7 @@ namespace CrewChiefV2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("99")]
+        [global::System.Configuration.DefaultSettingValueAttribute("97")]
         public float max_good_tyre_temp {
             get {
                 return ((float)(this["max_good_tyre_temp"]));
@@ -463,7 +463,7 @@ namespace CrewChiefV2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("HOLD")]
+        [global::System.Configuration.DefaultSettingValueAttribute("DISABLED")]
         public string VOICE_OPTION {
             get {
                 return ((string)(this["VOICE_OPTION"]));
