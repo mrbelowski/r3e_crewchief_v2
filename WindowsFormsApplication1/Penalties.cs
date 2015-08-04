@@ -221,16 +221,23 @@ namespace CrewChiefV2.Events
             else if (currentState.CarSpeed > 1 && playCutTrackWarnings && currentState.SessionType != (int)Constant.Session.Race &&
               currentState.LapTimeCurrent == -1 && lastState.LapTimeCurrent != -1)
             {
-                lastCutTrackWarningTime = DateTime.Now;
-                audioPlayer.queueClip(folderLapDeleted, 2, this);
                 cutTrackWarningsCount = currentState.CutTrackWarnings;
-                clearPenaltyState();
+                DateTime now = DateTime.Now;
+                if (currentState.ControlType != (int)Constant.Control.AI &&
+                    lastCutTrackWarningTime.Add(cutTrackWarningFrequency) < now)
+                {
+                    lastCutTrackWarningTime = DateTime.Now;
+                    audioPlayer.queueClip(folderLapDeleted, 2, this);
+                    clearPenaltyState();
+                }
             }
-            else if (currentState.CarSpeed > 1 && playCutTrackWarnings && currentState.CutTrackWarnings > cutTrackWarningsCount)
+            else if (currentState.CarSpeed > 1 && playCutTrackWarnings && 
+                currentState.CutTrackWarnings > cutTrackWarningsCount)
             {
                 cutTrackWarningsCount = currentState.CutTrackWarnings;
                 DateTime now = DateTime.Now;
-                if (lastCutTrackWarningTime.Add(cutTrackWarningFrequency) < now)
+                if (currentState.ControlType != (int)Constant.Control.AI && 
+                    lastCutTrackWarningTime.Add(cutTrackWarningFrequency) < now)
                 {
                     lastCutTrackWarningTime = now;
                     if (currentState.SessionType == (int)Constant.Session.Race)
@@ -241,13 +248,19 @@ namespace CrewChiefV2.Events
                     {
                         audioPlayer.queueClip(folderCutTrackPracticeOrQual, 2, this);
                     }
+                    clearPenaltyState();
                 }
-                clearPenaltyState();
-            }
+            }            
             else
             {
                 // TODO: this ain't right...
                 clearPenaltyState();
+            }
+            if (CommonData.isRaceStarted && 
+                (lastState.Penalties.DriveThrough > 0 && currentState.Penalties.DriveThrough < lastState.Penalties.DriveThrough) ||
+                (lastState.Penalties.StopAndGo > 0 && currentState.Penalties.StopAndGo < lastState.Penalties.StopAndGo))
+            {
+                audioPlayer.queueClip(folderPenaltyServed, 0, null);
             }
         }
 
