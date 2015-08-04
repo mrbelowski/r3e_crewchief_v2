@@ -23,6 +23,7 @@ namespace CrewChiefV2.Events
         private String folderNoTransmissionDamage = "damage_reporting/no_transmission_damage";
         private String folderNoEngineDamage = "damage_reporting/no_engine_damage";
         private String folderNoAeroDamage = "damage_reporting/no_aero_damage";
+        private String folderJustAScratch = "damage_reporting/trivial_aero_damage";
 
         Boolean playedMinorTransmissionDamage;
         Boolean playedMinorEngineDamage;
@@ -36,6 +37,7 @@ namespace CrewChiefV2.Events
         float minorTransmissionDamageThreshold = 0.97f;
         float minorEngineDamageThreshold = 0.97f;
         float minorAeroDamageThreshold = 0.97f;
+        float trivialAeroDamageThreshold = 0.999f;
 
         float severeTransmissionDamageThreshold = 0.4f;
         float severeEngineDamageThreshold = 0.4f;
@@ -173,6 +175,10 @@ namespace CrewChiefV2.Events
                 else if (aeroDamage <= minorAeroDamageThreshold)
                 {
                     audioPlayer.playClipImmediately(folderMinorAeroDamage, new QueuedMessage(0, null));
+                }
+                else if (aeroDamage <= trivialAeroDamageThreshold)
+                {
+                    audioPlayer.playClipImmediately(folderJustAScratch, new QueuedMessage(0, null));
                 }
             }
             if (voiceMessage.Contains(SpeechRecogniser.TRANSMISSION))

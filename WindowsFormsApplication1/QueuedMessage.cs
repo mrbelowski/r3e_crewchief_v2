@@ -12,7 +12,7 @@ namespace CrewChiefV2
 
         public static String folderNameOh = "numbers/oh";
         public static String folderNamePoint = "numbers/point";
-        public static String folderNameStub = "numbers/";
+        public static String folderNameNumbersStub = "numbers/";
         public static String folderZeroZero = "numbers/zerozero";
 
         // if a queued message is a gap filler, it's only played if the queue only contains 1 other message
@@ -126,7 +126,7 @@ namespace CrewChiefV2
                 messages.Add(folderNamePoint);
                 if (tenths == 0)
                 {
-                    messages.Add(folderNameStub + 0);
+                    messages.Add(folderNameNumbersStub + 0);
                 }
                 else
                 {
@@ -154,26 +154,26 @@ namespace CrewChiefV2
                         }
                         else
                         {
-                            names.Add(folderNameStub + "0" + number);
+                            names.Add(folderNameNumbersStub + "0" + number);
                         }
                     }
                     else if (zeroType == ZeroType.ZERO)
                     {
-                        names.Add(folderNameStub + 0);
+                        names.Add(folderNameNumbersStub + 0);
                         if (number > 0)
                         {
-                            names.Add(folderNameStub + number);
+                            names.Add(folderNameNumbersStub + number);
                         }
                     }
                     else
                     {
-                        names.Add(folderNameStub + number);
+                        names.Add(folderNameNumbersStub + number);
                     }
                 }
                 else
                 {
                     // > 10 so use the actual number
-                    names.Add(folderNameStub + number);
+                    names.Add(folderNameNumbersStub + number);
                 }
             }
             return names;

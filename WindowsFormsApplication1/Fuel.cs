@@ -254,7 +254,7 @@ namespace CrewChiefV2.Events
                 {
                     List<String> messages = new List<String>();
                     messages.Add(folderWeEstimate);
-                    messages.Add(QueuedMessage.folderNameStub + (int)Math.Floor(currentFuel / averageUsagePerLap));
+                    messages.Add(QueuedMessage.folderNameNumbersStub + (int)Math.Floor(currentFuel / averageUsagePerLap));
                     messages.Add(folderLapsRemaining);
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Fuel/estimate",
                         new QueuedMessage(messages, 0, this));
@@ -265,7 +265,7 @@ namespace CrewChiefV2.Events
                 {
                     List<String> messages = new List<String>();
                     messages.Add(folderWeEstimate);
-                    messages.Add(QueuedMessage.folderNameStub + (int)Math.Floor(currentFuel / averageUsagePerMinute));
+                    messages.Add(QueuedMessage.folderNameNumbersStub + (int)Math.Floor(currentFuel / averageUsagePerMinute));
                     messages.Add(folderMinutesRemaining);
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Fuel/estimate",
                         new QueuedMessage(messages, 0, this));

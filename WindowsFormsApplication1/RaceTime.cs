@@ -191,7 +191,7 @@ namespace CrewChiefV2.Events
             if (lapsLeft > 0)
             {
                 List<String> messages = new List<String>();
-                messages.Add(QueuedMessage.folderNameStub + lapsLeft);
+                messages.Add(QueuedMessage.folderNameNumbersStub + lapsLeft);
                 messages.Add(folderLapsLeft);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/laps_remaining",
                     new QueuedMessage(messages, 0, null));
@@ -205,7 +205,7 @@ namespace CrewChiefV2.Events
             {
                 TimeSpan timeLeftTimeSpan = TimeSpan.FromSeconds(timeLeft);
                 List<String> messages = new List<String>();
-                messages.Add(QueuedMessage.folderNameStub + timeLeftTimeSpan.Minutes);
+                messages.Add(QueuedMessage.folderNameNumbersStub + timeLeftTimeSpan.Minutes);
                 messages.Add(folderMinutesLeft);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/time_remaining",
                     new QueuedMessage(messages, 0, null));

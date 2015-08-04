@@ -30,7 +30,6 @@ namespace CrewChiefV2.Events
         private String folderHotWater = "engine_monitor/hot_water";
         private String folderHotOil = "engine_monitor/hot_oil";
         private String folderHotOilAndWater = "engine_monitor/hot_oil_and_water";
-        private String folderLowOilPressure = "engine_monitor/low_oil_pressure";
 
         private static float maxSafeWaterTempOverBaseline = UserSettings.GetUserSettings().getFloat("max_safe_water_temp_over_baseline");
         private static float maxSafeOilTempOverBaseline = UserSettings.GetUserSettings().getFloat("max_safe_oil_temp_over_baseline");
@@ -136,10 +135,6 @@ namespace CrewChiefV2.Events
                                     audioPlayer.queueClip(folderHotOilAndWater, 0, this);
                                     lastStatusMessage = currentEngineStatus;
                                     break;
-                                case EngineStatus.LOW_OIL_PRESSURE:
-                                    audioPlayer.queueClip(folderLowOilPressure, 0, this);
-                                    lastStatusMessage = currentEngineStatus;
-                                    break;
                             }
                         }
                         gameTimeAtLastStatusCheck = currentState.Player.GameSimulationTime;
@@ -202,7 +197,7 @@ namespace CrewChiefV2.Events
 
         private enum EngineStatus
         {
-            ALL_CLEAR, HOT_OIL, HOT_WATER, HOT_OIL_AND_WATER, LOW_OIL_PRESSURE
+            ALL_CLEAR, HOT_OIL, HOT_WATER, HOT_OIL_AND_WATER
         }
     }
 }

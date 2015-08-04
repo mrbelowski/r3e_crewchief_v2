@@ -51,6 +51,11 @@ namespace CrewChiefV2
         public static String DO_I_HAVE_A_PENALTY = "do I have a penalty";
         public static String HAVE_I_SERVED_MY_PENALTY = "have I served my penalty";
 
+        public static String DO_I_HAVE_TO_PIT = "do I have to pit";
+        public static String DO_I_HAVE_A_MANDATORY_PIT_STOP = "do I have a mandatory pit stop";
+        public static String DO_I_HAVE_A_MANDATORY_STOP = "do I have a mandatory stop";
+        public static String DO_I_HAVE_TO_MAKE_A_PIT_STOP = "do I have to make a pit stop";
+
         private float confidenceLimit = 0.5f;
 
         private CrewChief crewChief;
@@ -153,6 +158,13 @@ namespace CrewChiefV2
                 gb7.Append(info7);
                 Grammar g7 = new Grammar(gb7);
 
+                Choices info8 = new Choices();
+                info8.Add(new string[] { DO_I_HAVE_A_MANDATORY_PIT_STOP, DO_I_HAVE_A_MANDATORY_STOP, DO_I_HAVE_TO_MAKE_A_PIT_STOP, DO_I_HAVE_TO_PIT });
+                GrammarBuilder gb8 = new GrammarBuilder();
+                gb8.Culture = cultureInfo;
+                gb8.Append(info8);
+                Grammar g8 = new Grammar(gb8);
+
                 sre.LoadGrammar(g1);
                 sre.LoadGrammar(g2);
                 sre.LoadGrammar(g3);
@@ -160,6 +172,7 @@ namespace CrewChiefV2
                 sre.LoadGrammar(g5);
                 sre.LoadGrammar(g6);
                 sre.LoadGrammar(g7);
+                sre.LoadGrammar(g8);
             }
             catch (Exception e)
             {
@@ -281,11 +294,18 @@ namespace CrewChiefV2
             {
                 return CrewChief.getEvent("RaceTime");
             }
-            else if (recognisedSpeech.Contains(DO_I_STILL_HAVE_A_PENALTY) || 
+            else if (recognisedSpeech.Contains(DO_I_STILL_HAVE_A_PENALTY) ||
                 recognisedSpeech.Contains(DO_I_HAVE_A_PENALTY) ||
                 recognisedSpeech.Contains(HAVE_I_SERVED_MY_PENALTY))
             {
                 return CrewChief.getEvent("Penalties");
+            }
+            else if (recognisedSpeech.Contains(DO_I_HAVE_TO_PIT) ||
+               recognisedSpeech.Contains(DO_I_HAVE_A_MANDATORY_PIT_STOP) ||
+               recognisedSpeech.Contains(DO_I_HAVE_A_MANDATORY_STOP) ||
+                recognisedSpeech.Contains(DO_I_HAVE_TO_MAKE_A_PIT_STOP))
+            {
+                return CrewChief.getEvent("MandatoryPitStops");
             }
             return null;
         }
