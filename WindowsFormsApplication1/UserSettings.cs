@@ -31,6 +31,10 @@ namespace CrewChiefV2
             propertyHelp.Add("custom_device_guid", "Manually set a controller GUID if the app doesn't display your controller in the devices list");
             propertyHelp.Add("disable_immediate_messages", "Disables all spotter messages and all voice recognition responses. " +
                 "Might allow the app to run in non-interactive mode on slow systems");
+            propertyHelp.Add("max_safe_oil_temp_over_baseline", "Baseline oil temp is taken after a few minutes. If the oil temp goes more than this value over the baseline " +
+                "a warning message is played. Reduce this to make the 'high oil temp' warning more sensitive");
+            propertyHelp.Add("max_safe_water_temp_over_baseline", "Baseline water temp is taken after a few minutes. If the water temp goes more than this value over the baseline " +
+                "a warning message is played. Reduce this to make the 'high water temp' warning more sensitive");
         }
 
         public String getHelp(String propertyId)
