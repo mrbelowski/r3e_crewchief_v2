@@ -29,6 +29,8 @@ namespace CrewChiefV2
             propertyHelp.Add("spotter_overlap_delay", "You need to be overlapping for this many milliseconds before the spotter calls 'hold your line'");
             propertyHelp.Add("read_lap_times", "Occasionally read out the player's laptimes when crossing the line");
             propertyHelp.Add("custom_device_guid", "Manually set a controller GUID if the app doesn't display your controller in the devices list");
+            propertyHelp.Add("disable_immediate_messages", "Disables all spotter messages and all voice recognition responses. " +
+                "Might allow the app to run in non-interactive mode on slow systems");
         }
 
         public String getHelp(String propertyId)
