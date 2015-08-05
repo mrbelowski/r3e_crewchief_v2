@@ -200,10 +200,17 @@ namespace CrewChiefV2
             Console.WriteLine("recognised : " + e.Result.Text + " confidence = " + e.Result.Confidence);
             if (e.Result.Confidence > confidenceLimit)
             {
-                AbstractEvent abstractEvent = getEventForSpeech(e.Result.Text);
-                if (abstractEvent != null)
+                try
                 {
-                    abstractEvent.respond(e.Result.Text);
+                    AbstractEvent abstractEvent = getEventForSpeech(e.Result.Text);
+                    if (abstractEvent != null)
+                    {
+                        abstractEvent.respond(e.Result.Text);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine("Unable to respond - error message: " + exception.Message);
                 }
             }
             else

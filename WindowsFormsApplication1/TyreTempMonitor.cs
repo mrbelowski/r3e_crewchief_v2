@@ -88,13 +88,18 @@ namespace CrewChiefV2.Events
 
         public override void respond(string voiceMessage)
         {
-            String messageFolder = getMessage(lastLapTyreTemps.getStatus());
-            if (messageFolder != null)
+            Boolean gotData = false;
+            if (lastLapTyreTemps != null)
             {
-                audioPlayer.playClipImmediately(messageFolder, new QueuedMessage(0, this));
-                audioPlayer.closeChannel();
+                String messageFolder = getMessage(lastLapTyreTemps.getStatus());
+                if (messageFolder != null)
+                {
+                    gotData = true;
+                    audioPlayer.playClipImmediately(messageFolder, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                }
             }
-            else
+            if (!gotData)
             {
                 audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
