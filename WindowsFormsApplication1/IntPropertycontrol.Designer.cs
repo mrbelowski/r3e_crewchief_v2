@@ -69,7 +69,7 @@
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.label1);
             this.Name = "IntPropertyControl";
-            this.Size = new System.Drawing.Size(284, 75);
+            this.Size = new System.Drawing.Size(290, 76);
             this.ResumeLayout(false);
             this.PerformLayout();
 

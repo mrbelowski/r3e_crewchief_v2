@@ -61,7 +61,7 @@
             this.Controls.Add(this.button1);
             this.Controls.Add(this.checkBox1);
             this.Name = "BooleanPropertyControl";
-            this.Size = new System.Drawing.Size(299, 68);
+            this.Size = new System.Drawing.Size(290, 76);
             this.ResumeLayout(false);
             this.PerformLayout();
 

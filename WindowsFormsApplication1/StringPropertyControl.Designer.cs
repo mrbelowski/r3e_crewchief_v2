@@ -70,7 +70,7 @@
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.label1);
             this.Name = "StringPropertyControl";
-            this.Size = new System.Drawing.Size(278, 76);
+            this.Size = new System.Drawing.Size(290, 76);
             this.ResumeLayout(false);
             this.PerformLayout();
 
