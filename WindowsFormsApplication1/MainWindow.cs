@@ -483,6 +483,11 @@ namespace CrewChiefV2
         {
             DISABLED, HOLD, TOGGLE, ALWAYS_ON
         }
+
+        private void help_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     
     }
 

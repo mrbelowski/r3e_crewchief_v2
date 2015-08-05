@@ -118,6 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="help.Text" xml:space="preserve">
-    <value>Assigning controller buttons to actions is entirely optional - the application will still run and give updates without them. If you want to assign a button on your controller to an action, select a controller, then an action, then click "Assign control". Then click the button on that controller which you want to use for the selected action. The speech recognition system will only be enabled if a button is assigned to the 'Talk to crew chief'  action</value>
+    <value>Assigning controller buttons to actions is entirely optional - the application will still run and give updates without them. If you want to assign a button on your controller to an action, select a controller, then an action, then click "Assign control". Then click the button on that controller which you want to use for the selected action. The voice recognition system will be enabled only if it's set to 'Always on' or it's set to 'Hold button' / 'Toggle button' and a button is assigned to 'Talk to crew chief'</value>
   </data>
 </root>

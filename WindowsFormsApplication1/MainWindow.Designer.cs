@@ -136,6 +136,7 @@
             this.help.Size = new System.Drawing.Size(701, 59);
             this.help.TabIndex = 13;
             this.help.Text = resources.GetString("help.Text");
+            this.help.TextChanged += new System.EventHandler(this.help_TextChanged);
             // 
             // button1
             // 
