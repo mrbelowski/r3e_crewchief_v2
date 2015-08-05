@@ -181,6 +181,7 @@ namespace CrewChiefV2
                 Console.WriteLine("Exception message: " + e.Message);
                 return;
             }
+            sre.InitialSilenceTimeout = TimeSpan.Zero;
             try
             {
                 sre.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(sre_SpeechRecognized);
@@ -222,7 +223,7 @@ namespace CrewChiefV2
 
         public void recognizeAsync()
         {
-            sre.RecognizeAsync();
+            sre.RecognizeAsync(RecognizeMode.Multiple);
         }
 
         public void recognizeAsyncStop()
