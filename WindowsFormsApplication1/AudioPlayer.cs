@@ -107,7 +107,7 @@ namespace CrewChiefV2
                 return false;
             }
             float soundPackVersion = getSoundPackVersion(soundDirectory);
-            if (soundPackVersion == -1)
+            if (soundPackVersion == -1 || soundPackVersion == 0)
             {
                 Console.WriteLine("Unable to get sound pack version - expected a file called version_info with a single line containing a version number, e.g. 2.0");
             }
