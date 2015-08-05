@@ -13,8 +13,8 @@ namespace CrewChiefV2
     {
         public String propertyId;
         public float originalValue;
-        private float defaultValue;
-        public FloatPropertyControl (String propertyId, String label, float value, float defaultValue)
+        public float defaultValue;
+        public FloatPropertyControl (String propertyId, String label, float value, float defaultValue, String helpText)
         {
             InitializeComponent();
             this.propertyId = propertyId;
@@ -22,7 +22,10 @@ namespace CrewChiefV2
             this.originalValue = value;
             this.textBox1.Text = value.ToString();
             this.defaultValue = defaultValue;
+            this.toolTip1.SetToolTip(this.textBox1, helpText);
+            this.toolTip1.SetToolTip(this.label1, helpText);
         }
+
         public float getValue()
         {
             float newVal;

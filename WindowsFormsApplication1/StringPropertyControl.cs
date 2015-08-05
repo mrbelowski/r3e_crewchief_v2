@@ -13,14 +13,17 @@ namespace CrewChiefV2
     {
         public String propertyId;
         public String defaultValue;
-        public StringPropertyControl(String propertyId, String label, String currentValue, String defaultValue)
+        public StringPropertyControl(String propertyId, String label, String currentValue, String defaultValue, String helpText)
         {
             InitializeComponent();
             this.propertyId = propertyId;
             this.label1.Text = label;
             this.textBox1.Text = currentValue;
             this.defaultValue = defaultValue;
+            this.toolTip1.SetToolTip(this.textBox1, helpText);
+            this.toolTip1.SetToolTip(this.label1, helpText);
         }
+
         public String getValue()
         {
             return this.textBox1.Text;

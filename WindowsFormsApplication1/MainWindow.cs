@@ -196,9 +196,6 @@ namespace CrewChiefV2
                 ThreadStart crewChiefWork = runApp;
                 Thread crewChiefThread = new Thread(crewChiefWork);
                 crewChiefThread.Start();
-                // TODO: this listen flag controls the while loop. It's set to false in the 
-                // 'stop' method, but isn't reset to true before getting back to this point.
-                // 
                 runListenForChannelOpenThread = controllerConfiguration.listenForChannelOpen()
                     && voiceOption == VoiceOptionEnum.HOLD && speechRecogniser.initialised;
                 if (runListenForChannelOpenThread && voiceOption == VoiceOptionEnum.HOLD && speechRecogniser.initialised)

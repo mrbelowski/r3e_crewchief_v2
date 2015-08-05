@@ -24,28 +24,32 @@ namespace CrewChiefV2
             foreach (SettingsProperty strProp in UserSettings.GetUserSettings().getProperties(typeof(String)))
             {
                 this.stringPropertiesLayout.Controls.Add(new StringPropertyControl(strProp.Name, strProp.Name + " (text)",
-                   UserSettings.GetUserSettings().getString(strProp.Name), (String) strProp.DefaultValue));
+                   UserSettings.GetUserSettings().getString(strProp.Name), (String) strProp.DefaultValue,
+                   UserSettings.GetUserSettings().getHelp(strProp.Name)));
             }
             foreach (SettingsProperty boolProp in UserSettings.GetUserSettings().getProperties(typeof(Boolean)))
             {
                 Boolean defaultValue;
                 Boolean.TryParse((String) boolProp.DefaultValue, out defaultValue);
-                this.booleanPropertiesLayout.Controls.Add(new BooleanPropertyControl(boolProp.Name, boolProp.Name + " (boolean)", 
-                    UserSettings.GetUserSettings().getBoolean(boolProp.Name), defaultValue));
+                this.booleanPropertiesLayout.Controls.Add(new BooleanPropertyControl(boolProp.Name, boolProp.Name + " (boolean)",
+                    UserSettings.GetUserSettings().getBoolean(boolProp.Name), defaultValue,
+                    UserSettings.GetUserSettings().getHelp(boolProp.Name)));
             }
             foreach (SettingsProperty floatProp in UserSettings.GetUserSettings().getProperties(typeof(float)))
             {
                 float defaultValue;
                 float.TryParse((String)floatProp.DefaultValue, out defaultValue);
-                this.floatPropertiesLayout.Controls.Add(new FloatPropertyControl(floatProp.Name, floatProp.Name + " (real number)", 
-                    UserSettings.GetUserSettings().getFloat(floatProp.Name), defaultValue));
+                this.floatPropertiesLayout.Controls.Add(new FloatPropertyControl(floatProp.Name, floatProp.Name + " (real number)",
+                    UserSettings.GetUserSettings().getFloat(floatProp.Name), defaultValue,
+                    UserSettings.GetUserSettings().getHelp(floatProp.Name)));
             }
             foreach (SettingsProperty intProp in UserSettings.GetUserSettings().getProperties(typeof(int)))
             {
                 int defaultValue;
                 int.TryParse((String) intProp.DefaultValue, out defaultValue);
-                this.integerPropertiesLayout.Controls.Add(new IntPropertyControl(intProp.Name, intProp.Name + " (whole number)", 
-                    UserSettings.GetUserSettings().getInt(intProp.Name), defaultValue));
+                this.integerPropertiesLayout.Controls.Add(new IntPropertyControl(intProp.Name, intProp.Name + " (whole number)",
+                    UserSettings.GetUserSettings().getInt(intProp.Name), defaultValue,
+                    UserSettings.GetUserSettings().getHelp(intProp.Name)));
             }
         }
         public void save()

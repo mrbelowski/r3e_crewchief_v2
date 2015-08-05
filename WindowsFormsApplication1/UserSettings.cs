@@ -10,9 +10,37 @@ namespace CrewChiefV2
     class UserSettings
     {
         private String[] reservedNameStarts = new String[] { "CHANNEL_", "TOGGLE_", "VOICE_OPTION" };
+        public Dictionary<String, String> propertyHelp = new Dictionary<String, String>();
         private UserSettings()
         {
+            propertyHelp.Add("sound_files_path", "The path (relative to CrewChiefV2.exe) of the sound pack you want to use");
+            propertyHelp.Add("background_volume", "The volume of the background sounds (0 - 1)");
+            propertyHelp.Add("update_interval", "The time (milliseconds) between app updates");
+            propertyHelp.Add("use_sweary_messages", "A few messages contain swearing - then enables / disables these");
+            propertyHelp.Add("enable_spotter", "The spotter can be enabled and disabled with a button. This setting sets it initial state");
+            propertyHelp.Add("speech_recognition_location", "The localisation to use for speech recognition. Must be en-[something]");
+            propertyHelp.Add("spotter_car_length", "The length of a car, used to check if there's an overlap. Decrease this if the spotter calls 'hold your line' when you're not overlapping. "+
+                "Increase it if the spotter doesn't call 'hold your line' when you clearly are overlapping");
+            propertyHelp.Add("time_after_race_start_for_spotter", "Wait this many seconds after race start before enabling the spotter");
+            propertyHelp.Add("min_speed_for_spotter", "Don't use the spotter if your speed is less than this");
+            propertyHelp.Add("max_closing_speed_for_spotter", "Don't call 'hold your line' if the closing speed between you and the other car is greater than this");
+            propertyHelp.Add("spotter_only_when_being_passed", "Only 'spot' for cars overtaking you");
+            propertyHelp.Add("spotter_clear_delay", "You need to be clear for this many milliseconds before the spotter calls 'clear'");
+            propertyHelp.Add("spotter_overlap_delay", "You need to be overlapping for this many milliseconds before the spotter calls 'hold your line'");
+            propertyHelp.Add("read_lap_times", "Occasionally read out the player's laptimes when crossing the line");
+            propertyHelp.Add("custom_device_guid", "Manually set a controller GUID if the app doesn't display your controller in the devices list");
+        }
 
+        public String getHelp(String propertyId)
+        {
+            if (propertyHelp.ContainsKey(propertyId))
+            {
+                return propertyHelp[propertyId];
+            }
+            else
+            {
+                return "";
+            }
         }
 
         public List<SettingsProperty> getProperties(Type requiredType)

@@ -13,8 +13,8 @@ namespace CrewChiefV2
     {
         public String propertyId;
         public int originalValue;
-        private int defaultValue;
-        public IntPropertyControl(String propertyId, String label, int value, int defaultValue)
+        public int defaultValue;
+        public IntPropertyControl(String propertyId, String label, int value, int defaultValue, String helpText)
         {
             InitializeComponent();
             this.propertyId = propertyId;
@@ -22,7 +22,10 @@ namespace CrewChiefV2
             this.originalValue = value;
             this.textBox1.Text = value.ToString();
             this.defaultValue = defaultValue;
+            this.toolTip1.SetToolTip(this.textBox1, helpText);
+            this.toolTip1.SetToolTip(this.label1, helpText);
         }
+
         public int getValue()
         {
             int newVal;

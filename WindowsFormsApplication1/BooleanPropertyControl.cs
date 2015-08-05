@@ -13,13 +13,14 @@ namespace CrewChiefV2
     {
         public String propertyId;
         public Boolean defaultValue;
-        public BooleanPropertyControl(String propertyId, String label, Boolean value, Boolean defaultValue)
+        public BooleanPropertyControl(String propertyId, String label, Boolean value, Boolean defaultValue, String helpText)
         {
             InitializeComponent();
             this.propertyId = propertyId;
             this.checkBox1.Text = label;
             this.checkBox1.Checked = value;
             this.defaultValue = defaultValue;
+            this.toolTip1.SetToolTip(this.checkBox1, helpText);
         }
         public Boolean getValue()
         {
