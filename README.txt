@@ -1,5 +1,12 @@
 CrewChief version 2.
 
+Changelog
+---------
+
+Version 2.0.1: Added "you have served your penalty" event - the app now tells you if you've served your penalty (you can still ask it if you want); Fixed voice recognition timeout for always-on and toggle-button mode (this wasn't my fault, honest - the API docs are incorrect for the default the MS speech engine's InitialSilenceTimeout value)
+
+Version 2.0.0: Added voice recognition, UI, properties handling, bug fixes, improvements, lots of new awesome, some new bugs
+
 Quick start
 -----------
 You need to install .net 4 or above to use the app. Download the CrewChiefV2_with_sounds.zip file, extract it somewhere (anywhere, the app's not fussy), and run the enclosed CrewChiefV2.exe. Click the "Start Application" button. Then fire up R3E and be amazed at my poor voice acting.
