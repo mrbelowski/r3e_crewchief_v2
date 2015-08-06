@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrewChiefV2", "WindowsFormsApplication1\CrewChiefV2.csproj", "{4240B0E2-69BC-4260-9706-C0CC5AAE04A5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrewChiefV2", "CrewChiefV2\CrewChiefV2.csproj", "{4240B0E2-69BC-4260-9706-C0CC5AAE04A5}"
 EndProject
 Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "CrewChiefV2_no_sound_files", "CrewChiefV2_no_sound_files\CrewChiefV2_no_sound_files.isproj", "{63DF477B-E005-4D23-B3CA-2A118D88383D}"
 	ProjectSection(ProjectDependencies) = postProject

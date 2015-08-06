@@ -29,7 +29,7 @@
 	</ItemGroup>
 	<Import Project="$(MSBuildExtensionsPath32)\InstallShield\2013Limited\InstallShield.targets"/>
 	<ItemGroup>
-		<ProjectReference Include="..\WindowsFormsApplication1\CrewChiefV2.csproj">
+		<ProjectReference Include="..\CrewChiefV2\CrewChiefV2.csproj">
 			<Name>CrewChiefV2</Name>
 			<Project>{4240B0E2-69BC-4260-9706-C0CC5AAE04A5}</Project>
 		</ProjectReference>
