@@ -488,7 +488,11 @@ namespace CrewChiefV2
         {
 
         }
-    
+
+        private void clearConsole(object sender, EventArgs e)
+        {
+            textBox1.Text = "";
+        }    
     }
 
     public class ControlWriter : TextWriter

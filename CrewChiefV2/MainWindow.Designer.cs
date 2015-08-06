@@ -44,6 +44,7 @@
             this.toggleButton = new System.Windows.Forms.RadioButton();
             this.holdButton = new System.Windows.Forms.RadioButton();
             this.voiceDisableButton = new System.Windows.Forms.RadioButton();
+            this.button2 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -55,7 +56,7 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox1.Size = new System.Drawing.Size(1093, 424);
+            this.textBox1.Size = new System.Drawing.Size(1093, 438);
             this.textBox1.TabIndex = 1;
             this.textBox1.Click += new System.EventHandler(this.assignButtonToActionClick);
             // 
@@ -209,11 +210,22 @@
             this.voiceDisableButton.UseVisualStyleBackColor = true;
             this.voiceDisableButton.CheckedChanged += new System.EventHandler(this.voiceDisableButton_CheckedChanged);
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(184, 12);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(137, 41);
+            this.button2.TabIndex = 16;
+            this.button2.Text = "Clear console";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.clearConsole);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1146, 692);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.help);
@@ -252,6 +264,7 @@
         private System.Windows.Forms.RadioButton toggleButton;
         private System.Windows.Forms.RadioButton holdButton;
         private System.Windows.Forms.RadioButton voiceDisableButton;
+        private System.Windows.Forms.Button button2;
 
     }
 }
