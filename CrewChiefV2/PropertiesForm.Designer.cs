@@ -30,14 +30,15 @@
         {
             this.button1 = new System.Windows.Forms.Button();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.button1.Location = new System.Drawing.Point(0, 612);
+            this.button1.Location = new System.Drawing.Point(3, 3);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(975, 40);
+            this.button1.Size = new System.Drawing.Size(156, 40);
             this.button1.TabIndex = 1;
             this.button1.Text = "Save and restart";
             this.button1.UseVisualStyleBackColor = true;
@@ -54,16 +55,26 @@
             this.flowLayoutPanel1.Size = new System.Drawing.Size(975, 0);
             this.flowLayoutPanel1.TabIndex = 9;
             // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.button1);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel1.Location = new System.Drawing.Point(0, 604);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(975, 48);
+            this.panel1.TabIndex = 10;
+            // 
             // PropertiesForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(975, 652);
+            this.Controls.Add(this.panel1);
             this.Controls.Add(this.flowLayoutPanel1);
-            this.Controls.Add(this.button1);
             this.Name = "PropertiesForm";
             this.Text = "properties_form";
+            this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -73,5 +84,6 @@
 
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
+        private System.Windows.Forms.Panel panel1;
     }
 }
