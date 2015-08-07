@@ -10,7 +10,7 @@ namespace CrewChiefV2.Events
     {
         public static String folderLeading = "position/leading";
         public static String folderPole = "position/pole";
-        private String folderStub = "position/p";
+        public static String folderStub = "position/p";
         private String folderConsistentlyLast = "position/consistently_last";
         private String folderLast = "position/last";
 

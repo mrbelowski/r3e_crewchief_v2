@@ -17,6 +17,22 @@ namespace CrewChiefV2.Events
         // "that was a 1:34.2, you're fastest in your class"
         private String folderFastestInClass = "lap_times/fastest_in_your_class";
 
+        private String folderLessThanATenthOffThePace = "lap_times/less_than_a_tenth_off_the_pace";
+
+        private String folderQuickerThanSecondPlace = "lap_times/quicker_than_second_place";
+
+        private String folderLeadingInQualOrPrac = "lap_times/quickest_overall";
+
+        private String folderLeadingClassInQualOrPrac = "lap_times/quickest_in_class";
+
+        private String folderPaceOK = "lap_times/pace_ok";
+        private String folderPaceGood = "lap_times/pace_good";
+        private String folderPaceBad = "lap_times/pace_bad";
+        private String folderNeedToFindOneMoreTenth = "lap_times/need_to_find_one_more_tenth";
+        private String folderNeedToFindASecond = "lap_times/need_to_find_a_second";
+        private String folderNeedToFindMoreThanASecond = "lap_times/need_to_find_more_than_a_second";
+        private String folderNeedToFindAFewMoreTenths = "lap_times/need_to_find_a_few_more_tenths";
+
         // for race:
         private String folderBestLapInRace = "lap_times/best_lap_in_race";
         private String folderBestLapInRaceForClass = "lap_times/best_lap_in_race_for_class";
@@ -50,6 +66,12 @@ namespace CrewChiefV2.Events
 
         private float lapDeltaToClassLeaderAtLastLap;
 
+        private LastLapRating lastLapRating;
+
+        private TimeSpan sessionBestLapTimeDeltaToLeader;
+
+        private float currentLapTimeDeltaToLeader;
+
         public LapTimes(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -62,6 +84,9 @@ namespace CrewChiefV2.Events
             lapDeltaToClassLeaderAtLastLap = -1;
             lastConsistencyMessage = ConsistencyResult.NOT_APPLICABLE;
             lapIsValid = true;
+            lastLapRating = LastLapRating.NO_DATA;
+            sessionBestLapTimeDeltaToLeader = TimeSpan.MaxValue;
+            currentLapTimeDeltaToLeader = 0;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -100,22 +125,20 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laptime", gapFillerLapTime);
                     }
 
-                    LastLapRating lastLapRating = getLastLapRating(currentState);
-                    float currentLapTimeDeltaToLeader = getLapTimeDeltaToClassLeader(currentState);
+                    lastLapRating = getLastLapRating(currentState);
+                    sessionBestLapTimeDeltaToLeader = TimeSpan.FromSeconds(currentState.LapTimeBest - getLapTimeBestForClassLeader(currentState));
+                    currentLapTimeDeltaToLeader = getLapTimeDeltaToClassLeader(currentState);
+
                     if (lapDeltaToClassLeaderAtLastLap != -1 && (currentState.SessionType == (int)Constant.Session.Qualify ||
                         currentState.SessionType == (int)Constant.Session.Practice))
                     {
-                        if (readLapTimes)
-                        {
-                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceTime",
-                                    new QueuedMessage(folderLapTimeIntro, null, TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this));
-                        }
                         // time delta to leader has changed to report it
                         if (lapDeltaToClassLeaderAtLastLap != currentLapTimeDeltaToLeader)
                         {
                             if (lastLapRating == LastLapRating.BEST_IN_CLASS)
                             {
                                 audioPlayer.queueClip(folderFastestInClass, 0, this);
+                                sessionBestLapTimeDeltaToLeader = TimeSpan.Zero;
                             }
                             else if (lastLapRating == LastLapRating.BEST_OVERALL)
                             {
@@ -123,16 +146,20 @@ namespace CrewChiefV2.Events
                                 {
                                     audioPlayer.queueClip(Position.folderPole, 0, this);
                                 }
+                                else if (currentState.SessionType == (int)Constant.Session.Practice)
+                                {
+                                    audioPlayer.queueClip(Position.folderStub + currentState.Position, 0, this);
+                                }
+                                sessionBestLapTimeDeltaToLeader = TimeSpan.Zero;
                             }
                             else if (getLapTimeBestForClassLeader(currentState) > 0)
                             {
                                 // don't read this message if the rounded time gap is 0.0 seconds
-                                TimeSpan gap = TimeSpan.FromSeconds(currentState.LapTimeBest - getLapTimeBestForClassLeader(currentState));
-                                if (gap.Seconds > 0 || gap.Milliseconds > 50)
+                                if (sessionBestLapTimeDeltaToLeader.Seconds > 0 || sessionBestLapTimeDeltaToLeader.Milliseconds > 50)
                                 {
                                     // delay this a bit...
                                     audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
-                                            new QueuedMessage(folderGapIntro, folderGapOutroOffPace, gap,
+                                            new QueuedMessage(folderGapIntro, folderGapOutroOffPace, sessionBestLapTimeDeltaToLeader,
                                                 new Random().Next(0, 20), this));
                                 }
                             }
@@ -322,11 +349,11 @@ namespace CrewChiefV2.Events
             if (currentState.LapTimePrevious != -1)
             {
                 float closeThreshold = currentState.LapTimePrevious * goodLapPercent / 100;
-                if (currentState.LapTimeBestLeader > currentState.LapTimePrevious)
+                if (currentState.LapTimeBestLeader >= currentState.LapTimePrevious)
                 {
                     return LastLapRating.BEST_OVERALL;
                 }
-                else if (currentState.LapTimeBestLeaderClass > currentState.LapTimePrevious)
+                else if (currentState.LapTimeBestLeaderClass >= currentState.LapTimePrevious)
                 {
                     return LastLapRating.BEST_IN_CLASS;
                 }
@@ -345,15 +372,15 @@ namespace CrewChiefV2.Events
                         return LastLapRating.PERSONAL_BEST_STILL_SLOW;
                     }
                 }
-                else if (currentState.LapTimeBestLeader > currentState.LapTimePrevious - closeThreshold)
+                else if (currentState.LapTimeBestLeader >= currentState.LapTimePrevious - closeThreshold)
                 {
                     return LastLapRating.CLOSE_TO_OVERALL_LEADER;
                 }
-                else if (currentState.LapTimeBestLeaderClass > currentState.LapTimePrevious - closeThreshold)
+                else if (currentState.LapTimeBestLeaderClass >= currentState.LapTimePrevious - closeThreshold)
                 {
                     return LastLapRating.CLOSE_TO_CLASS_LEADER;
                 }
-                else if (currentState.LapTimeBest > currentState.LapTimePrevious - closeThreshold)
+                else if (currentState.LapTimeBest >= currentState.LapTimePrevious - closeThreshold)
                 {
                     return LastLapRating.CLOSE_TO_PERSONAL_BEST;
                 }
@@ -379,12 +406,111 @@ namespace CrewChiefV2.Events
                     audioPlayer.closeChannel();
                 }
             }
+            else if (voiceMessage.Contains(SpeechRecogniser.PACE))
+            {
+                if (CommonData.isRaceStarted)
+                {
+                    if (lastLapRating != null && lastLapRating != LastLapRating.NO_DATA && sessionBestLapTimeDeltaToLeader != TimeSpan.MaxValue) {
+                        if (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds <= 50) {
+                            audioPlayer.playClipImmediately(folderPaceGood, new QueuedMessage(0, null));
+                        }
+                        else 
+                        {
+                            String timeToFindFolder = null;
+                            if (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds < 200)
+                            {
+                                timeToFindFolder = folderNeedToFindOneMoreTenth;
+                            }
+                            else if (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds < 600)
+                            {
+                                timeToFindFolder = folderNeedToFindAFewMoreTenths;
+                            }
+                            else if ((sessionBestLapTimeDeltaToLeader.Seconds == 1 && sessionBestLapTimeDeltaToLeader.Milliseconds < 500) ||
+                                (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds >= 600))
+                            {
+                                timeToFindFolder = folderNeedToFindASecond;
+                            }
+                            else if ((sessionBestLapTimeDeltaToLeader.Seconds == 1 && sessionBestLapTimeDeltaToLeader.Milliseconds >= 500) ||
+                               sessionBestLapTimeDeltaToLeader.Seconds > 1)
+                            {
+                                timeToFindFolder = folderNeedToFindMoreThanASecond;
+                            }
+                            List<String> messages = new List<String>();
+                            switch (lastLapRating)
+                            {
+                                case LastLapRating.BEST_OVERALL:
+                                case LastLapRating.BEST_IN_CLASS:
+                                    audioPlayer.playClipImmediately(folderPaceGood, new QueuedMessage(0, null));
+                                    break;
+                                case LastLapRating.PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER:
+                                case LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER:
+                                case LastLapRating.CLOSE_TO_OVERALL_LEADER:
+                                case LastLapRating.CLOSE_TO_CLASS_LEADER:
+                                case LastLapRating.PERSONAL_BEST_STILL_SLOW:
+                                case LastLapRating.CLOSE_TO_PERSONAL_BEST:                                    
+                                    messages.Add(folderPaceOK);
+                                    if (timeToFindFolder != null)
+                                    {
+                                        messages.Add(timeToFindFolder);
+                                    }
+                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeRacePaceReport",
+                                        new QueuedMessage(messages, 0, null));
+                                    break;
+                                case LastLapRating.MEH:
+                                    messages.Add(folderPaceBad);
+                                    if (timeToFindFolder != null)
+                                    {
+                                        messages.Add(timeToFindFolder);
+                                    }
+                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeRacePaceReport",
+                                        new QueuedMessage(messages, 0, null));                                   
+                                        break;
+                                default:
+                                    audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
+                                    break;                     
+                            }
+                        }                        
+                    }
+                    else {
+                        audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
+                    }
+                }
+                else if (CommonData.isSessionRunning) {
+                    if (lastLapRating != null && lastLapRating != LastLapRating.NO_DATA && sessionBestLapTimeDeltaToLeader != TimeSpan.MaxValue)
+                    {
+                        if (sessionBestLapTimeDeltaToLeader == TimeSpan.Zero)
+                        {
+                            if (lastLapRating == LastLapRating.BEST_OVERALL)
+                            {
+                                audioPlayer.playClipImmediately(folderLeadingInQualOrPrac, new QueuedMessage(0, null));
+
+                            }
+                            else if (lastLapRating == LastLapRating.BEST_IN_CLASS)
+                            {
+                                audioPlayer.playClipImmediately(folderLeadingClassInQualOrPrac, new QueuedMessage(0, null));
+                            }
+                        }
+                        else if (sessionBestLapTimeDeltaToLeader.Milliseconds < 50)
+                        {
+                            audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
+                                new QueuedMessage(null, folderGapOutroOffPace, sessionBestLapTimeDeltaToLeader, 0, null));
+                        }
+                        else
+                        {
+                            audioPlayer.playClipImmediately(folderLessThanATenthOffThePace, new QueuedMessage(0, null));
+                        }
+                    }
+                    else {
+                        audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
+                    }
+                }
+            }
         }
 
         private enum LastLapRating
         {
             BEST_OVERALL, BEST_IN_CLASS, PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER, PERSONAL_BEST_CLOSE_TO_CLASS_LEADER,
-            PERSONAL_BEST_STILL_SLOW, CLOSE_TO_OVERALL_LEADER, CLOSE_TO_CLASS_LEADER, CLOSE_TO_PERSONAL_BEST, MEH
+            PERSONAL_BEST_STILL_SLOW, CLOSE_TO_OVERALL_LEADER, CLOSE_TO_CLASS_LEADER, CLOSE_TO_PERSONAL_BEST, MEH, NO_DATA
         }
     }
 }

@@ -30,6 +30,7 @@ namespace CrewChiefV2
         public static String LAP_TIME = "lap time";
         public static String LAST_LAP = "last lap";
         public static String POSITION = "position";
+        public static String PACE = "pace";
 
         private static String KEEP_QUIET = "keep quiet";
         private static String SHUT_UP = "shut up";
@@ -109,7 +110,7 @@ namespace CrewChiefV2
             try
             {
                 Choices info1 = new Choices();
-                info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, BODY_WORK, TRANSMISSION, ENGINE });
+                info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, BODY_WORK, TRANSMISSION, ENGINE, PACE });
                 GrammarBuilder gb1 = new GrammarBuilder();
                 gb1.Culture = cultureInfo;
                 gb1.Append("how is my");
@@ -289,7 +290,8 @@ namespace CrewChiefV2
             }
             else if (recognisedSpeech.Contains(LAST_LAP_TIME) ||
                 recognisedSpeech.Contains(LAP_TIME) ||
-                recognisedSpeech.Contains(LAST_LAP))
+                recognisedSpeech.Contains(LAST_LAP) ||
+                recognisedSpeech.Contains(PACE))
             {
                 return CrewChief.getEvent("LapTimes");
             }
