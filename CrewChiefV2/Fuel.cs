@@ -65,6 +65,8 @@ namespace CrewChiefV2.Events
 
         private Boolean playedTenMinutesRemaining;
 
+        private Boolean fuelUseActive;
+
         // check fuel use every 2 minutes
         private int fuelUseSampleTime = 2;
 
@@ -91,6 +93,7 @@ namespace CrewChiefV2.Events
             playedTenMinutesRemaining = false;
             playedTwoMinutesRemaining = false;
             currentFuel = -1;
+            fuelUseActive = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -102,6 +105,7 @@ namespace CrewChiefV2.Events
         {
             if (CommonData.isRaceStarted && currentState.FuelUseActive == 1)
             {
+                fuelUseActive = true;
                 currentFuel = currentState.FuelLeft;
                 // To get the initial fuel, wait for 15 seconds
                 if (!initialised && currentState.Player.GameSimulationTime > 15)
@@ -294,7 +298,14 @@ namespace CrewChiefV2.Events
             }
             if (!haveData)
             {
-                audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, this));
+                if (!fuelUseActive)
+                {
+                    audioPlayer.playClipImmediately(folderPlentyOfFuel, new QueuedMessage(0, this));
+                }
+                else
+                {
+                    audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, this));
+                }
                 audioPlayer.closeChannel();
             }
         }
