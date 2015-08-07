@@ -39,6 +39,8 @@ namespace CrewChiefV2.Events
 
         private String folderCutTrackPracticeOrQual = "penalties/cut_track_in_prac_or_qual";
 
+        private String folderPenaltyNotServed = "penalties/penalty_not_served";
+
         // for voice requests
         private String folderYouStillHavePenalty = "penalties/you_still_have_a_penalty";
 
@@ -178,6 +180,13 @@ namespace CrewChiefV2.Events
                     hasOutstandingPenalty = true;
                     hasHadAPenalty = true;
                 }
+                else if (lastState.ControlType == (int)Constant.Control.AI && currentState.ControlType == (int)Constant.Control.Player &&
+                    currentState.CarSpeed > 10 && currentState.CarSpeed < 50)
+                {
+                    // yuk - if we've just been handed control and the speed is quite low we assume we've just exited the pits
+                    // delay this so the valid check gets triggered
+                    audioPlayer.queueClip(folderPenaltyNotServed, 10, this);
+                } 
                 else if (CommonData.isNewLap && (hasDriveThrough(currentState) || hasStopGo(currentState)))
                 {
                     lapsCompleted = currentState.CompletedLaps;
@@ -250,7 +259,7 @@ namespace CrewChiefV2.Events
                     }
                     clearPenaltyState();
                 }
-            }            
+            }                     
             else
             {
                 // TODO: this ain't right...
@@ -261,7 +270,7 @@ namespace CrewChiefV2.Events
                 (lastState.Penalties.StopAndGo > 0 && currentState.Penalties.StopAndGo < lastState.Penalties.StopAndGo))
             {
                 audioPlayer.queueClip(folderPenaltyServed, 0, null);
-            }
+            }            
         }
 
         public override void respond(string voiceMessage)

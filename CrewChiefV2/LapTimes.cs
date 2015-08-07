@@ -105,130 +105,144 @@ namespace CrewChiefV2.Events
             {
                 lapIsValid = false;
             }
-            if (CommonData.isSessionRunning && CommonData.isNewLap && currentState.CompletedLaps > 1 &&
-                currentState.LapTimePrevious > 0)
+            if (CommonData.isSessionRunning && CommonData.isNewLap && currentState.CompletedLaps > 1)
             {
                 if (lapTimesWindow == null)
                 {
                     lapTimesWindow = new List<float>(lapTimesWindowSize);
                 }
-
-                lapTimesWindow.Insert(0, currentState.LapTimePrevious);
-                Boolean playedLapMessage = false;
-                if (lapIsValid)
+                // this might be NO_DATA
+                lastLapRating = getLastLapRating(currentState);
+                // don't think this check is needed:
+                if (currentState.LapTimeBest > 0)
                 {
-                    // queue the actual laptime as a 'gap filler' - this is only played if the
-                    // queue would otherwise be empty
-                    if (readLapTimes)
-                    {
-                        QueuedMessage gapFillerLapTime = new QueuedMessage(folderLapTimeIntro, null,
-                        TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this);
-                        gapFillerLapTime.gapFiller = true;
-                        audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laptime", gapFillerLapTime);
-                    }
-
-                    lastLapRating = getLastLapRating(currentState);
                     sessionBestLapTimeDeltaToLeader = TimeSpan.FromSeconds(currentState.LapTimeBest - getLapTimeBestForClassLeader(currentState));
-                    currentLapTimeDeltaToLeadersBest = TimeSpan.FromSeconds(currentState.LapTimePrevious - getLapTimeBestForClassLeader(currentState));
-                    currentLapTimeDeltaToLeader = getLapTimeDeltaToClassLeader(currentState);
-
-                    if (lapDeltaToClassLeaderAtLastLap != -1 && (currentState.SessionType == (int)Constant.Session.Qualify ||
-                        currentState.SessionType == (int)Constant.Session.Practice))
-                    {
-                        // time delta to leader has changed to report it
-                        if (lapDeltaToClassLeaderAtLastLap != currentLapTimeDeltaToLeader)
-                        {
-                            if (lastLapRating == LastLapRating.BEST_IN_CLASS)
-                            {
-                                audioPlayer.queueClip(folderFastestInClass, 0, this);
-                                sessionBestLapTimeDeltaToLeader = TimeSpan.Zero;
-                            }
-                            else if (lastLapRating == LastLapRating.BEST_OVERALL)
-                            {
-                                if (currentState.SessionType == (int)Constant.Session.Qualify)
-                                {
-                                    audioPlayer.queueClip(Position.folderPole, 0, this);
-                                }
-                                else if (currentState.SessionType == (int)Constant.Session.Practice)
-                                {
-                                    audioPlayer.queueClip(Position.folderStub + currentState.Position, 0, this);
-                                }
-                                sessionBestLapTimeDeltaToLeader = TimeSpan.Zero;
-                            }
-                            else if (getLapTimeBestForClassLeader(currentState) > 0)
-                            {
-                                // don't read this message if the rounded time gap is 0.0 seconds
-                                if (sessionBestLapTimeDeltaToLeader.Seconds > 0 || sessionBestLapTimeDeltaToLeader.Milliseconds > 50)
-                                {
-                                    // delay this a bit...
-                                    audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
-                                            new QueuedMessage(folderGapIntro, folderGapOutroOffPace, sessionBestLapTimeDeltaToLeader,
-                                                new Random().Next(0, 20), this));
-                                }
-                            }
-                        }
-                        else if (lastLapRating == LastLapRating.PERSONAL_BEST_STILL_SLOW || lastLapRating == LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER ||
-                                lastLapRating == LastLapRating.PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER)
-                        {
-                            audioPlayer.queueClip(folderPersonalBest, 0, this);
-                        }
-                    }
-                    else
-                    {
-                        float pearlLikelihood = 0f;
-                        if (CommonData.isRaceStarted)
-                        {
-                            pearlLikelihood = 0.8f;
-                        }
-                        switch (lastLapRating)
-                        {
-                            case LastLapRating.BEST_OVERALL:
-                                audioPlayer.queueClip(folderBestLapInRace, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
-                                playedLapMessage = true;
-                                break;
-                            case LastLapRating.BEST_IN_CLASS:
-                                audioPlayer.queueClip(folderBestLapInRaceForClass, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
-                                playedLapMessage = true;
-                                break;
-                            case LastLapRating.PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER:
-                            case LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER:
-                                audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
-                                playedLapMessage = true;
-                                break;
-                            case LastLapRating.PERSONAL_BEST_STILL_SLOW:
-                                audioPlayer.queueClip(folderPersonalBest, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, pearlLikelihood);
-                                playedLapMessage = true;
-                                break;
-                            case LastLapRating.CLOSE_TO_OVERALL_LEADER:
-                            case LastLapRating.CLOSE_TO_CLASS_LEADER:
-                                audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, pearlLikelihood);
-                                playedLapMessage = true;
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    lapDeltaToClassLeaderAtLastLap = currentLapTimeDeltaToLeader;
                 }
-                if (currentState.SessionType == (int)Constant.Session.Race && !playedLapMessage &&
-                    currentState.CompletedLaps >= lastConsistencyUpdate + lapTimesWindowSize && lapTimesWindow.Count >= lapTimesWindowSize)
+                else
                 {
-                    ConsistencyResult consistency = checkAgainstPreviousLaps();
-                    if (consistency == ConsistencyResult.CONSISTENT)
+                    sessionBestLapTimeDeltaToLeader = TimeSpan.MaxValue;
+                }
+                if (currentState.LapTimePrevious > 0)
+                {
+                    currentLapTimeDeltaToLeadersBest = TimeSpan.FromSeconds(currentState.LapTimePrevious - getLapTimeBestForClassLeader(currentState));
+                    lapTimesWindow.Insert(0, currentState.LapTimePrevious);
+                    currentLapTimeDeltaToLeader = getLapTimeDeltaToClassLeader(currentState);
+                    if (lapIsValid)
                     {
-                        lastConsistencyUpdate = currentState.CompletedLaps;
-                        audioPlayer.queueClip(folderConsistentTimes, 0, this);
+                        // queue the actual laptime as a 'gap filler' - this is only played if the
+                        // queue would otherwise be empty
+                        if (readLapTimes)
+                        {
+                            QueuedMessage gapFillerLapTime = new QueuedMessage(folderLapTimeIntro, null,
+                            TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this);
+                            gapFillerLapTime.gapFiller = true;
+                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laptime", gapFillerLapTime);
+                        }
+
+                        if (lapDeltaToClassLeaderAtLastLap != -1 && (currentState.SessionType == (int)Constant.Session.Qualify ||
+                            currentState.SessionType == (int)Constant.Session.Practice))
+                        {
+                            // time delta to leader has changed to report it
+                            if (lapDeltaToClassLeaderAtLastLap != currentLapTimeDeltaToLeader)
+                            {
+                                if (lastLapRating == LastLapRating.BEST_IN_CLASS)
+                                {
+                                    audioPlayer.queueClip(folderFastestInClass, 0, this);
+                                    sessionBestLapTimeDeltaToLeader = TimeSpan.Zero;
+                                }
+                                else if (lastLapRating == LastLapRating.BEST_OVERALL)
+                                {
+                                    if (currentState.SessionType == (int)Constant.Session.Qualify)
+                                    {
+                                        audioPlayer.queueClip(Position.folderPole, 0, this);
+                                    }
+                                    else if (currentState.SessionType == (int)Constant.Session.Practice)
+                                    {
+                                        audioPlayer.queueClip(Position.folderStub + currentState.Position, 0, this);
+                                    }
+                                    sessionBestLapTimeDeltaToLeader = TimeSpan.Zero;
+                                }
+                                else if (getLapTimeBestForClassLeader(currentState) > 0)
+                                {
+                                    // don't read this message if the rounded time gap is 0.0 seconds
+                                    if (sessionBestLapTimeDeltaToLeader.Seconds > 0 || sessionBestLapTimeDeltaToLeader.Milliseconds > 50)
+                                    {
+                                        // delay this a bit...
+                                        audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
+                                                new QueuedMessage(folderGapIntro, folderGapOutroOffPace, sessionBestLapTimeDeltaToLeader,
+                                                    new Random().Next(0, 20), this));
+                                    }
+                                }
+                            }
+                            else if (lastLapRating == LastLapRating.PERSONAL_BEST_STILL_SLOW || lastLapRating == LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER ||
+                                    lastLapRating == LastLapRating.PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER)
+                            {
+                                audioPlayer.queueClip(folderPersonalBest, 0, this);
+                            }
+                        }
+                        else
+                        {
+                            Boolean playedLapMessage = false;
+                            float pearlLikelihood = 0f;
+                            if (CommonData.isRaceStarted)
+                            {
+                                pearlLikelihood = 0.8f;
+                            }
+                            switch (lastLapRating)
+                            {
+                                case LastLapRating.BEST_OVERALL:
+                                    audioPlayer.queueClip(folderBestLapInRace, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
+                                    playedLapMessage = true;
+                                    break;
+                                case LastLapRating.BEST_IN_CLASS:
+                                    audioPlayer.queueClip(folderBestLapInRaceForClass, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
+                                    playedLapMessage = true;
+                                    break;
+                                case LastLapRating.PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER:
+                                case LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER:
+                                    audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
+                                    playedLapMessage = true;
+                                    break;
+                                case LastLapRating.PERSONAL_BEST_STILL_SLOW:
+                                    audioPlayer.queueClip(folderPersonalBest, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, pearlLikelihood);
+                                    playedLapMessage = true;
+                                    break;
+                                case LastLapRating.CLOSE_TO_OVERALL_LEADER:
+                                case LastLapRating.CLOSE_TO_CLASS_LEADER:
+                                    audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, pearlLikelihood);
+                                    playedLapMessage = true;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            if (currentState.SessionType == (int)Constant.Session.Race && !playedLapMessage &&
+                                currentState.CompletedLaps >= lastConsistencyUpdate + lapTimesWindowSize && lapTimesWindow.Count >= lapTimesWindowSize)
+                            {
+                                ConsistencyResult consistency = checkAgainstPreviousLaps();
+                                if (consistency == ConsistencyResult.CONSISTENT)
+                                {
+                                    lastConsistencyUpdate = currentState.CompletedLaps;
+                                    audioPlayer.queueClip(folderConsistentTimes, 0, this);
+                                }
+                                else if (consistency == ConsistencyResult.IMPROVING)
+                                {
+                                    lastConsistencyUpdate = currentState.CompletedLaps;
+                                    audioPlayer.queueClip(folderImprovingTimes, 0, this);
+                                }
+                                if (consistency == ConsistencyResult.WORSENING)
+                                {
+                                    lastConsistencyUpdate = currentState.CompletedLaps;
+                                    audioPlayer.queueClip(folderWorseningTimes, 0, this);
+                                }
+                            }
+                        }
+                        lapDeltaToClassLeaderAtLastLap = currentLapTimeDeltaToLeader;
                     }
-                    else if (consistency == ConsistencyResult.IMPROVING)
-                    {
-                        lastConsistencyUpdate = currentState.CompletedLaps;
-                        audioPlayer.queueClip(folderImprovingTimes, 0, this);
-                    }
-                    if (consistency == ConsistencyResult.WORSENING)
-                    {
-                        lastConsistencyUpdate = currentState.CompletedLaps;
-                        audioPlayer.queueClip(folderWorseningTimes, 0, this);
-                    }
+                }
+                else
+                {
+                    // the last lap was invalid so the delta is undefined
+                    currentLapTimeDeltaToLeadersBest = TimeSpan.MaxValue;
                 }
                 lapIsValid = true;
             }
@@ -387,8 +401,12 @@ namespace CrewChiefV2.Events
                 {
                     return LastLapRating.CLOSE_TO_PERSONAL_BEST;
                 }
+                else
+                {
+                    return LastLapRating.MEH;
+                }
             }
-            return LastLapRating.MEH;
+            return LastLapRating.NO_DATA;
         }
 
         public override void respond(String voiceMessage)
@@ -413,8 +431,10 @@ namespace CrewChiefV2.Events
             {
                 if (CommonData.isRaceStarted)
                 {
-                    if (lastLapRating != LastLapRating.NO_DATA && sessionBestLapTimeDeltaToLeader != TimeSpan.MaxValue) {
-                        if (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds <= 50) {
+                    if (lastLapRating != LastLapRating.NO_DATA && currentLapTimeDeltaToLeadersBest != TimeSpan.MaxValue)
+                    {
+                        if (currentLapTimeDeltaToLeadersBest.Seconds == 0 && currentLapTimeDeltaToLeadersBest.Milliseconds <= 50)
+                        {
                             audioPlayer.playClipImmediately(folderPaceGood, new QueuedMessage(0, null));
                         }
                         else 
@@ -493,14 +513,14 @@ namespace CrewChiefV2.Events
                                 audioPlayer.playClipImmediately(folderLeadingClassInQualOrPrac, new QueuedMessage(0, null));
                             }
                         }
-                        else if (sessionBestLapTimeDeltaToLeader.Milliseconds < 50)
+                        else if (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds < 50)
                         {
-                            audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
-                                new QueuedMessage(null, folderGapOutroOffPace, sessionBestLapTimeDeltaToLeader, 0, null));
+                            audioPlayer.playClipImmediately(folderLessThanATenthOffThePace, new QueuedMessage(0, null));
                         }
                         else
                         {
-                            audioPlayer.playClipImmediately(folderLessThanATenthOffThePace, new QueuedMessage(0, null));
+                            audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
+                                new QueuedMessage(null, folderGapOutroOffPace, sessionBestLapTimeDeltaToLeader, 0, null));
                         }
                     }
                     else {
