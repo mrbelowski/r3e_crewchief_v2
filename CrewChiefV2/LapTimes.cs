@@ -71,6 +71,7 @@ namespace CrewChiefV2.Events
         private TimeSpan sessionBestLapTimeDeltaToLeader;
 
         private float currentLapTimeDeltaToLeader;
+        private TimeSpan currentLapTimeDeltaToLeadersBest;
 
         public LapTimes(AudioPlayer audioPlayer)
         {
@@ -87,6 +88,7 @@ namespace CrewChiefV2.Events
             lastLapRating = LastLapRating.NO_DATA;
             sessionBestLapTimeDeltaToLeader = TimeSpan.MaxValue;
             currentLapTimeDeltaToLeader = 0;
+            currentLapTimeDeltaToLeadersBest = TimeSpan.MaxValue;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -127,6 +129,7 @@ namespace CrewChiefV2.Events
 
                     lastLapRating = getLastLapRating(currentState);
                     sessionBestLapTimeDeltaToLeader = TimeSpan.FromSeconds(currentState.LapTimeBest - getLapTimeBestForClassLeader(currentState));
+                    currentLapTimeDeltaToLeadersBest = TimeSpan.FromSeconds(currentState.LapTimePrevious - getLapTimeBestForClassLeader(currentState));
                     currentLapTimeDeltaToLeader = getLapTimeDeltaToClassLeader(currentState);
 
                     if (lapDeltaToClassLeaderAtLastLap != -1 && (currentState.SessionType == (int)Constant.Session.Qualify ||
@@ -410,28 +413,28 @@ namespace CrewChiefV2.Events
             {
                 if (CommonData.isRaceStarted)
                 {
-                    if (lastLapRating != null && lastLapRating != LastLapRating.NO_DATA && sessionBestLapTimeDeltaToLeader != TimeSpan.MaxValue) {
+                    if (lastLapRating != LastLapRating.NO_DATA && sessionBestLapTimeDeltaToLeader != TimeSpan.MaxValue) {
                         if (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds <= 50) {
                             audioPlayer.playClipImmediately(folderPaceGood, new QueuedMessage(0, null));
                         }
                         else 
                         {
                             String timeToFindFolder = null;
-                            if (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds < 200)
+                            if (currentLapTimeDeltaToLeadersBest.Seconds == 0 && currentLapTimeDeltaToLeadersBest.Milliseconds < 200)
                             {
                                 timeToFindFolder = folderNeedToFindOneMoreTenth;
                             }
-                            else if (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds < 600)
+                            else if (currentLapTimeDeltaToLeadersBest.Seconds == 0 && currentLapTimeDeltaToLeadersBest.Milliseconds < 600)
                             {
                                 timeToFindFolder = folderNeedToFindAFewMoreTenths;
                             }
-                            else if ((sessionBestLapTimeDeltaToLeader.Seconds == 1 && sessionBestLapTimeDeltaToLeader.Milliseconds < 500) ||
-                                (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds >= 600))
+                            else if ((currentLapTimeDeltaToLeadersBest.Seconds == 1 && currentLapTimeDeltaToLeadersBest.Milliseconds < 500) ||
+                                (currentLapTimeDeltaToLeadersBest.Seconds == 0 && currentLapTimeDeltaToLeadersBest.Milliseconds >= 600))
                             {
                                 timeToFindFolder = folderNeedToFindASecond;
                             }
-                            else if ((sessionBestLapTimeDeltaToLeader.Seconds == 1 && sessionBestLapTimeDeltaToLeader.Milliseconds >= 500) ||
-                               sessionBestLapTimeDeltaToLeader.Seconds > 1)
+                            else if ((currentLapTimeDeltaToLeadersBest.Seconds == 1 && currentLapTimeDeltaToLeadersBest.Milliseconds >= 500) ||
+                               currentLapTimeDeltaToLeadersBest.Seconds > 1)
                             {
                                 timeToFindFolder = folderNeedToFindMoreThanASecond;
                             }
@@ -476,7 +479,7 @@ namespace CrewChiefV2.Events
                     }
                 }
                 else if (CommonData.isSessionRunning) {
-                    if (lastLapRating != null && lastLapRating != LastLapRating.NO_DATA && sessionBestLapTimeDeltaToLeader != TimeSpan.MaxValue)
+                    if (lastLapRating != LastLapRating.NO_DATA && sessionBestLapTimeDeltaToLeader != TimeSpan.MaxValue)
                     {
                         if (sessionBestLapTimeDeltaToLeader == TimeSpan.Zero)
                         {
