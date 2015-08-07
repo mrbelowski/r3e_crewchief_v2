@@ -181,11 +181,11 @@ namespace CrewChiefV2.Events
                     hasHadAPenalty = true;
                 }
                 else if (lastState.ControlType == (int)Constant.Control.AI && currentState.ControlType == (int)Constant.Control.Player &&
-                    currentState.CarSpeed > 10 && currentState.CarSpeed < 50)
+                     (hasDriveThrough(currentState) || hasStopGo(currentState)))
                 {
                     // yuk - if we've just been handed control and the speed is quite low we assume we've just exited the pits
                     // delay this so the valid check gets triggered
-                    audioPlayer.queueClip(folderPenaltyNotServed, 10, this);
+                    audioPlayer.queueClip(folderPenaltyNotServed, 3, this);
                 } 
                 else if (CommonData.isNewLap && (hasDriveThrough(currentState) || hasStopGo(currentState)))
                 {
