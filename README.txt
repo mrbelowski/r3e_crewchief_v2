@@ -3,6 +3,8 @@ CrewChief version 2.
 Changelog
 ---------
 
+Version 2.0.3: Added "plenty of fuel" response; added "you've not served your penalty" for when you botch a drive-through or stop-go; fixed bug in race time to go response (was saying "zero minutes" which it shouldn't); added lots of missing channel close calls to voice responses; tweaked the properties UI and added a 'clear console' button to the main UI; Added race and practice / qual responses for "how's my pace". In prac / qual this is the time gap to the class leader, in race the 'pace' is an assessment of your last lap time (assuming it's valid) relative to the best lap of the class leader. Might not be that helpful, will probably need some changes (feedback welcome)
+
 Version 2.0.2: tidied up properties interface and added some help text popups to properties that need them
 
 Version 2.0.1: Added "you have served your penalty" event - the app now tells you if you've served your penalty (you can still ask it if you want); Fixed voice recognition timeout for always-on and toggle-button mode (this wasn't my fault, honest - the API docs are incorrect for the default the MS speech engine's InitialSilenceTimeout value)
@@ -28,7 +30,7 @@ You need to speak clearly and your mic needs to be properly set up - you might n
 
 I've not finished implementing this but currently the app understands and responds to the following commands:
 
-"how is my [fuel / tyre temps / body work / aero / engine / transmission]"
+"how is my [fuel / tyre temps / body work / aero / engine / transmission / pace]"
 "what's my [gap in front / gap ahead / gap behind / last lap / last lap time / lap time / position]"
 "keep quiet / I know what I'm doing / leave me alone" (switches off messages)
 "keep me informed / keep me posted / keep me updated" (switches messages back on)
