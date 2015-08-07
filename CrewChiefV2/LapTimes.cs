@@ -436,6 +436,7 @@ namespace CrewChiefV2.Events
                         if (currentLapTimeDeltaToLeadersBest.Seconds == 0 && currentLapTimeDeltaToLeadersBest.Milliseconds <= 50)
                         {
                             audioPlayer.playClipImmediately(folderPaceGood, new QueuedMessage(0, null));
+                            audioPlayer.closeChannel();
                         }
                         else 
                         {
@@ -464,6 +465,7 @@ namespace CrewChiefV2.Events
                                 case LastLapRating.BEST_OVERALL:
                                 case LastLapRating.BEST_IN_CLASS:
                                     audioPlayer.playClipImmediately(folderPaceGood, new QueuedMessage(0, null));
+                                    audioPlayer.closeChannel();
                                     break;
                                 case LastLapRating.PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER:
                                 case LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER:
@@ -478,6 +480,7 @@ namespace CrewChiefV2.Events
                                     }
                                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeRacePaceReport",
                                         new QueuedMessage(messages, 0, null));
+                                    audioPlayer.closeChannel();
                                     break;
                                 case LastLapRating.MEH:
                                     messages.Add(folderPaceBad);
@@ -486,16 +489,19 @@ namespace CrewChiefV2.Events
                                         messages.Add(timeToFindFolder);
                                     }
                                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeRacePaceReport",
-                                        new QueuedMessage(messages, 0, null));                                   
+                                        new QueuedMessage(messages, 0, null));
+                                    audioPlayer.closeChannel();
                                         break;
                                 default:
                                     audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
+                                    audioPlayer.closeChannel();
                                     break;                     
                             }
                         }                        
                     }
                     else {
                         audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
+                        audioPlayer.closeChannel();
                     }
                 }
                 else if (CommonData.isSessionRunning) {
@@ -506,25 +512,29 @@ namespace CrewChiefV2.Events
                             if (lastLapRating == LastLapRating.BEST_OVERALL)
                             {
                                 audioPlayer.playClipImmediately(folderLeadingInQualOrPrac, new QueuedMessage(0, null));
-
+                                audioPlayer.closeChannel();
                             }
                             else if (lastLapRating == LastLapRating.BEST_IN_CLASS)
                             {
                                 audioPlayer.playClipImmediately(folderLeadingClassInQualOrPrac, new QueuedMessage(0, null));
+                                audioPlayer.closeChannel();
                             }
                         }
                         else if (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds < 50)
                         {
                             audioPlayer.playClipImmediately(folderLessThanATenthOffThePace, new QueuedMessage(0, null));
+                            audioPlayer.closeChannel();
                         }
                         else
                         {
                             audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",
                                 new QueuedMessage(null, folderGapOutroOffPace, sessionBestLapTimeDeltaToLeader, 0, null));
+                            audioPlayer.closeChannel();
                         }
                     }
                     else {
                         audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
+                        audioPlayer.closeChannel();
                     }
                 }
             }

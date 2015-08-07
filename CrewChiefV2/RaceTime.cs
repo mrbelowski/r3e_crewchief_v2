@@ -200,8 +200,9 @@ namespace CrewChiefV2.Events
             else if (lapsLeft == 0)
             {
                 audioPlayer.playClipImmediately(folderLastLap, new QueuedMessage(0, null));
+                audioPlayer.closeChannel();
             }
-            else if (timeLeft >= 1)
+            else if (timeLeft >= 60)
             {
                 TimeSpan timeLeftTimeSpan = TimeSpan.FromSeconds(timeLeft);
                 List<String> messages = new List<String>();
@@ -211,13 +212,15 @@ namespace CrewChiefV2.Events
                     new QueuedMessage(messages, 0, null));
                 audioPlayer.closeChannel();
             }
-            else if (timeLeft <= 1)
+            else if (timeLeft < 60)
             {
                 audioPlayer.playClipImmediately(folderLessThanOneMinute, new QueuedMessage(0, null));
+                audioPlayer.closeChannel();
             }
             else if (timeLeft <= 0)
             {
                 audioPlayer.playClipImmediately(folderLastLap, new QueuedMessage(0, null));
+                audioPlayer.closeChannel();
             }
         }
     }

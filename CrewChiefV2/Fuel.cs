@@ -34,6 +34,8 @@ namespace CrewChiefV2.Events
 
         private String folderWeEstimate = "fuel/we_estimate";
 
+        private String folderPlentyOfFuel = "fuel/plenty_of_fuel";
+
         private float averageUsagePerLap;
 
         private float averageUsagePerMinute;
@@ -252,24 +254,41 @@ namespace CrewChiefV2.Events
             {
                 if (averageUsagePerLap > 0)
                 {
-                    List<String> messages = new List<String>();
-                    messages.Add(folderWeEstimate);
-                    messages.Add(QueuedMessage.folderNameNumbersStub + (int)Math.Floor(currentFuel / averageUsagePerLap));
-                    messages.Add(folderLapsRemaining);
-                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Fuel/estimate",
-                        new QueuedMessage(messages, 0, this));
-                    audioPlayer.closeChannel();
+                    int lapsOfFuelLeft = (int)Math.Floor(currentFuel / averageUsagePerLap);
+                    if (lapsOfFuelLeft > 60)
+                    {
+                        audioPlayer.playClipImmediately(folderPlentyOfFuel, new QueuedMessage(0, this));
+                        audioPlayer.closeChannel();
+                    }
+                    else
+                    {
+                        List<String> messages = new List<String>();
+                        messages.Add(folderWeEstimate);
+                        messages.Add(QueuedMessage.folderNameNumbersStub + lapsOfFuelLeft);
+                        messages.Add(folderLapsRemaining);
+                        audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Fuel/estimate",
+                            new QueuedMessage(messages, 0, this));
+                        audioPlayer.closeChannel();
+                    }                    
                     haveData = true;
                 }
                 else if (averageUsagePerMinute > 0)
                 {
-                    List<String> messages = new List<String>();
-                    messages.Add(folderWeEstimate);
-                    messages.Add(QueuedMessage.folderNameNumbersStub + (int)Math.Floor(currentFuel / averageUsagePerMinute));
-                    messages.Add(folderMinutesRemaining);
-                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Fuel/estimate",
-                        new QueuedMessage(messages, 0, this));
-                    audioPlayer.closeChannel();
+                    int minutesOfFuelLeft = (int)Math.Floor(currentFuel / averageUsagePerMinute);
+                    if (minutesOfFuelLeft > 60) {
+                        audioPlayer.playClipImmediately(folderPlentyOfFuel, new QueuedMessage(0, this));
+                        audioPlayer.closeChannel();
+                    }
+                    else 
+                    {
+                        List<String> messages = new List<String>();
+                        messages.Add(folderWeEstimate);
+                        messages.Add(QueuedMessage.folderNameNumbersStub + minutesOfFuelLeft);
+                        messages.Add(folderMinutesRemaining);
+                        audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Fuel/estimate",
+                            new QueuedMessage(messages, 0, this));
+                        audioPlayer.closeChannel();
+                    }                    
                     haveData = true;
                 }
             }

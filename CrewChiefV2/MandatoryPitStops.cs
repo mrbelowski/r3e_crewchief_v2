@@ -328,10 +328,12 @@ namespace CrewChiefV2.Events
             if (!mandatoryStopRequired || mandatoryStopCompleted)
             {
                 audioPlayer.playClipImmediately(AudioPlayer.folderNo, new QueuedMessage(0, null));
+                audioPlayer.closeChannel();
             }
             else if (mandatoryStopMissed)
             {
                 audioPlayer.playClipImmediately(folderMandatoryPitStopsMissedStop, new QueuedMessage(0, null));
+                audioPlayer.closeChannel();
             }
             else if (mandatoryStopBoxThisLap)
             {
@@ -339,6 +341,7 @@ namespace CrewChiefV2.Events
                 messages.Add(AudioPlayer.folderYes);
                 messages.Add(folderMandatoryPitStopsPitThisLap);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesBoxThisLap", new QueuedMessage(messages, 0, null));
+                audioPlayer.closeChannel();
             }
             else if (pitWindowOpenLap > 0)
             {
@@ -346,6 +349,7 @@ namespace CrewChiefV2.Events
                 messages.Add(folderMandatoryPitStopsYesStopOnLap);
                 messages.Add(QueuedMessage.folderNameNumbersStub + pitWindowOpenLap);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesBoxOnLap", new QueuedMessage(messages, 0, null));
+                audioPlayer.closeChannel();
             }
             else if (pitWindowOpenTime > 0)
             {
@@ -354,6 +358,7 @@ namespace CrewChiefV2.Events
                 messages.Add(QueuedMessage.folderNameNumbersStub + pitWindowOpenTime);
                 messages.Add(folderMandatoryPitStopsMinutes);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesBoxAfter", new QueuedMessage(messages, 0, null));
+                audioPlayer.closeChannel();
             }
         }
     }
