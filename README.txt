@@ -3,7 +3,7 @@ CrewChief version 2.
 Changelog
 ---------
 
-Version 2.0.3: Added "plenty of fuel" response; added "you've not served your penalty" for when you botch a drive-through or stop-go; fixed bug in race time to go response (was saying "zero minutes" which it shouldn't); added lots of missing channel close calls to voice responses; tweaked the properties UI and added a 'clear console' button to the main UI; Added race and practice / qual responses for "how's my pace". In prac / qual this is the time gap to the class leader, in race the 'pace' is an assessment of your last lap time (assuming it's valid) relative to the best lap of the class leader. Might not be that helpful, will probably need some changes (feedback welcome)
+Version 2.1.0: Added "plenty of fuel" response; added "you've not served your penalty" for when you botch a drive-through or stop-go; fixed bug in race time to go response (was saying "zero minutes" which it shouldn't); added lots of missing channel close calls to voice responses; tweaked the properties UI and added a 'clear console' button to the main UI; Added race and practice / qual responses for "how's my pace". In prac / qual this is the time gap to the class leader, in race the 'pace' is an assessment of your last lap time (assuming it's valid) relative to the best lap of the class leader. Might not be that helpful, will probably need some changes (feedback welcome)
 
 Version 2.0.2: tidied up properties interface and added some help text popups to properties that need them
 
