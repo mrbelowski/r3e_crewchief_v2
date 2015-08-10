@@ -42,8 +42,6 @@ namespace CrewChiefV2
 
         private String fxFolderPath;
 
-        private float backgroundVolume = UserSettings.GetUserSettings().getFloat("background_volume");
-
         private readonly TimeSpan minTimeBetweenPearlsOfWisdom = TimeSpan.FromSeconds(UserSettings.GetUserSettings().getInt("minimum_time_between_pearls_of_wisdom"));
 
         private Boolean sweary = UserSettings.GetUserSettings().getBoolean("use_sweary_messages");
@@ -84,6 +82,8 @@ namespace CrewChiefV2
         private PearlsOfWisdom pearlsOfWisdom;
 
         DateTime timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
+
+        private Boolean backgroundPlayerInitialised = false;
 
         public Boolean initialise()
         {
@@ -226,6 +226,20 @@ namespace CrewChiefV2
             return false;
         }
 
+        private float getBackgroundVolume()
+        {
+            float volume = UserSettings.GetUserSettings().getFloat("background_volume");
+            if (volume > 1)
+            {
+                volume = 1;
+            }
+            if (volume < 0)
+            {
+                volume = 0;
+            }
+            return volume;
+        }
+
         public float getSoundPackVersion(DirectoryInfo soundDirectory)
         {
             FileInfo[] filesInSoundDirectory = soundDirectory.GetFiles();
@@ -255,16 +269,13 @@ namespace CrewChiefV2
 
         private void initialiseBackgroundPlayer()
         {
-            if (backgroundVolume > 0)
+            if (!backgroundPlayerInitialised && getBackgroundVolume() > 0)
             {
                 backgroundPlayer = new MediaPlayer();
                 backgroundPlayer.MediaEnded += new EventHandler(backgroundPlayer_MediaEnded);
-                if (backgroundVolume > 1)
-                {
-                    backgroundVolume = 1;
-                }
-                backgroundPlayer.Volume = backgroundVolume;
+                backgroundPlayer.Volume = getBackgroundVolume();
                 setBackgroundSound(dtmPitWindowClosedBackground);
+                backgroundPlayerInitialised = true;
             }
         }
         private void monitorQueue()
@@ -508,18 +519,28 @@ namespace CrewChiefV2
             if (!channelOpen)
             {
                 channelOpen = true;
-                if (backgroundVolume > 0 && loadNewBackground && backgroundToLoad != null)
+                if (getBackgroundVolume() > 0 && loadNewBackground && backgroundToLoad != null)
                 {
                     Console.WriteLine("Setting background sounds file to  " + backgroundToLoad);
                     String path = Path.Combine(backgroundFilesPath, backgroundToLoad);
+                    if (!backgroundPlayerInitialised)
+                    {
+                        initialiseBackgroundPlayer();
+                    }
+                    backgroundPlayer.Volume = getBackgroundVolume();
                     backgroundPlayer.Open(new System.Uri(path, System.UriKind.Absolute));
                     loadNewBackground = false;
                 }
 
                 // this looks like we're doing it the wrong way round but there's a short
                 // delay playing the event sound, so if we kick off the background before the bleep
-                if (backgroundVolume > 0)
+                if (getBackgroundVolume() > 0)
                 {
+                    if (!backgroundPlayerInitialised)
+                    {
+                        initialiseBackgroundPlayer();
+                    }
+                    backgroundPlayer.Volume = getBackgroundVolume();
                     int backgroundDuration = 0;
                     int backgroundOffset = 0;
                     if (backgroundPlayer.NaturalDuration.HasTimeSpan)
@@ -556,8 +577,12 @@ namespace CrewChiefV2
                     int bleepIndex = random.Next(0, bleeps.Count);
                     bleeps[bleepIndex].PlaySync();
                 }
-                if (backgroundVolume > 0)
+                if (getBackgroundVolume() > 0)
                 {
+                    if (!backgroundPlayerInitialised)
+                    {
+                        initialiseBackgroundPlayer();
+                    }
                     backgroundPlayer.Stop();
                 }                                
                 channelOpen = false;

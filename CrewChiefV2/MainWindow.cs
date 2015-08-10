@@ -11,6 +11,7 @@ using CrewChiefV2;
 using System.Threading;
 using System.IO;
 using SharpDX.DirectInput;
+using System.Runtime.InteropServices;
 
 namespace CrewChiefV2
 {
@@ -34,6 +35,39 @@ namespace CrewChiefV2
 
         private VoiceOptionEnum voiceOption;
 
+        [DllImport("winmm.dll")]
+        public static extern int waveOutGetVolume(IntPtr hwo, out uint dwVolume);
+
+        [DllImport("winmm.dll")]
+        public static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
+
+        private void messagesVolumeSlider_Scroll(object sender, EventArgs e)
+        {
+            float volFloat = (float) messagesVolumeSlider.Value / 10;
+            setMessagesVolume(volFloat);
+            UserSettings.GetUserSettings().setProperty("messages_volume", volFloat);
+            UserSettings.GetUserSettings().saveUserSettings();
+        }
+
+        private void setMessagesVolume(float vol)
+        {
+            Console.WriteLine(vol);
+            int NewVolume = (int) (((float)ushort.MaxValue) * vol);
+            Console.WriteLine(NewVolume);
+            // Set the same volume for both the left and the right channels
+            uint NewVolumeAllChannels = (((uint)NewVolume & 0x0000ffff) | ((uint)NewVolume << 16));
+            // Set the volume
+            Console.WriteLine(NewVolumeAllChannels);
+            waveOutSetVolume(IntPtr.Zero, NewVolumeAllChannels);
+        }
+
+        private void backgroundVolumeSlider_Scroll(object sender, EventArgs e)
+        {
+            float volFloat = (float)backgroundVolumeSlider.Value / 10;
+            UserSettings.GetUserSettings().setProperty("background_volume", volFloat);
+            UserSettings.GetUserSettings().saveUserSettings();
+        }
+        
         public bool IsAppRunning
         {
             get
@@ -50,6 +84,12 @@ namespace CrewChiefV2
         public MainWindow()
         {
             InitializeComponent();
+            float messagesVolume = UserSettings.GetUserSettings().getFloat("messages_volume");
+            float backgroundVolume = UserSettings.GetUserSettings().getFloat("background_volume");
+            setMessagesVolume(messagesVolume);
+            messagesVolumeSlider.Value = (int)(messagesVolume * 10f);
+            backgroundVolumeSlider.Value = (int) (backgroundVolume * 10f);
+
             CheckForIllegalCrossThreadCalls = false;
             Console.SetOut(new ControlWriter(textBox1));
             crewChief = new CrewChief();

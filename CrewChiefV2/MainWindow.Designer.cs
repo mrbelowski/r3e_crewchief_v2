@@ -45,24 +45,30 @@
             this.holdButton = new System.Windows.Forms.RadioButton();
             this.voiceDisableButton = new System.Windows.Forms.RadioButton();
             this.button2 = new System.Windows.Forms.Button();
+            this.messagesVolumeSlider = new System.Windows.Forms.TrackBar();
+            this.label3 = new System.Windows.Forms.Label();
+            this.backgroundVolumeSlider = new System.Windows.Forms.TrackBar();
+            this.label4 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.messagesVolumeSlider)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.backgroundVolumeSlider)).BeginInit();
             this.SuspendLayout();
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(41, 59);
+            this.textBox1.Location = new System.Drawing.Point(41, 80);
             this.textBox1.MaxLength = 99999999;
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
             this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox1.Size = new System.Drawing.Size(1093, 438);
+            this.textBox1.Size = new System.Drawing.Size(1093, 417);
             this.textBox1.TabIndex = 1;
             this.textBox1.Click += new System.EventHandler(this.assignButtonToActionClick);
             // 
             // startApplicationButton
             // 
-            this.startApplicationButton.Location = new System.Drawing.Point(41, 12);
+            this.startApplicationButton.Location = new System.Drawing.Point(41, 28);
             this.startApplicationButton.Name = "startApplicationButton";
             this.startApplicationButton.Size = new System.Drawing.Size(137, 41);
             this.startApplicationButton.TabIndex = 5;
@@ -141,7 +147,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(991, 12);
+            this.button1.Location = new System.Drawing.Point(991, 28);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(143, 41);
             this.button1.TabIndex = 14;
@@ -212,7 +218,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(184, 12);
+            this.button2.Location = new System.Drawing.Point(184, 28);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(137, 41);
             this.button2.TabIndex = 16;
@@ -220,11 +226,49 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.clearConsole);
             // 
+            // messagesVolumeSlider
+            // 
+            this.messagesVolumeSlider.Location = new System.Drawing.Point(327, 28);
+            this.messagesVolumeSlider.Name = "messagesVolumeSlider";
+            this.messagesVolumeSlider.Size = new System.Drawing.Size(176, 45);
+            this.messagesVolumeSlider.TabIndex = 17;
+            this.messagesVolumeSlider.Scroll += new System.EventHandler(this.messagesVolumeSlider_Scroll);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(367, 12);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(92, 13);
+            this.label3.TabIndex = 18;
+            this.label3.Text = "Messages volume";
+            // 
+            // backgroundVolumeSlider
+            // 
+            this.backgroundVolumeSlider.Location = new System.Drawing.Point(558, 28);
+            this.backgroundVolumeSlider.Name = "backgroundVolumeSlider";
+            this.backgroundVolumeSlider.Size = new System.Drawing.Size(184, 45);
+            this.backgroundVolumeSlider.TabIndex = 19;
+            this.backgroundVolumeSlider.Scroll += new System.EventHandler(this.backgroundVolumeSlider_Scroll);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(567, 11);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(102, 13);
+            this.label4.TabIndex = 20;
+            this.label4.Text = "Background volume";
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1146, 692);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.backgroundVolumeSlider);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.messagesVolumeSlider);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.button1);
@@ -242,6 +286,8 @@
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.stopApp);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.messagesVolumeSlider)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.backgroundVolumeSlider)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -265,6 +311,10 @@
         private System.Windows.Forms.RadioButton holdButton;
         private System.Windows.Forms.RadioButton voiceDisableButton;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.TrackBar messagesVolumeSlider;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TrackBar backgroundVolumeSlider;
+        private System.Windows.Forms.Label label4;
 
     }
 }

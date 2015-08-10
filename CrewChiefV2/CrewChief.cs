@@ -29,7 +29,7 @@ namespace CrewChiefV2
 
         private static Dictionary<String, AbstractEvent> eventsList = new Dictionary<String, AbstractEvent>();
 
-        AudioPlayer audioPlayer;
+        public AudioPlayer audioPlayer;
 
         Shared lastState;
         Shared currentState;

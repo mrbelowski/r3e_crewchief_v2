@@ -532,5 +532,17 @@ namespace CrewChiefV2.Properties {
                 this["run_immediately"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public float messages_volume {
+            get {
+                return ((float)(this["messages_volume"]));
+            }
+            set {
+                this["messages_volume"] = value;
+            }
+        }
     }
 }
