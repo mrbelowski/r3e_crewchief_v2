@@ -235,22 +235,16 @@ namespace CrewChiefV2.Events
 
         public void enableSpotter()
         {
-            if (!enabled)
-            {
-                enabled = true;
-                audioPlayer.playClipImmediately(AudioPlayer.folderEnableSpotter, new QueuedMessage(0, null));
-                audioPlayer.closeChannel();
-            }
+            enabled = true;
+            audioPlayer.playClipImmediately(AudioPlayer.folderEnableSpotter, new QueuedMessage(0, null));
+            audioPlayer.closeChannel();
         }
 
         public void disableSpotter()
         {
-            if (enabled)
-            {
-                enabled = false;
-                audioPlayer.playClipImmediately(AudioPlayer.folderDisableSpotter, new QueuedMessage(0, null));
-                audioPlayer.closeChannel();
-            }
+            enabled = false;
+            audioPlayer.playClipImmediately(AudioPlayer.folderDisableSpotter, new QueuedMessage(0, null));
+            audioPlayer.closeChannel();
         }
     }
 }

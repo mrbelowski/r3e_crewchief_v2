@@ -23,6 +23,17 @@ namespace CrewChiefV2
         public static void runRrre()
         {
             String launchExe = UserSettings.GetUserSettings().getString("r3e_launch_exe");
+            if (launchExe.Contains(" "))
+            {
+                if (!launchExe.StartsWith("\""))
+                {
+                    launchExe = "\"" + launchExe;
+                }
+                if (!launchExe.EndsWith("\""))
+                {
+                    launchExe = launchExe + "\"";
+                }
+            }
             String launchParams = UserSettings.GetUserSettings().getString("r3e_launch_params");
             Console.WriteLine("Attempting to run R3E using " + launchExe + " "  + launchParams);
             using (Process process = new Process())

@@ -340,22 +340,16 @@ namespace CrewChiefV2
 
         public void enableKeepQuietMode()
         {
-            if (!keepQuiet)
-            {
-                playClipImmediately(folderAcknowlegeEnableKeepQuiet, new QueuedMessage(0, null));
-                closeChannel();
-                keepQuiet = true;
-            }
+            playClipImmediately(folderAcknowlegeEnableKeepQuiet, new QueuedMessage(0, null));
+            closeChannel();
+            keepQuiet = true;
         }
 
         public void disableKeepQuietMode()
         {
-            if (keepQuiet)
-            {
-                playClipImmediately(folderAcknowlegeDisableKeepQuiet, new QueuedMessage(0, null));
-                closeChannel();
-                keepQuiet = false;
-            }
+            playClipImmediately(folderAcknowlegeDisableKeepQuiet, new QueuedMessage(0, null));
+            closeChannel();
+            keepQuiet = false;
         }
 
         private void monitorQueueNoImmediateMessages()
