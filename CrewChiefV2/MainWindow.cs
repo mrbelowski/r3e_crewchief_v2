@@ -51,13 +51,10 @@ namespace CrewChiefV2
 
         private void setMessagesVolume(float vol)
         {
-            Console.WriteLine(vol);
             int NewVolume = (int) (((float)ushort.MaxValue) * vol);
-            Console.WriteLine(NewVolume);
             // Set the same volume for both the left and the right channels
             uint NewVolumeAllChannels = (((uint)NewVolume & 0x0000ffff) | ((uint)NewVolume << 16));
             // Set the volume
-            Console.WriteLine(NewVolumeAllChannels);
             waveOutSetVolume(IntPtr.Zero, NewVolumeAllChannels);
         }
 
