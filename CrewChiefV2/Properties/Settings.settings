@@ -126,10 +126,10 @@
       <Value Profile="(Default)">c:/games/steam/steam.exe</Value>
     </Setting>
     <Setting Name="launch_raceroom" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="run_immediately" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="messages_volume" Type="System.Single" Scope="User">
       <Value Profile="(Default)">1</Value>

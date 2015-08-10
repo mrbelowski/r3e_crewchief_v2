@@ -511,7 +511,7 @@ namespace CrewChiefV2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool launch_raceroom {
             get {
                 return ((bool)(this["launch_raceroom"]));
@@ -523,7 +523,7 @@ namespace CrewChiefV2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool run_immediately {
             get {
                 return ((bool)(this["run_immediately"]));
