@@ -9,7 +9,7 @@ namespace CrewChiefV2
 {
     class UserSettings
     {
-        private String[] reservedNameStarts = new String[] { "CHANNEL_", "TOGGLE_", "VOICE_OPTION" };
+        private String[] reservedNameStarts = new String[] { "CHANNEL_", "TOGGLE_", "VOICE_OPTION", "background_volume", "messages_volume" };
         public Dictionary<String, String> propertyHelp = new Dictionary<String, String>();
         private UserSettings()
         {
@@ -35,6 +35,12 @@ namespace CrewChiefV2
                 "a warning message is played. Reduce this to make the 'high oil temp' warning more sensitive");
             propertyHelp.Add("max_safe_water_temp_over_baseline", "Baseline water temp is taken after a few minutes. If the water temp goes more than this value over the baseline " +
                 "a warning message is played. Reduce this to make the 'high water temp' warning more sensitive");
+            propertyHelp.Add("r3e_launch_params", "This is used to tell Steam what app to run - raceroom's Steam app ID is 211500. If you're using a non-Steam version of RaceRoom this can be empty");
+            propertyHelp.Add("r3e_launch_exe", "This is the program used to start RaceRoom. For most users this should be the full path to their steam.exe "+
+                "(e.g. C:/program files/steam/steam.exe). Use forward slashes to separate paths. If you have a non-steam version of RaceRoom use the full path to the RaceRoom exe");
+            propertyHelp.Add("launch_raceroom", "If this is true the application will attempt to launch RaceRoom when CrewChief starts (when you click 'Start application'" + 
+                " or the app auto starts CrewChief if you set run_immediately to true)");
+            propertyHelp.Add("run_immediately", "If this is true the application will start running CrewChief as soon as you start it up, using whatever options you previously set");
         }
 
         public String getHelp(String propertyId)
