@@ -142,6 +142,7 @@ namespace CrewChiefV2
                 eventsList.Add("PushNow", new PushNow(audioPlayer));
                 eventsList.Add("Spotter", new Spotter(audioPlayer, spotterEnabled));
                 Boolean displayedMappingMessage = false;
+                Boolean attemptedToRunRRRE = false;
                 while (CrewChief.running)
                 {
                     var timeNow = DateTime.UtcNow;
@@ -167,6 +168,11 @@ namespace CrewChiefV2
                             Console.WriteLine("Memory mapped successfully");
                             timeReset = DateTime.UtcNow;
                         }
+                    }
+                    else if (UserSettings.GetUserSettings().getBoolean("launch_raceroom") && !attemptedToRunRRRE)
+                    {
+                        Utilities.runRrre();
+                        attemptedToRunRRRE = true;
                     }
 
                     if (Mapped)

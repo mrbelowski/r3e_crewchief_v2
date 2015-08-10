@@ -119,5 +119,17 @@
     <Setting Name="custom_device_guid" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="r3e_launch_params" Type="System.String" Scope="User">
+      <Value Profile="(Default)">-applaunch 211500</Value>
+    </Setting>
+    <Setting Name="r3e_launch_exe" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:/games/steam/steam.exe</Value>
+    </Setting>
+    <Setting Name="launch_raceroom" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="run_immediately" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

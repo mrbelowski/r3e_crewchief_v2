@@ -19,5 +19,19 @@ namespace CrewChiefV2
         {
             return Process.GetProcessesByName("RRRE").Length > 0;
         }
+
+        public static void runRrre()
+        {
+            String launchExe = UserSettings.GetUserSettings().getString("r3e_launch_exe");
+            String launchParams = UserSettings.GetUserSettings().getString("r3e_launch_params");
+            Console.WriteLine("Attempting to run R3E using " + launchExe + " "  + launchParams);
+            using (Process process = new Process())
+            {
+               ProcessStartInfo startInfo = new ProcessStartInfo(launchExe);
+               startInfo.Arguments = launchParams;
+               process.StartInfo = startInfo;
+               process.Start();
+            }
+        }
     }
 }

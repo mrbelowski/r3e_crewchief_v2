@@ -99,6 +99,11 @@ namespace CrewChiefV2
             updateActions();
             this.assignButtonToAction.Enabled = false;
             this.deleteAssigmentButton.Enabled = false;
+
+            if (UserSettings.GetUserSettings().getBoolean("run_immediately"))
+            {
+                doStartAppStuff();
+            }
         }
 
         private void listenForChannelOpen()
@@ -185,6 +190,11 @@ namespace CrewChiefV2
         }
 
         private void startApplicationButton_Click(object sender, EventArgs e)
+        {
+            doStartAppStuff();
+        }
+
+        private void doStartAppStuff()
         {
             IsAppRunning = !IsAppRunning;
             if (_IsAppRunning)

@@ -484,5 +484,53 @@ namespace CrewChiefV2.Properties {
                 this["custom_device_guid"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-applaunch 211500")]
+        public string r3e_launch_params {
+            get {
+                return ((string)(this["r3e_launch_params"]));
+            }
+            set {
+                this["r3e_launch_params"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("c:/games/steam/steam.exe")]
+        public string r3e_launch_exe {
+            get {
+                return ((string)(this["r3e_launch_exe"]));
+            }
+            set {
+                this["r3e_launch_exe"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool launch_raceroom {
+            get {
+                return ((bool)(this["launch_raceroom"]));
+            }
+            set {
+                this["launch_raceroom"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool run_immediately {
+            get {
+                return ((bool)(this["run_immediately"]));
+            }
+            set {
+                this["run_immediately"] = value;
+            }
+        }
     }
 }
