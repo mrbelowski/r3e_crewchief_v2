@@ -155,18 +155,20 @@ namespace CrewChiefV2
 
                     timeLast = timeNow;
 
-                    if (Utilities.IsRrreRunning() && !Mapped)
-                    {
-                        if (!displayedMappingMessage)
+                    if (Utilities.IsRrreRunning()) {
+                        if (!Mapped)
                         {
-                            Console.WriteLine("Found RRRE.exe, mapping shared memory...");
-                            displayedMappingMessage = true;
-                        }
+                            if (!displayedMappingMessage)
+                            {
+                                Console.WriteLine("Found RRRE.exe, mapping shared memory...");
+                                displayedMappingMessage = true;
+                            }
 
-                        if (Map())
-                        {
-                            Console.WriteLine("Memory mapped successfully");
-                            timeReset = DateTime.UtcNow;
+                            if (Map())
+                            {
+                                Console.WriteLine("Memory mapped successfully");
+                                timeReset = DateTime.UtcNow;
+                            }
                         }
                     }
                     else if (UserSettings.GetUserSettings().getBoolean("launch_raceroom") && !attemptedToRunRRRE)

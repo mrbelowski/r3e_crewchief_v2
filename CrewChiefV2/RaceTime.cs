@@ -200,16 +200,16 @@ namespace CrewChiefV2.Events
                 messages.Add(QueuedMessage.folderNameNumbersStub + lapsLeft);
                 messages.Add(folderLapsLeft);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/laps_remaining",
-                    new QueuedMessage(messages, 0, null));
+                    new QueuedMessage(messages, 0, this));
                 audioPlayer.closeChannel();
             } if (lapsLeft == 1)
             {
-                audioPlayer.playClipImmediately(folderOneLapAfterThisOne, new QueuedMessage(0, null));
+                audioPlayer.playClipImmediately(folderOneLapAfterThisOne, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
             }
             else if (lapsLeft == 0)
             {
-                audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, null));
+                audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
             }
             else if (timeLeft >= 120)
@@ -219,22 +219,22 @@ namespace CrewChiefV2.Events
                 messages.Add(QueuedMessage.folderNameNumbersStub + timeLeftTimeSpan.Minutes);
                 messages.Add(folderMinutesLeft);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/time_remaining",
-                    new QueuedMessage(messages, 0, null));
+                    new QueuedMessage(messages, 0, this));
                 audioPlayer.closeChannel();
             }
             else if (timeLeft >= 60)
             {
-                audioPlayer.playClipImmediately(folderOneMinuteRemaining, new QueuedMessage(0, null));
+                audioPlayer.playClipImmediately(folderOneMinuteRemaining, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
             }
             else if (timeLeft <= 0)
             {
-                audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, null));
+                audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
             }
             else if (timeLeft < 60)
             {
-                audioPlayer.playClipImmediately(folderLessThanOneMinute, new QueuedMessage(0, null));
+                audioPlayer.playClipImmediately(folderLessThanOneMinute, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
             }            
         }
