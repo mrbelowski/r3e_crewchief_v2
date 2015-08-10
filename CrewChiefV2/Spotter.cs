@@ -238,7 +238,7 @@ namespace CrewChiefV2.Events
             if (!enabled)
             {
                 enabled = true;
-                audioPlayer.playClipImmediately(AudioPlayer.folderAcknowlegeOK, new QueuedMessage(0, null));
+                audioPlayer.playClipImmediately(AudioPlayer.folderEnableSpotter, new QueuedMessage(0, null));
                 audioPlayer.closeChannel();
             }
         }
@@ -248,7 +248,7 @@ namespace CrewChiefV2.Events
             if (enabled)
             {
                 enabled = false;
-                audioPlayer.playClipImmediately(AudioPlayer.folderAcknowlegeOK, new QueuedMessage(0, null));
+                audioPlayer.playClipImmediately(AudioPlayer.folderDisableSpotter, new QueuedMessage(0, null));
                 audioPlayer.closeChannel();
             }
         }

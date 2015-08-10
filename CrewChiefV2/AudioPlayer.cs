@@ -16,6 +16,9 @@ namespace CrewChiefV2
         public static float minimumSoundPackVersion = 2.1f;
 
         public static String folderAcknowlegeOK = "acknowledge/OK";
+        public static String folderAcknowlegeEnableKeepQuiet = "acknowledge/keepQuietEnabled";
+        public static String folderEnableSpotter = "acknowledge/spotterEnabled";
+        public static String folderDisableSpotter = "acknowledge/spotterDisabled";
         public static String folderAcknowlegeDisableKeepQuiet = "acknowledge/keepQuietDisabled";
         public static String folderDidntUnderstand = "acknowledge/didnt_understand";
         public static String folderNoData = "acknowledge/no_data";
@@ -339,7 +342,7 @@ namespace CrewChiefV2
         {
             if (!keepQuiet)
             {
-                playClipImmediately(folderAcknowlegeOK, new QueuedMessage(0, null));
+                playClipImmediately(folderAcknowlegeEnableKeepQuiet, new QueuedMessage(0, null));
                 closeChannel();
                 keepQuiet = true;
             }

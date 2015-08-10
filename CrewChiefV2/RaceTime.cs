@@ -31,6 +31,12 @@ namespace CrewChiefV2.Events
 
         private String folderLessThanOneMinute = "race_time/less_than_one_minute";
 
+        private String folderThisIsTheLastLap = "race_time/this_is_the_last_lap";
+
+        private String folderOneMinuteRemaining = "race_time/one_minute_remaining";
+
+        private String folderOneLapAfterThisOne = "race_time/one_more_lap_after_this_one";
+
         private Boolean played2mins, played5mins, played10mins, played15mins, played20mins, playedHalfWayHome, playedLastLap;
 
         private float halfTime;
@@ -188,7 +194,7 @@ namespace CrewChiefV2.Events
 
         public override void respond(string voiceMessage)
         {
-            if (lapsLeft > 0)
+            if (lapsLeft > 1)
             {
                 List<String> messages = new List<String>();
                 messages.Add(QueuedMessage.folderNameNumbersStub + lapsLeft);
@@ -196,13 +202,17 @@ namespace CrewChiefV2.Events
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/laps_remaining",
                     new QueuedMessage(messages, 0, null));
                 audioPlayer.closeChannel();
+            } if (lapsLeft == 1)
+            {
+                audioPlayer.playClipImmediately(folderOneLapAfterThisOne, new QueuedMessage(0, null));
+                audioPlayer.closeChannel();
             }
             else if (lapsLeft == 0)
             {
-                audioPlayer.playClipImmediately(folderLastLap, new QueuedMessage(0, null));
+                audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, null));
                 audioPlayer.closeChannel();
             }
-            else if (timeLeft >= 60)
+            else if (timeLeft >= 120)
             {
                 TimeSpan timeLeftTimeSpan = TimeSpan.FromSeconds(timeLeft);
                 List<String> messages = new List<String>();
@@ -212,9 +222,14 @@ namespace CrewChiefV2.Events
                     new QueuedMessage(messages, 0, null));
                 audioPlayer.closeChannel();
             }
+            else if (timeLeft >= 60)
+            {
+                audioPlayer.playClipImmediately(folderOneMinuteRemaining, new QueuedMessage(0, null));
+                audioPlayer.closeChannel();
+            }
             else if (timeLeft <= 0)
             {
-                audioPlayer.playClipImmediately(folderLastLap, new QueuedMessage(0, null));
+                audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, null));
                 audioPlayer.closeChannel();
             }
             else if (timeLeft < 60)
