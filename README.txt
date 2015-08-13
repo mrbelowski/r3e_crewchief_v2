@@ -3,6 +3,8 @@ CrewChief version 2.
 Changelog
 ---------
 
+Version 2.2.2: Fixed race time getting set to 0 for some online races (caused missing pit window warnings and maybe some other issues); fixed some errors caused be weird end-of-race data (NumberOfLaps being set to a large number in time-only races); fixed missing exception messages on error. No new sound pack for this version
+
 Version 2.2.1: fixed broken tyre temps monitor (was always saying they were good); don't play "fastest lap in the race" if we're actually in practice or qually
 
 Version 2.2.0: Added separate acknowledge messages for toggling spotter & updates; fixed issues with race time / laps remaining near the end of the race (the sound clips weren't very good); added options to run R3E automatically when you start the app and option to run the app (and R3E) as soon as the app is loaded
