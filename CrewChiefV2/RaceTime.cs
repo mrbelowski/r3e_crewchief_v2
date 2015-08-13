@@ -207,7 +207,7 @@ namespace CrewChiefV2.Events
             // end of a timed race
             if (lapsLeft > 60)
             {
-                Console.WriteLine("Unable to process numbers higher than 60 in this version...")
+                Console.WriteLine("Unable to process numbers higher than 60 in this version...");
             }
             else if (lapsLeft > 1)
             {
@@ -233,7 +233,7 @@ namespace CrewChiefV2.Events
             }
             else if (timeLeft >= 3660)
             {
-                Console.WriteLine("Unable to process times higher than 60 minutes in this version...")
+                Console.WriteLine("Unable to process times higher than 60 minutes in this version...");
             }
             else if (timeLeft >= 120)
             {

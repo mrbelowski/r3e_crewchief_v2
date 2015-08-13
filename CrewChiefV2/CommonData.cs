@@ -29,6 +29,8 @@ namespace CrewChiefV2
 
         public static float raceSessionLength;
 
+        public static int minSessionLengthMinutes = 4;
+
         // note this will be -1 if we don't actually know what sector we're in
         public static int currentLapSector;
 
@@ -82,8 +84,12 @@ namespace CrewChiefV2
                 // round to the nearest minute
                 TimeSpan sessionTimespan = TimeSpan.FromSeconds(currentState.SessionTimeRemaining + 10);
                 raceSessionLength = sessionTimespan.Minutes * 60;
-                Console.WriteLine("setting race session length to " + (raceSessionLength / 60));
-                sessionLengthSet = true;
+                if (raceSessionLength > minSessionLengthMinutes)
+                {
+                    // if the session length is < minSessionLengthMInutes, ignore it
+                    Console.WriteLine("setting race session length to " + (raceSessionLength / 60));
+                    sessionLengthSet = true;
+                }               
             }
 
             if (isRaceStarted)
