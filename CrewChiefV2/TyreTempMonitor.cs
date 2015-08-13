@@ -25,12 +25,12 @@ namespace CrewChiefV2.Events
         // play these messages 10 seconds after crossing the line
         private int tyreTempMessageDelay = 10;
 
+        private int lapsIntoSessionBeforeTempMessage = 2;
+
         private TyreTemps lastLapTyreTemps;
         private TyreTemps thisLapTyreTemps;
 
-        private Boolean hasPlayedMessage;
-
-        private TyreTempStatus lastStatus;
+        private TyreTempStatus lastReportedStatus;
 
         public TyreTempMonitor(AudioPlayer audioPlayer)
         {
@@ -39,10 +39,9 @@ namespace CrewChiefV2.Events
 
         public override void clearState()
         {
-            lastLapTyreTemps = new TyreTemps();
-            thisLapTyreTemps = new TyreTemps();
-            lastStatus = TyreTempStatus.COLD;
-            hasPlayedMessage = false;
+            lastLapTyreTemps = null;
+            thisLapTyreTemps = null;
+            lastReportedStatus = TyreTempStatus.NO_DATA;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -52,46 +51,46 @@ namespace CrewChiefV2.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (CommonData.isNewLap && CommonData.isSessionRunning)
+            if (CommonData.isSessionRunning)
             {
-                if (currentState.CompletedLaps > 1)
+                if (CommonData.isNewLap)
                 {
-                    if (lastLapTyreTemps == null)
+                    lastLapTyreTemps = thisLapTyreTemps;    // this might still be null
+                    thisLapTyreTemps = new TyreTemps();
+                    updateTyreTemps(currentState, thisLapTyreTemps);
+                    // only give a message if we've completed more than the minimum laps here
+                    if (lastLapTyreTemps != null && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
                     {
-                        clearState();
-                        updateTyreTemps(currentState, lastLapTyreTemps);
-                    }
-                    lastLapTyreTemps.display();
-                    // completed 2 laps, so now we have some comparison data
-                    TyreTempStatus tempStatus = lastLapTyreTemps.getStatus();
-                    if (tempStatus != lastStatus || !hasPlayedMessage)
-                    {
-                        hasPlayedMessage = true;
-                        String messageFolder = getMessage(tempStatus);
-                        if (messageFolder != null)
+                        lastLapTyreTemps.display();
+                        TyreTempStatus lastLapTempsStatus = lastLapTyreTemps.getStatus();
+                        if (lastLapTempsStatus != lastReportedStatus)
                         {
-                            audioPlayer.queueClip(folderGoodTemps, tyreTempMessageDelay, this);
+                            String messageFolder = getMessage(lastLapTempsStatus);
+                            if (messageFolder != null)
+                            {
+                                audioPlayer.queueClip(messageFolder, tyreTempMessageDelay, this);
+                            }
+                            lastReportedStatus = lastLapTempsStatus;
                         }
-                        lastStatus = tempStatus;
                     }
                 }
-                lastLapTyreTemps = thisLapTyreTemps;
-                thisLapTyreTemps = new TyreTemps();
+                else
+                {
+                    if (thisLapTyreTemps == null)
+                    {
+                        thisLapTyreTemps = new TyreTemps();
+                    }
+                    updateTyreTemps(currentState, thisLapTyreTemps); 
+                }
             }
-            if (thisLapTyreTemps == null)
-            {
-                Console.WriteLine("resetting tyre temps data");
-                clearState();
-            }
-            updateTyreTemps(currentState, thisLapTyreTemps);
         }
 
         public override void respond(string voiceMessage)
         {
             Boolean gotData = false;
-            if (lastLapTyreTemps != null)
+            if (thisLapTyreTemps != null)
             {
-                String messageFolder = getMessage(lastLapTyreTemps.getStatus());
+                String messageFolder = getMessage(thisLapTyreTemps.getStatus());
                 if (messageFolder != null)
                 {
                     gotData = true;
@@ -253,7 +252,7 @@ namespace CrewChiefV2.Events
         private enum TyreTempStatus
         {
             HOT_LEFT_FRONT, HOT_RIGHT_FRONT, HOT_LEFT_REAR, HOT_RIGHT_REAR,
-            HOT_FRONTS, HOT_REARS, HOT_LEFTS, HOT_RIGHTS, HOT_ALL_ROUND, GOOD, COLD
+            HOT_FRONTS, HOT_REARS, HOT_LEFTS, HOT_RIGHTS, HOT_ALL_ROUND, GOOD, COLD, NO_DATA
         }
 
     }

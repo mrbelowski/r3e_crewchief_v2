@@ -191,11 +191,17 @@ namespace CrewChiefV2.Events
                             switch (lastLapRating)
                             {
                                 case LastLapRating.BEST_OVERALL:
-                                    audioPlayer.queueClip(folderBestLapInRace, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
+                                    if (currentState.SessionType == (int)Constant.Session.Race)
+                                    {
+                                        audioPlayer.queueClip(folderBestLapInRace, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
+                                    }
                                     playedLapMessage = true;
                                     break;
                                 case LastLapRating.BEST_IN_CLASS:
-                                    audioPlayer.queueClip(folderBestLapInRaceForClass, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
+                                    if (currentState.SessionType == (int)Constant.Session.Race)
+                                    {
+                                        audioPlayer.queueClip(folderBestLapInRaceForClass, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
+                                    }
                                     playedLapMessage = true;
                                     break;
                                 case LastLapRating.PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER:
