@@ -59,6 +59,12 @@ namespace CrewChiefV2.Events
             gotHalfTime = false;
             lapsLeft = -1;
             timeLeft = 0;
+
+            // TODO: add a mode flag here which is initialised on race start
+            // because the NumberOfLaps parameter gets set to something other than
+            // zero when the leader crosses the line at the finish, screwing up the
+            // 'how longs left' response for timed races. This value is getting
+            // set to a number that's larger than 60, causing an error
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -194,15 +200,28 @@ namespace CrewChiefV2.Events
 
         public override void respond(string voiceMessage)
         {
-            if (lapsLeft > 1)
+            // TODO: handle times and laps > 60 - maybe just use "lots" and "ages"...
+
+            // TODO: check the (as yet unimplemented) 'raceIsFixedNumberOfLaps' flag
+            // before checking the lapsLeft value - it'll be set to something weird at the
+            // end of a timed race
+            if (lapsLeft > 60)
+            {
+                Console.WriteLine("Unable to process numbers higher than 60 in this version...")
+            }
+            else if (lapsLeft > 1)
             {
                 List<String> messages = new List<String>();
                 messages.Add(QueuedMessage.folderNameNumbersStub + lapsLeft);
                 messages.Add(folderLapsLeft);
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/laps_remaining",
                     new QueuedMessage(messages, 0, this));
+
+                // TODO: the 'isSessionRunning' flag appears to be set to false when the
+                // leader crosses the line at the end of the race
                 audioPlayer.closeChannel();
-            } if (lapsLeft == 1)
+            }
+            else if (lapsLeft == 1)
             {
                 audioPlayer.playClipImmediately(folderOneLapAfterThisOne, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
@@ -211,6 +230,10 @@ namespace CrewChiefV2.Events
             {
                 audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
+            }
+            else if (timeLeft >= 3660)
+            {
+                Console.WriteLine("Unable to process times higher than 60 minutes in this version...")
             }
             else if (timeLeft >= 120)
             {

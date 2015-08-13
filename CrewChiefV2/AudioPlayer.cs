@@ -310,7 +310,7 @@ namespace CrewChiefV2
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Exception processing immediate clips: ", e.Message);
+                        Console.WriteLine("Exception processing immediate clips: " + e.Message);
                         lock (immediateClips)
                         {
                             immediateClips.Clear();
@@ -340,7 +340,7 @@ namespace CrewChiefV2
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Exception processing queued clips: ", e.Message);
+                    Console.WriteLine("Exception processing queued clips: " + e.Message);
                     lock (queuedClips)
                     {
                         queuedClips.Clear();
