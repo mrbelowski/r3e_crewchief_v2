@@ -17,7 +17,7 @@
             this.runListenForButtonPressesThread = false;
             if (crewChief != null)
             {
-                crewChief.running = false;
+                crewChief.stop();
                 crewChief.Dispose();
             }
             if (speechRecogniser != null)

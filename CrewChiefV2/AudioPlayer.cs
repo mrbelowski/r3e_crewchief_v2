@@ -222,6 +222,7 @@ namespace CrewChiefV2
             }
             else
             {
+                Console.WriteLine("Starting queue monitor");
                 monitorRunning = true;
                 // spawn a Thread to monitor the queue
                 ThreadStart work;
