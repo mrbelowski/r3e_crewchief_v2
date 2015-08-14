@@ -3,7 +3,7 @@ CrewChief version 2.
 Changelog
 ---------
 
-Version 2.2.2: Fixed race time getting set to 0 for some online races (caused missing pit window warnings and maybe some other issues); fixed some errors caused be weird end-of-race data (NumberOfLaps being set to a large number in time-only races); fixed missing exception messages on error. No new sound pack for this version
+Version 2.2.2: Fixed race time getting set to 0 for some online races (caused missing pit window warnings and maybe some other issues); fixed some errors caused be weird end-of-race data (NumberOfLaps being set to a large number in time-only races); fixed missing exception messages on error; added error checking to R3E process launch; added logging to tyre temps; don't play messages with numbers in them if the number isn't part of the range the app can play (basically gaps / laps / times > 59 seconds / laps / minutes). No new sound pack for this version
 
 Version 2.2.1: fixed broken tyre temps monitor (was always saying they were good); don't play "fastest lap in the race" if we're actually in practice or qually
 
