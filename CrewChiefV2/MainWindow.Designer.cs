@@ -13,6 +13,21 @@
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
+            this.runListenForChannelOpenThread = false;
+            this.runListenForButtonPressesThread = false;
+            if (crewChief != null)
+            {
+                crewChief.running = false;
+                crewChief.Dispose();
+            }
+            if (speechRecogniser != null)
+            {
+                speechRecogniser.Dispose();
+            }
+            if (controllerConfiguration != null)
+            {
+                controllerConfiguration.Dispose();
+            }
             if (disposing && (components != null))
             {
                 components.Dispose();

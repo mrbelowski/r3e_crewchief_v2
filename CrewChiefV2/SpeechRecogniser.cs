@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace CrewChiefV2
 {
-    class SpeechRecogniser
+    class SpeechRecogniser : IDisposable
     {
         private SpeechRecognitionEngine sre;
 
@@ -65,6 +65,16 @@ namespace CrewChiefV2
         public Boolean initialised = false;
 
         public MainWindow.VoiceOptionEnum voiceOptionEnum;
+
+        public void Dispose()
+        {
+            if (sre != null)
+            {
+                sre.Dispose();
+                sre = null;
+            }
+            initialised = false;
+        }
 
         public SpeechRecogniser(CrewChief crewChief)
         {

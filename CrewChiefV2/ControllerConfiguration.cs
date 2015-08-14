@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace CrewChiefV2
 {
-    class ControllerConfiguration
+    class ControllerConfiguration : IDisposable
     {
         public Boolean listenForAssignment = false;
         DirectInput directInput = new DirectInput();
@@ -23,7 +23,20 @@ namespace CrewChiefV2
         
         // yuk...
         public Dictionary<String, int> buttonAssignmentIndexes = new Dictionary<String, int>();
-        
+
+        public void Dispose()
+        {
+            foreach (ButtonAssignment ba in buttonAssignments)
+            {
+                if (ba.joystick != null)
+                {
+                    ba.joystick.Unacquire();
+                    ba.joystick.Dispose();
+                }
+            }
+            directInput.Dispose();
+        }
+
         public ControllerConfiguration()
         {
             addButtonAssignment(CHANNEL_OPEN_FUNCTION);
@@ -188,7 +201,14 @@ namespace CrewChiefV2
             ButtonAssignment ba = buttonAssignments[buttonAssignmentIndexes[CHANNEL_OPEN_FUNCTION]];
             if (ba != null && ba.buttonIndex != -1 && ba.joystick != null)
             {
-                return ba.joystick.GetCurrentState().Buttons[ba.buttonIndex];
+                try
+                {
+                    return ba.joystick.GetCurrentState().Buttons[ba.buttonIndex];
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Failed to get button state for index " + ba.buttonIndex + " message: " + e.Message);
+                }
             }
             return false;
         }

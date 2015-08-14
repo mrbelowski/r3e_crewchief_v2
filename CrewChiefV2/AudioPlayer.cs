@@ -25,6 +25,8 @@ namespace CrewChiefV2
         public static String folderYes = "acknowledge/yes";
         public static String folderNo = "acknowledge/no";
 
+        private Boolean monitorRunning = false;
+
         private Boolean keepQuiet = false;
         private Boolean channelOpen = false;
 
@@ -202,7 +204,24 @@ namespace CrewChiefV2
                     }
                 }
                 Console.WriteLine("Cached " + soundsCount + " clips");
+                return true;
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                Console.WriteLine("Unable to find sounds directory - path: " + soundFolderName);
+            }
+            return false;
+        }
 
+        public void startMonitor()
+        {
+            if (monitorRunning)
+            {
+                Console.WriteLine("Monitor is already running");
+            }
+            else
+            {
+                monitorRunning = true;
                 // spawn a Thread to monitor the queue
                 ThreadStart work;
                 if (disableImmediateMessages)
@@ -216,14 +235,14 @@ namespace CrewChiefV2
                 }
                 Thread thread = new Thread(work);
                 thread.Start();
-                new SmokeTest(this).trigger(new Data.Shared(), new Data.Shared());
-                return true;
             }
-            catch (DirectoryNotFoundException e)
-            {
-                Console.WriteLine("Unable to find sounds directory - path: " + soundFolderName);
-            }
-            return false;
+            new SmokeTest(this).trigger(new Data.Shared(), new Data.Shared());
+        }
+
+        public void stopMonitor()
+        {
+            Console.WriteLine("Stopping queue monitor");
+            monitorRunning = false;
         }
 
         private float getBackgroundVolume()
@@ -278,13 +297,24 @@ namespace CrewChiefV2
                 backgroundPlayerInitialised = true;
             }
         }
+
+        private void stopBackgroundPlayer()
+        {
+            if (backgroundPlayer != null && backgroundPlayerInitialised)
+            {
+                backgroundPlayer.Stop();
+                backgroundPlayerInitialised = false;
+                backgroundPlayer = null;
+            }
+        }
+
         private void monitorQueue()
         {
             Console.WriteLine("Monitor starting");
             initialiseBackgroundPlayer();
             var timeLast = DateTime.UtcNow;
-            while (CrewChief.running)
-            {
+            while (monitorRunning)
+            {                
                 if (requestChannelOpen)
                 {
                     Console.WriteLine("Requesting channel open");
@@ -347,6 +377,7 @@ namespace CrewChiefV2
                     }
                 }
             }
+            stopBackgroundPlayer();
         }
 
         public void enableKeepQuietMode()
@@ -366,7 +397,7 @@ namespace CrewChiefV2
         private void monitorQueueNoImmediateMessages()
         {
             initialiseBackgroundPlayer();
-            while (true)
+            while (monitorRunning)
             {
                 Thread.Sleep(queueMonitorInterval);
                 try
@@ -375,7 +406,7 @@ namespace CrewChiefV2
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Exception processing queued clips: ", e.Message);
+                    Console.WriteLine("Exception processing queued clips: " + e.Message);
                 }
                 if (!holdChannelOpen && channelOpen)
                 {
@@ -383,6 +414,7 @@ namespace CrewChiefV2
                     closeRadioInternalChannel();
                 }
             }
+            stopBackgroundPlayer();
         }
         private void playQueueContents(OrderedDictionary queueToPlay, Boolean isImmediateMessages)
         {

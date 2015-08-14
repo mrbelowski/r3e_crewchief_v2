@@ -34,13 +34,7 @@ namespace CrewChiefV2
         private TimeSpan buttonCheckInterval = TimeSpan.FromMilliseconds(100);
 
         private VoiceOptionEnum voiceOption;
-
-        [DllImport("winmm.dll")]
-        public static extern int waveOutGetVolume(IntPtr hwo, out uint dwVolume);
-
-        [DllImport("winmm.dll")]
-        public static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
-
+        
         private void messagesVolumeSlider_Scroll(object sender, EventArgs e)
         {
             float volFloat = (float) messagesVolumeSlider.Value / 10;
@@ -55,7 +49,7 @@ namespace CrewChiefV2
             // Set the same volume for both the left and the right channels
             uint NewVolumeAllChannels = (((uint)NewVolume & 0x0000ffff) | ((uint)NewVolume << 16));
             // Set the volume
-            waveOutSetVolume(IntPtr.Zero, NewVolumeAllChannels);
+            NativeMethods.waveOutSetVolume(IntPtr.Zero, NewVolumeAllChannels);
         }
 
         private void backgroundVolumeSlider_Scroll(object sender, EventArgs e)
@@ -552,22 +546,41 @@ namespace CrewChiefV2
 
         public override void Write(char value)
         {
-            textbox.AppendText(value.ToString());
+            if (!textbox.IsDisposed)
+            {
+                textbox.AppendText(value.ToString());
+            }
         }
 
         public override void Write(string value)
         {
-            textbox.AppendText(value);
+            if (!textbox.IsDisposed)
+            {
+                textbox.AppendText(value);
+            }
         }
 
         public override void WriteLine(string value)
         {
-            textbox.AppendText(value + "\n");
+            if (!textbox.IsDisposed)
+            {
+                textbox.AppendText(value + "\n");
+            }
         }
 
         public override Encoding Encoding
         {
             get { return Encoding.ASCII; }
         }
+    }
+
+    static class NativeMethods
+    {
+        [DllImport("winmm.dll")]
+        public static extern int waveOutGetVolume(IntPtr hwo, out uint dwVolume);
+
+        [DllImport("winmm.dll")]
+        public static extern int waveOutSetVolume(IntPtr hwo, uint dwVolume);
+
     }
 }
