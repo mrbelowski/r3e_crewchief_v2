@@ -164,8 +164,9 @@ namespace CrewChiefV2.Events
                                 }
                                 else if (getLapTimeBestForClassLeader(currentState) > 0)
                                 {
-                                    // don't read this message if the rounded time gap is 0.0 seconds
-                                    if (sessionBestLapTimeDeltaToLeader.Seconds > 0 || sessionBestLapTimeDeltaToLeader.Milliseconds > 50)
+                                    // don't read this message if the rounded time gap is 0.0 seconds or it's more than 59 seconds
+                                    if ((sessionBestLapTimeDeltaToLeader.Seconds > 0 || sessionBestLapTimeDeltaToLeader.Milliseconds > 50) &&
+                                        sessionBestLapTimeDeltaToLeader.Seconds < 60)
                                     {
                                         // delay this a bit...
                                         audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceGap",

@@ -68,9 +68,14 @@ namespace CrewChiefV2.Events
                             String messageFolder = getMessage(lastLapTempsStatus);
                             if (messageFolder != null)
                             {
+                                Console.WriteLine("Reporting tyre temp status for the completed lap: " + lastLapTempsStatus);
                                 audioPlayer.queueClip(messageFolder, tyreTempMessageDelay, this);
                             }
                             lastReportedStatus = lastLapTempsStatus;
+                        }
+                        else
+                        {
+                            Console.WriteLine("No tyre temp status change: " + lastLapTempsStatus);
                         }
                     }
                 }
@@ -90,9 +95,12 @@ namespace CrewChiefV2.Events
             Boolean gotData = false;
             if (thisLapTyreTemps != null)
             {
-                String messageFolder = getMessage(thisLapTyreTemps.getStatus());
+                TyreTempStatus status = thisLapTyreTemps.getStatus();
+                String messageFolder = getMessage(status);
                 if (messageFolder != null)
                 {
+                    Console.WriteLine("Tyre temp status is: " + status);
+                    thisLapTyreTemps.display();
                     gotData = true;
                     audioPlayer.playClipImmediately(messageFolder, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();

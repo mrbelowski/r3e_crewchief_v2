@@ -35,13 +35,24 @@ namespace CrewChiefV2
                 }
             }
             String launchParams = UserSettings.GetUserSettings().getString("r3e_launch_params");
-            Console.WriteLine("Attempting to run R3E using " + launchExe + " "  + launchParams);
+            Console.WriteLine("Attempting to run R3E using " + launchExe + " " + launchParams);
             using (Process process = new Process())
             {
-               ProcessStartInfo startInfo = new ProcessStartInfo(launchExe);
-               startInfo.Arguments = launchParams;
-               process.StartInfo = startInfo;
-               process.Start();
+                ProcessStartInfo startInfo = new ProcessStartInfo(launchExe);
+                startInfo.Arguments = launchParams;
+                process.StartInfo = startInfo;
+                try
+                {
+                    process.Start();
+                }
+                catch (InvalidOperationException e)
+                {
+                    Console.WriteLine("InvalidOperationException starting RRRE.exe: " + e.Message);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Exception starting RRRE.exe: " + e.Message);
+                }
             }
         }
     }

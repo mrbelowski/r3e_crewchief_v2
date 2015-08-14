@@ -208,20 +208,34 @@ namespace CrewChiefV2.Events
                 voiceMessage.Contains(SpeechRecogniser.GAP_AHEAD)) &&
                 currentGapInFront != -1)
             {
-                audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
+                if (currentGapInFront < 60)
+                {
+                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
                     new QueuedMessage(null, folderSeconds,
                     TimeSpan.FromMilliseconds(currentGapInFront * 1000), 0, this));
-                audioPlayer.closeChannel();
-                haveData = true;
+                    audioPlayer.closeChannel();
+                    haveData = true;
+                }
+                else
+                {
+                    Console.WriteLine("Unable to read gap as it's more than 59 seconds");
+                }
             }
             else if (voiceMessage.Contains(SpeechRecogniser.GAP_BEHIND) &&
                 currentGapBehind != -1)
             {
-                audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
+                if (currentGapBehind < 60)
+                {
+                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
                     new QueuedMessage(null, folderSeconds,
                     TimeSpan.FromMilliseconds(currentGapBehind * 1000), 0, this));
-                audioPlayer.closeChannel();
-                haveData = true;
+                    audioPlayer.closeChannel();
+                    haveData = true;
+                }
+                else
+                {
+                    Console.WriteLine("Unable to read gap as it's more than 59 seconds");
+                }
             }
             if (!haveData)
             {

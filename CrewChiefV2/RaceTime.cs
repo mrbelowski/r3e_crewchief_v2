@@ -7,8 +7,6 @@ using CrewChiefV2.Data;
 
 namespace CrewChiefV2.Events
 {
-    // interim event to read out the time elapsed. When the time remaining is in the data block
-    // this class can be replaced
     class RaceTime : AbstractEvent
     {
         // TODO: separate position & time remaining from "push push push" and "ease off and bring it home safely" messages
@@ -46,6 +44,8 @@ namespace CrewChiefV2.Events
         private int lapsLeft;
         private float timeLeft;
 
+        private Boolean sessionLengthIsTime;
+
         public RaceTime(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -59,12 +59,7 @@ namespace CrewChiefV2.Events
             gotHalfTime = false;
             lapsLeft = -1;
             timeLeft = 0;
-
-            // TODO: add a mode flag here which is initialised on race start
-            // because the NumberOfLaps parameter gets set to something other than
-            // zero when the leader crosses the line at the finish, screwing up the
-            // 'how longs left' response for timed races. This value is getting
-            // set to a number that's larger than 60, causing an error
+            sessionLengthIsTime = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -75,16 +70,18 @@ namespace CrewChiefV2.Events
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             timeLeft = currentState.SessionTimeRemaining;
+            // used for fixed number of laps races when responding to "how long's left". This should really be in LapCounter
             if (currentState.NumberOfLaps > 0)
             {
                 lapsLeft = currentState.NumberOfLaps - currentState.CompletedLaps;
             }
-            if (currentState.SessionTimeRemaining > -1 && CommonData.isSessionRunning)
+            if (timeLeft > -1 && CommonData.isSessionRunning)
             {
+                sessionLengthIsTime = true;
                 if (!gotHalfTime)
                 {
-                    Console.WriteLine("Session time remaining = " + currentState.SessionTimeRemaining);
-                    halfTime = currentState.SessionTimeRemaining / 2;
+                    Console.WriteLine("Session time remaining = " + timeLeft);
+                    halfTime = timeLeft / 2;
                     gotHalfTime = true;
                     if (CommonData.isRaceStarted && currentState.FuelUseActive == 1)
                     {
@@ -109,7 +106,7 @@ namespace CrewChiefV2.Events
                 // this event only works if we're leading because we don't know when the leader 
                 // crosses the line :(
                 if (CommonData.isRaceStarted && CommonData.isNewLap && currentState.Player.GameSimulationTime > 60 && !playedLastLap &&
-                    currentState.Position == 1 && currentState.SessionTimeRemaining < currentState.LapTimeBest)
+                    currentState.Position == 1 && timeLeft < currentState.LapTimeBest)
                 {
                     playedLastLap = true;
                     played2mins = true;
@@ -133,8 +130,7 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(folderLastLap, 0, this, pearlType, 0.7);
                     }
                 }
-                if (currentState.Player.GameSimulationTime > 60 && !played2mins &&
-                    currentState.SessionTimeRemaining / 60 < 2 && currentState.SessionTimeRemaining / 60 > 1.9)
+                if (currentState.Player.GameSimulationTime > 60 && !played2mins && timeLeft / 60 < 2 && timeLeft / 60 > 1.9)
                 {
                     played2mins = true;
                     played5mins = true;
@@ -143,8 +139,7 @@ namespace CrewChiefV2.Events
                     played20mins = true;
                     playedHalfWayHome = true;
                     audioPlayer.queueClip(folder2mins, 0, this, PearlsOfWisdom.PearlType.NONE, 0);
-                } if (currentState.Player.GameSimulationTime > 60 && !played5mins &&
-                    currentState.SessionTimeRemaining / 60 < 5 && currentState.SessionTimeRemaining / 60 > 4.9)
+                } if (currentState.Player.GameSimulationTime > 60 && !played5mins && timeLeft / 60 < 5 && timeLeft / 60 > 4.9)
                 {
                     played5mins = true;
                     played10mins = true;
@@ -166,30 +161,26 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(folder5mins, 0, this, pearlType, 0.7);
                     }
                 }
-                if (currentState.Player.GameSimulationTime > 60 && !played10mins &&
-                    currentState.SessionTimeRemaining / 60 < 10 && currentState.SessionTimeRemaining / 60 > 9.9)
+                if (currentState.Player.GameSimulationTime > 60 && !played10mins && timeLeft / 60 < 10 && timeLeft / 60 > 9.9)
                 {
                     played10mins = true;
                     played15mins = true;
                     played20mins = true;
                     audioPlayer.queueClip(folder10mins, 0, this, pearlType, 0.7);
                 }
-                if (currentState.Player.GameSimulationTime > 60 && !played15mins &&
-                    currentState.SessionTimeRemaining / 60 < 15 && currentState.SessionTimeRemaining / 60 > 14.9)
+                if (currentState.Player.GameSimulationTime > 60 && !played15mins && timeLeft / 60 < 15 && timeLeft / 60 > 14.9)
                 {
                     played15mins = true;
                     played20mins = true;
                     audioPlayer.queueClip(folder15mins, 0, this, pearlType, 0.7);
                 }
-                if (currentState.Player.GameSimulationTime > 60 && !played20mins &&
-                    currentState.SessionTimeRemaining / 60 < 20 && currentState.SessionTimeRemaining / 60 > 19.9)
+                if (currentState.Player.GameSimulationTime > 60 && !played20mins && timeLeft / 60 < 20 && timeLeft / 60 > 19.9)
                 {
                     played20mins = true;
                     audioPlayer.queueClip(folder20mins, 0, this, pearlType, 0.7);
                 }
-                else if (currentState.SessionType == (int)Constant.Session.Race &&
-                    currentState.Player.GameSimulationTime > 60 && !playedHalfWayHome
-                    && currentState.SessionTimeRemaining < halfTime)
+                else if (currentState.SessionType == (int)Constant.Session.Race && 
+                    currentState.Player.GameSimulationTime > 60 && !playedHalfWayHome && timeLeft < halfTime)
                 {
                     // this one sounds weird in practice and qual sessions, so skip it
                     playedHalfWayHome = true;
@@ -201,65 +192,71 @@ namespace CrewChiefV2.Events
         public override void respond(string voiceMessage)
         {
             // TODO: handle times and laps > 60 - maybe just use "lots" and "ages"...
+            if (sessionLengthIsTime)
+            {
+                if (timeLeft >= 3600)
+                {
+                    Console.WriteLine("Unable to process times higher than 59 minutes in this version...");
+                }
+                else if (timeLeft >= 120)
+                {
+                    TimeSpan timeLeftTimeSpan = TimeSpan.FromSeconds(timeLeft);
+                    List<String> messages = new List<String>();
+                    messages.Add(QueuedMessage.folderNameNumbersStub + timeLeftTimeSpan.Minutes);
+                    messages.Add(folderMinutesLeft);
+                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/time_remaining",
+                        new QueuedMessage(messages, 0, this));
+                    audioPlayer.closeChannel();
+                }
+                else if (timeLeft >= 60)
+                {
+                    audioPlayer.playClipImmediately(folderOneMinuteRemaining, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                }
+                else if (timeLeft <= 0)
+                {
+                    // TODO: check these - if the timeLeft value contains -1 for some reason this message will be wrong
+                    Console.WriteLine("Playing last lap message, timeleft = " + timeLeft);
+                    audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                }
+                else if (timeLeft < 60)
+                {
+                    // TODO: check these - if the timeLeft value contains -1 for some reason this message will be wrong
+                    Console.WriteLine("Playing less than a minute message, timeleft = " + timeLeft);
+                    audioPlayer.playClipImmediately(folderLessThanOneMinute, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                }
+            }
+            else
+            {
+                if (lapsLeft > 59)
+                {
+                    Console.WriteLine("Unable to process numbers higher than 59 in this version...");
+                }
+                else if (lapsLeft > 1)
+                {
+                    List<String> messages = new List<String>();
+                    messages.Add(QueuedMessage.folderNameNumbersStub + lapsLeft);
+                    messages.Add(folderLapsLeft);
+                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/laps_remaining",
+                        new QueuedMessage(messages, 0, this));
 
-            // TODO: check the (as yet unimplemented) 'raceIsFixedNumberOfLaps' flag
-            // before checking the lapsLeft value - it'll be set to something weird at the
-            // end of a timed race
-            if (lapsLeft > 60)
-            {
-                Console.WriteLine("Unable to process numbers higher than 60 in this version...");
-            }
-            else if (lapsLeft > 1)
-            {
-                List<String> messages = new List<String>();
-                messages.Add(QueuedMessage.folderNameNumbersStub + lapsLeft);
-                messages.Add(folderLapsLeft);
-                audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/laps_remaining",
-                    new QueuedMessage(messages, 0, this));
-
-                // TODO: the 'isSessionRunning' flag appears to be set to false when the
-                // leader crosses the line at the end of the race
-                audioPlayer.closeChannel();
-            }
-            else if (lapsLeft == 1)
-            {
-                audioPlayer.playClipImmediately(folderOneLapAfterThisOne, new QueuedMessage(0, this));
-                audioPlayer.closeChannel();
-            }
-            else if (lapsLeft == 0)
-            {
-                audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
-                audioPlayer.closeChannel();
-            }
-            else if (timeLeft >= 3660)
-            {
-                Console.WriteLine("Unable to process times higher than 60 minutes in this version...");
-            }
-            else if (timeLeft >= 120)
-            {
-                TimeSpan timeLeftTimeSpan = TimeSpan.FromSeconds(timeLeft);
-                List<String> messages = new List<String>();
-                messages.Add(QueuedMessage.folderNameNumbersStub + timeLeftTimeSpan.Minutes);
-                messages.Add(folderMinutesLeft);
-                audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/time_remaining",
-                    new QueuedMessage(messages, 0, this));
-                audioPlayer.closeChannel();
-            }
-            else if (timeLeft >= 60)
-            {
-                audioPlayer.playClipImmediately(folderOneMinuteRemaining, new QueuedMessage(0, this));
-                audioPlayer.closeChannel();
-            }
-            else if (timeLeft <= 0)
-            {
-                audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
-                audioPlayer.closeChannel();
-            }
-            else if (timeLeft < 60)
-            {
-                audioPlayer.playClipImmediately(folderLessThanOneMinute, new QueuedMessage(0, this));
-                audioPlayer.closeChannel();
-            }            
+                    // TODO: the 'isSessionRunning' flag appears to be set to false when the
+                    // leader crosses the line at the end of the race
+                    audioPlayer.closeChannel();
+                }
+                else if (lapsLeft == 1)
+                {
+                    audioPlayer.playClipImmediately(folderOneLapAfterThisOne, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                }
+                else if (lapsLeft == 0)
+                {
+                    audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                }
+            }     
         }
     }
 }
