@@ -87,7 +87,9 @@ namespace CrewChiefV2
 
         private Boolean backgroundPlayerInitialised = false;
 
-        public Boolean initialise()
+        public Boolean initialised = false;
+
+        public void initialise()
         {
             if (System.Diagnostics.Debugger.IsAttached)
             {
@@ -109,7 +111,7 @@ namespace CrewChiefV2
             if (!soundDirectory.Exists)
             {
                 Console.WriteLine("Unable to find sound directory " + soundDirectory.FullName);
-                return false;
+                return;
             }
             float soundPackVersion = getSoundPackVersion(soundDirectory);
             if (soundPackVersion == -1 || soundPackVersion == 0)
@@ -121,7 +123,7 @@ namespace CrewChiefV2
                 Console.WriteLine("The sound pack version in use is " + soundPackVersion + " but this version of the app requires version " 
                     + minimumSoundPackVersion + " or greater.");
                 Console.WriteLine("You must update your sound pack to run this application");
-                return false;
+                return;
             }
             else
             {
@@ -135,7 +137,7 @@ namespace CrewChiefV2
                 if (!fxSoundDirectory.Exists)
                 {
                     Console.WriteLine("Unable to find fx directory " + fxSoundDirectory.FullName);
-                    return false;
+                    return;
                 }
                 FileInfo[] bleepFiles = fxSoundDirectory.GetFiles();
                 foreach (FileInfo bleepFile in bleepFiles)
@@ -158,7 +160,7 @@ namespace CrewChiefV2
                 if (!voiceSoundDirectory.Exists)
                 {
                     Console.WriteLine("Unable to find voice directory " + voiceSoundDirectory.FullName);
-                    return false;
+                    return;
                 }
                 DirectoryInfo[] eventFolders = voiceSoundDirectory.GetDirectories();
                 foreach (DirectoryInfo eventFolder in eventFolders)
@@ -204,13 +206,12 @@ namespace CrewChiefV2
                     }
                 }
                 Console.WriteLine("Cached " + soundsCount + " clips");
-                return true;
+                initialised = true;
             }
             catch (DirectoryNotFoundException e)
             {
                 Console.WriteLine("Unable to find sounds directory - path: " + soundFolderName);
             }
-            return false;
         }
 
         public void startMonitor()

@@ -17,7 +17,7 @@ namespace CrewChiefV2
 {
     public partial class MainWindow : Form
     {
-        private ControllerConfiguration controllerConfiguration = new ControllerConfiguration();
+        private ControllerConfiguration controllerConfiguration;
         
         private SpeechRecogniser speechRecogniser;
 
@@ -75,15 +75,16 @@ namespace CrewChiefV2
         public MainWindow()
         {
             InitializeComponent();
+            CheckForIllegalCrossThreadCalls = false;
+            Console.SetOut(new ControlWriter(textBox1));
+            crewChief = new CrewChief();
+            controllerConfiguration = new ControllerConfiguration();
             float messagesVolume = UserSettings.GetUserSettings().getFloat("messages_volume");
             float backgroundVolume = UserSettings.GetUserSettings().getFloat("background_volume");
             setMessagesVolume(messagesVolume);
             messagesVolumeSlider.Value = (int)(messagesVolume * 10f);
             backgroundVolumeSlider.Value = (int) (backgroundVolume * 10f);
 
-            CheckForIllegalCrossThreadCalls = false;
-            Console.SetOut(new ControlWriter(textBox1));
-            crewChief = new CrewChief();
             getControllers();
             controllerConfiguration.loadSettings(this);
             String customDeviceGuid = UserSettings.GetUserSettings().getString("custom_device_guid");
@@ -215,11 +216,6 @@ namespace CrewChiefV2
             }
         }
         
-        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
         private void startApplicationButton_Click(object sender, EventArgs e)
         {
             doStartAppStuff();
@@ -294,12 +290,7 @@ namespace CrewChiefV2
                 IsAppRunning = false;
             }
         }
-
-        private void tableLayoutPanel2_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
+        
         private void stopApp()
         {
             runListenForChannelOpenThread = false;

@@ -29,7 +29,7 @@ namespace CrewChiefV2
 
         private static Dictionary<String, AbstractEvent> eventsList = new Dictionary<String, AbstractEvent>();
 
-        public AudioPlayer audioPlayer;
+        public AudioPlayer audioPlayer = new AudioPlayer();
 
         Shared lastState;
         Shared currentState;
@@ -39,6 +39,24 @@ namespace CrewChiefV2
         public Boolean running = false;
 
         double lastGameStateTime = 0;
+
+        public CrewChief()
+        {
+            audioPlayer.initialise();
+            eventsList.Add("LapCounter", new LapCounter(audioPlayer));
+            eventsList.Add("LapTimes", new LapTimes(audioPlayer));
+            eventsList.Add("Penalties", new Penalties(audioPlayer));
+            eventsList.Add("MandatoryPitStops", new MandatoryPitStops(audioPlayer));
+            eventsList.Add("Fuel", new Fuel(audioPlayer));
+            eventsList.Add("Position", new Position(audioPlayer));
+            eventsList.Add("RaceTime", new RaceTime(audioPlayer));
+            eventsList.Add("TyreTempMonitor", new TyreTempMonitor(audioPlayer));
+            eventsList.Add("EngineMonitor", new EngineMonitor(audioPlayer));
+            eventsList.Add("Timings", new Timings(audioPlayer));
+            eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
+            eventsList.Add("PushNow", new PushNow(audioPlayer));
+            eventsList.Add("Spotter", new Spotter(audioPlayer, spotterEnabled));            
+        }
 
         public void Dispose()
         {
@@ -50,10 +68,7 @@ namespace CrewChiefV2
             {
                 _file.Dispose();
             }
-            if (audioPlayer != null)
-            {
-                audioPlayer.stopMonitor();
-            }
+            audioPlayer.stopMonitor();
         }
 
         public static AbstractEvent getEvent(String eventName)
@@ -128,31 +143,12 @@ namespace CrewChiefV2
             running = true;
             var timeReset = DateTime.UtcNow;
             var timeLast = timeReset;
-
-            if (audioPlayer == null)
+            if (!audioPlayer.initialised)
             {
-                audioPlayer = new AudioPlayer();
-                if (!audioPlayer.initialise())
-                {
-                    Console.WriteLine("Failed to initialise audio player");
-                    return false;
-                }
+                Console.WriteLine("Failed to initialise audio player");
+                return false;
             }
             audioPlayer.startMonitor();
-            eventsList.Clear();
-            eventsList.Add("LapCounter", new LapCounter(audioPlayer));
-            eventsList.Add("LapTimes", new LapTimes(audioPlayer));
-            eventsList.Add("Penalties", new Penalties(audioPlayer));
-            eventsList.Add("MandatoryPitStops", new MandatoryPitStops(audioPlayer));
-            eventsList.Add("Fuel", new Fuel(audioPlayer));
-            eventsList.Add("Position", new Position(audioPlayer));
-            eventsList.Add("RaceTime", new RaceTime(audioPlayer));
-            eventsList.Add("TyreTempMonitor", new TyreTempMonitor(audioPlayer));
-            eventsList.Add("EngineMonitor", new EngineMonitor(audioPlayer));
-            eventsList.Add("Timings", new Timings(audioPlayer));
-            eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
-            eventsList.Add("PushNow", new PushNow(audioPlayer));
-            eventsList.Add("Spotter", new Spotter(audioPlayer, spotterEnabled));
             Boolean displayedMappingMessage = false;
             Boolean attemptedToRunRRRE = false;
             while (running)
@@ -259,12 +255,18 @@ namespace CrewChiefV2
 
         public void stop()
         {
-            CrewChief.eventsList.Clear();
             lastGameStateTime = 0;
             running = false;
-            Dispose();
-            _view = null;
-            _file = null;
+            if (_view != null)
+            {
+                _view.Dispose();
+                _view = null;
+            }
+            if (_file != null)
+            {
+                _file.Dispose();
+                _file = null;
+            }    
         }
 
         private bool Map()
