@@ -501,29 +501,27 @@ namespace CrewChiefV2
 
         private String getVoiceOptionString()
         {
-            if (this.voiceOption == null)
-            {
-                return VoiceOptionEnum.DISABLED.ToString();
-            }
-            else
-            {
-                return voiceOption.ToString();
-            }
+            return voiceOption.ToString();
         }
 
         public enum VoiceOptionEnum
         {
             DISABLED, HOLD, TOGGLE, ALWAYS_ON
         }
-
-        private void help_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
+        
         private void clearConsole(object sender, EventArgs e)
         {
-            textBox1.Text = "";
+            if (!textBox1.IsDisposed)
+            {
+                try
+                {
+                    textBox1.Text = "";
+                }
+                catch (Exception)
+                {
+                    // swallow - nothing to log it to
+                }
+            }
         }    
     }
 
@@ -555,7 +553,16 @@ namespace CrewChiefV2
         {
             if (!textbox.IsDisposed)
             {
-                textbox.AppendText(value + "\n");
+                try
+                {
+                    textbox.AppendText(DateTime.Now.ToString("HH:mm:ss.fff"));
+                    textbox.AppendText(" : ");
+                    textbox.AppendText(value + "\n");
+                }
+                catch (Exception)
+                {
+                    // swallow - nothing to log it to
+                }
             }
         }
 

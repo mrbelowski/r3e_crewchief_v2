@@ -22,8 +22,7 @@ namespace CrewChiefV2.Events
         private static float maxColdTemp = UserSettings.GetUserSettings().getFloat("max_cold_tyre_temp");
         private static float maxGoodTemp = UserSettings.GetUserSettings().getFloat("max_good_tyre_temp");
 
-        // play these messages 10 seconds after crossing the line
-        private int tyreTempMessageDelay = 10;
+        private int tyreTempMessageDelay = 0;
 
         private int lapsIntoSessionBeforeTempMessage = 2;
 
@@ -31,6 +30,11 @@ namespace CrewChiefV2.Events
         private TyreTemps thisLapTyreTemps;
 
         private TyreTempStatus lastReportedStatus;
+
+        private Boolean checkedTempsAtSector3;
+
+        // -1 means we only check at the end of the lap
+        private int checkAtSector = -1;
 
         public TyreTempMonitor(AudioPlayer audioPlayer)
         {
@@ -42,11 +46,36 @@ namespace CrewChiefV2.Events
             lastLapTyreTemps = null;
             thisLapTyreTemps = null;
             lastReportedStatus = TyreTempStatus.NO_DATA;
+            checkedTempsAtSector3 = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
         {
             return CommonData.isSessionRunning;
+        }
+
+        private void checkTemps(TyreTemps tyreTempsToCheck)
+        {
+            // only give a message if we've completed more than the minimum laps here
+            if (tyreTempsToCheck != null)
+            {
+                tyreTempsToCheck.display();
+                TyreTempStatus tempsStatus = tyreTempsToCheck.getStatus();
+                if (tempsStatus != lastReportedStatus)
+                {
+                    String messageFolder = getMessage(tempsStatus);
+                    if (messageFolder != null)
+                    {
+                        Console.WriteLine("Reporting tyre temp status: " + tempsStatus);
+                        audioPlayer.queueClip(messageFolder, tyreTempMessageDelay, this);
+                    }
+                    lastReportedStatus = tempsStatus;
+                }
+                else
+                {
+                    Console.WriteLine("No tyre temp status change: " + tempsStatus);
+                }
+            }
         }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
@@ -58,26 +87,11 @@ namespace CrewChiefV2.Events
                     lastLapTyreTemps = thisLapTyreTemps;    // this might still be null
                     thisLapTyreTemps = new TyreTemps();
                     updateTyreTemps(currentState, thisLapTyreTemps);
-                    // only give a message if we've completed more than the minimum laps here
-                    if (lastLapTyreTemps != null && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
+                    if (!checkedTempsAtSector3 && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
                     {
-                        lastLapTyreTemps.display();
-                        TyreTempStatus lastLapTempsStatus = lastLapTyreTemps.getStatus();
-                        if (lastLapTempsStatus != lastReportedStatus)
-                        {
-                            String messageFolder = getMessage(lastLapTempsStatus);
-                            if (messageFolder != null)
-                            {
-                                Console.WriteLine("Reporting tyre temp status for the completed lap: " + lastLapTempsStatus);
-                                audioPlayer.queueClip(messageFolder, tyreTempMessageDelay, this);
-                            }
-                            lastReportedStatus = lastLapTempsStatus;
-                        }
-                        else
-                        {
-                            Console.WriteLine("No tyre temp status change: " + lastLapTempsStatus);
-                        }
+                        checkTemps(lastLapTyreTemps);
                     }
+                    checkedTempsAtSector3 = false;
                 }
                 else
                 {
@@ -85,7 +99,15 @@ namespace CrewChiefV2.Events
                     {
                         thisLapTyreTemps = new TyreTemps();
                     }
-                    updateTyreTemps(currentState, thisLapTyreTemps); 
+                    updateTyreTemps(currentState, thisLapTyreTemps);
+                    if (checkAtSector > 0 && CommonData.isNewSector && CommonData.currentLapSector == checkAtSector)
+                    {
+                        checkedTempsAtSector3 = true;
+                        if (currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
+                        {
+                            checkTemps(thisLapTyreTemps);
+                        }
+                    }
                 }
             }
         }

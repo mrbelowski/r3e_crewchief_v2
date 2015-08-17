@@ -43,7 +43,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.startApplicationButton = new System.Windows.Forms.Button();
             this.buttonActionSelect = new System.Windows.Forms.ListBox();
@@ -52,7 +51,6 @@
             this.deleteAssigmentButton = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.help = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.alwaysOnButton = new System.Windows.Forms.RadioButton();
@@ -148,17 +146,6 @@
             this.label2.Size = new System.Drawing.Size(114, 17);
             this.label2.TabIndex = 12;
             this.label2.Text = "Available actions";
-            // 
-            // help
-            // 
-            this.help.Enabled = false;
-            this.help.Location = new System.Drawing.Point(41, 621);
-            this.help.Multiline = true;
-            this.help.Name = "help";
-            this.help.Size = new System.Drawing.Size(701, 59);
-            this.help.TabIndex = 13;
-            this.help.Text = resources.GetString("help.Text");
-            this.help.TextChanged += new System.EventHandler(this.help_TextChanged);
             // 
             // button1
             // 
@@ -287,7 +274,6 @@
             this.Controls.Add(this.button2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.button1);
-            this.Controls.Add(this.help);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.deleteAssigmentButton);
@@ -318,7 +304,6 @@
         private System.Windows.Forms.Button deleteAssigmentButton;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.TextBox help;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.RadioButton alwaysOnButton;

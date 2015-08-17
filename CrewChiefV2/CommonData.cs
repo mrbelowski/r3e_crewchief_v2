@@ -55,7 +55,16 @@ namespace CrewChiefV2
         {
             isNewLap = isNew || (currentState.CompletedLaps > 0 && lastState.CompletedLaps < currentState.CompletedLaps);
             isRaceStarted = currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int)Constant.Session.Race;
+            // TODO: check when this is actually getting set...
+            if (isNewLap)
+            {
+                Console.WriteLine("New lap, session state is " + currentState.SessionPhase + ", completedLaps = " + currentState.CompletedLaps);
+            }
             isSessionRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green;
+            if (!isSessionRunning)
+            {
+                Console.WriteLine("Chequered flag, completedLaps = " + currentState.CompletedLaps);
+            }
 
             int lastSector = currentLapSector;
             if (isNewLap)
