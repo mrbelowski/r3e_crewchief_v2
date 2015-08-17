@@ -479,15 +479,21 @@ namespace CrewChiefV2.Events
                                 case LastLapRating.CLOSE_TO_OVERALL_LEADER:
                                 case LastLapRating.CLOSE_TO_CLASS_LEADER:
                                 case LastLapRating.PERSONAL_BEST_STILL_SLOW:
-                                case LastLapRating.CLOSE_TO_PERSONAL_BEST:                                    
-                                    messages.Add(folderPaceOK);
+                                case LastLapRating.CLOSE_TO_PERSONAL_BEST:
+                                    if (timeToFindFolder == null || timeToFindFolder != folderNeedToFindMoreThanASecond)
+                                    {
+                                        messages.Add(folderPaceOK);
+                                    }
                                     if (timeToFindFolder != null)
                                     {
                                         messages.Add(timeToFindFolder);
                                     }
-                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeRacePaceReport",
+                                    if (messages.Count > 0)
+                                    {
+                                        audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeRacePaceReport",
                                         new QueuedMessage(messages, 0, null));
-                                    audioPlayer.closeChannel();
+                                        audioPlayer.closeChannel();
+                                    }                                    
                                     break;
                                 case LastLapRating.MEH:
                                     messages.Add(folderPaceBad);
