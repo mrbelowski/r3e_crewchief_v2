@@ -28,9 +28,14 @@ namespace CrewChiefV2
 
         public long expiryTime = 0;
 
+        // Note that even when queuing a message with 0 delay, we always wait 1 complete update interval. This is to 
+        // (hopefully...) address issues where some data in the block get updated (like the lap count), but other data haven't 
+        // get been updated (like the session phase)
+        private int updateInterval = UserSettings.GetUserSettings().getInt("update_interval");
+
         public QueuedMessage(int secondsDelay, AbstractEvent abstractEvent)
         {
-            this.dueTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond + (secondsDelay * 1000);
+            this.dueTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + (secondsDelay * 1000) + updateInterval;
             this.abstractEvent = abstractEvent;
         }
 
@@ -46,7 +51,7 @@ namespace CrewChiefV2
             {
                 this.messagesBeforeTimeSpan.AddRange(messages);
             }
-            this.dueTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond + (secondsDelay * 1000);
+            this.dueTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + (secondsDelay * 1000) + updateInterval;
             this.abstractEvent = abstractEvent;
         }
 
@@ -62,7 +67,7 @@ namespace CrewChiefV2
             }
             this.timeSpan = timeSpan;
             timeSpanSet = true;
-            this.dueTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond + (secondsDelay * 1000);
+            this.dueTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + (secondsDelay * 1000) + updateInterval;
             this.abstractEvent = abstractEvent;
         }
 
@@ -78,7 +83,7 @@ namespace CrewChiefV2
             }
             this.timeSpan = timeSpan;
             timeSpanSet = true;
-            this.dueTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond + (secondsDelay * 1000);
+            this.dueTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + (secondsDelay * 1000) + updateInterval;
             this.abstractEvent = abstractEvent;
         }
 
