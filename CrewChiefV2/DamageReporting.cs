@@ -69,7 +69,7 @@ namespace CrewChiefV2.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return true;
+            return CommonData.isSessionRunning;
         }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)

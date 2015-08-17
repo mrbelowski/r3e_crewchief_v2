@@ -40,7 +40,7 @@ namespace CrewChiefV2.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return true;
+            return CommonData.isRaceStarted;
         }
 
         private float getOpponentBestLapInWindow(Boolean ahead)

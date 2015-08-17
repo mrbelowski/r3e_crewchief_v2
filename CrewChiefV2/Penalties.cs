@@ -113,7 +113,7 @@ namespace CrewChiefV2.Events
             }
             else if(eventSubType == folderCutTrackPracticeOrQual || eventSubType == folderLapDeleted)
             {
-                return true;
+                return CommonData.isSessionRunning;
             }
             else
             {
