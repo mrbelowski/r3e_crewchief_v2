@@ -428,7 +428,7 @@ namespace CrewChiefV2
                 foreach (String key in queueToPlay.Keys)
                 {
                     QueuedMessage queuedMessage = (QueuedMessage)queueToPlay[key];
-                    if (queuedMessage.dueTime <= milliseconds)
+                    if (isImmediateMessages || queuedMessage.dueTime <= milliseconds)
                     {
                         if ((isImmediateMessages || !keepQuiet) && 
                             (queuedMessage.abstractEvent == null || queuedMessage.abstractEvent.isClipStillValid(key)) &&
