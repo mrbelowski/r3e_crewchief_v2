@@ -194,7 +194,13 @@ namespace CrewChiefV2.Events
             // TODO: handle times and laps > 60 - maybe just use "lots" and "ages"...
             if (sessionLengthIsTime)
             {
-                if (timeLeft >= 3600)
+                if (CommonData.leaderHasFinishedRace)
+                {
+                    Console.WriteLine("Playing last lap message, timeleft = " + timeLeft);
+                    audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                }
+                else if (timeLeft >= 3600)
                 {
                     Console.WriteLine("Unable to process times higher than 59 minutes in this version...");
                 }

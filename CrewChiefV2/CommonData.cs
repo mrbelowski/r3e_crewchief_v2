@@ -85,7 +85,7 @@ namespace CrewChiefV2
             if (currentState.SessionType == (int)Constant.Session.Race)
             {
                 leaderHasFinishedRace = currentState.SessionPhase == (int)Constant.SessionPhase.Checkered;
-                if (leaderHasFinishedRace && isNewLap)
+                if (leaderHasFinishedRace && crossedLine)
                 {
                     isRaceRunning = false;
                     Console.WriteLine("Race finished, current position = " + currentState.Position + " laps completed = " + currentState.CompletedLaps);                    
