@@ -36,6 +36,8 @@ namespace CrewChiefV2
 
         public static Boolean sessionLengthSet;
 
+        private static Boolean crossedLine;
+
         public static void clearState()
         {
             isNew = true;
@@ -49,13 +51,23 @@ namespace CrewChiefV2
             isNewSector = false;
             isRaceStarted = false;
             isSessionRunning = false;
+            crossedLine = false;
         }
 
         public static void setCommonStateData(Shared lastState, Shared currentState)
         {
-            isNewLap = isNew || (currentState.CompletedLaps > 0 && lastState.CompletedLaps < currentState.CompletedLaps);
+            // only say it's a new lap if we crossed the line on the *previous* update
+            isNewLap = isNew || crossedLine;
+            if (isNewLap)
+            {
+                crossedLine = false;
+            }
+            else
+            {
+                crossedLine = currentState.CompletedLaps > 0 && lastState.CompletedLaps < currentState.CompletedLaps;
+            }
             isRaceStarted = currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int)Constant.Session.Race;
-            // TODO: check when this is actually getting set...
+
             if (isNewLap)
             {
                 Console.WriteLine("New lap, session state is " + currentState.SessionPhase + ", completedLaps = " + currentState.CompletedLaps);
@@ -63,7 +75,7 @@ namespace CrewChiefV2
             isSessionRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green;
             if (!isSessionRunning)
             {
-                Console.WriteLine("Chequered flag, completedLaps = " + currentState.CompletedLaps);
+                Console.WriteLine("Session not running, completedLaps = " + currentState.CompletedLaps);
             }
 
             int lastSector = currentLapSector;

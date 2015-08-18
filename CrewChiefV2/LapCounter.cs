@@ -76,9 +76,11 @@ namespace CrewChiefV2.Events
                 audioPlayer.closeChannel();
                 playedGreenGreenGreen = true;
             }
-            if (!playedFinished && CommonData.isNewLap && currentState.Player.GameSimulationTime > 60 &&
+            if (!playedFinished && currentState.Player.GameSimulationTime > 60 && currentState.ControlType == (int) Constant.Control.AI &&
                 currentState.SessionPhase == (int)Constant.SessionPhase.Checkered)
             {
+                // hack... sometimes the Checkered sessionPhase doesn't get set at the same time as the newLap, so instead of checking for newLap we look
+                // for AI control here
                 int position = currentState.Position;
                 if (lastState.Position != 0 && lastState.Position != position)
                 {

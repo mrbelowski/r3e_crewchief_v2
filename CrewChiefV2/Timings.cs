@@ -120,7 +120,7 @@ namespace CrewChiefV2.Events
                 {
                     sectorsSinceLastReport = 0;
                     // here we report on gaps semi-randomly, we'll see how this sounds...
-                    sectorsUntilNextReport = rand.Next(3, 5);
+                    sectorsUntilNextReport = rand.Next(3, 7);
                     switch (gapInFrontStatus)
                     {
                         case GapStatus.INCREASING:
