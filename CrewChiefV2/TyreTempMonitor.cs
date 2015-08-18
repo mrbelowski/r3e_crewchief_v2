@@ -21,6 +21,7 @@ namespace CrewChiefV2.Events
 
         private static float maxColdTemp = UserSettings.GetUserSettings().getFloat("max_cold_tyre_temp");
         private static float maxGoodTemp = UserSettings.GetUserSettings().getFloat("max_good_tyre_temp");
+        private static Boolean enableTyreTempWarnings = UserSettings.GetUserSettings().getBoolean("enable_tyre_temp_warnings");
 
         private int tyreTempMessageDelay = 0;
 
@@ -59,8 +60,8 @@ namespace CrewChiefV2.Events
             // only give a message if we've completed more than the minimum laps here
             if (tyreTempsToCheck != null)
             {
-                tyreTempsToCheck.display();
-                TyreTempStatus tempsStatus = tyreTempsToCheck.getStatus();
+                tyreTempsToCheck.displayAverages();
+                TyreTempStatus tempsStatus = tyreTempsToCheck.getAverageTempStatus();
                 if (tempsStatus != lastReportedStatus)
                 {
                     String messageFolder = getMessage(tempsStatus);
@@ -87,7 +88,7 @@ namespace CrewChiefV2.Events
                     lastLapTyreTemps = thisLapTyreTemps;    // this might still be null
                     thisLapTyreTemps = new TyreTemps();
                     updateTyreTemps(currentState, thisLapTyreTemps);
-                    if (!checkedTempsAtSector3 && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
+                    if (enableTyreTempWarnings && !checkedTempsAtSector3 && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
                     {
                         checkTemps(lastLapTyreTemps);
                     }
@@ -100,7 +101,7 @@ namespace CrewChiefV2.Events
                         thisLapTyreTemps = new TyreTemps();
                     }
                     updateTyreTemps(currentState, thisLapTyreTemps);
-                    if (checkAtSector > 0 && CommonData.isNewSector && CommonData.currentLapSector == checkAtSector)
+                    if (enableTyreTempWarnings && checkAtSector > 0 && CommonData.isNewSector && CommonData.currentLapSector == checkAtSector)
                     {
                         checkedTempsAtSector3 = true;
                         if (currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
@@ -117,12 +118,12 @@ namespace CrewChiefV2.Events
             Boolean gotData = false;
             if (thisLapTyreTemps != null)
             {
-                TyreTempStatus status = thisLapTyreTemps.getStatus();
+                TyreTempStatus status = thisLapTyreTemps.getCurrentTempStatus();
                 String messageFolder = getMessage(status);
                 if (messageFolder != null)
                 {
                     Console.WriteLine("Tyre temp status is: " + status);
-                    thisLapTyreTemps.display();
+                    thisLapTyreTemps.displayCurrent();
                     gotData = true;
                     audioPlayer.playClipImmediately(messageFolder, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
@@ -173,20 +174,33 @@ namespace CrewChiefV2.Events
 
         private class TyreTemps
         {
-            // these are the average temp over a single lap
+            // these are for the average temp over a single lap
             private float totalLeftFrontTemp = 0;
             private float totalRightFrontTemp = 0;
             private float totalLeftRearTemp = 0;
             private float totalRightRearTemp = 0;
+
+            // these are the instantaneous tyre temps
+            public float currentLeftFrontTemp = 0;
+            public float currentRightFrontTemp = 0;
+            public float currentLeftRearTemp = 0;
+            public float currentRightRearTemp = 0;
+
             private int tyreTempSamples = 0;
+
             public TyreTemps()
             {
 
             }
-            public void display()
+            public void displayAverages()
             {
-                Console.WriteLine("Temps status: " + getStatus() + "\nleft front: " + getLeftFrontAverage() + " right front: " + getRightFrontAverage() +
+                Console.WriteLine("Average temps: " + getAverageTempStatus() + "\nleft front: " + getLeftFrontAverage() + " right front: " + getRightFrontAverage() +
                     "\nleft rear: " + getLeftRearAverage() + " right rear: " + getRightRearAverage());
+            }
+            public void displayCurrent()
+            {
+                Console.WriteLine("Current temps: " + getCurrentTempStatus() + "\nleft front: " + currentLeftFrontTemp + " right front: " + currentRightFrontTemp +
+                    "\nleft rear: " + currentLeftRearTemp + " right rear: " + currentRightRearTemp);
             }
             public void addSample(float leftFrontTemp, float rightFrontTemp, float leftRearTemp, float rightRearTemp)
             {
@@ -195,6 +209,11 @@ namespace CrewChiefV2.Events
                 totalRightFrontTemp += rightFrontTemp;
                 totalLeftRearTemp += leftRearTemp;
                 totalRightRearTemp += rightRearTemp;
+
+                currentLeftFrontTemp = leftFrontTemp;
+                currentRightFrontTemp = rightFrontTemp;
+                currentLeftRearTemp = leftRearTemp;
+                currentRightRearTemp = rightRearTemp;
             }
             public float getLeftFrontAverage()
             {
@@ -228,47 +247,58 @@ namespace CrewChiefV2.Events
                 }
                 return totalRightRearTemp / tyreTempSamples;
             }
-            public TyreTempStatus getStatus()
+
+            public TyreTempStatus getAverageTempStatus()
             {
-                if (getLeftFrontAverage() < maxColdTemp && getLeftRearAverage() < maxColdTemp &&
-                    getRightFrontAverage() < maxColdTemp && getRightRearAverage() < maxColdTemp)
+                return getStatus(getLeftFrontAverage(), getRightFrontAverage(), getLeftRearAverage(), getRightRearAverage());
+            }
+
+            public TyreTempStatus getCurrentTempStatus()
+            {
+                return getStatus(currentLeftFrontTemp, currentRightFrontTemp, currentLeftRearTemp, currentRightRearTemp);
+            }
+
+            private TyreTempStatus getStatus(float leftFrontTemp, float rightFrontTemp, float leftRearTemp, float rightRearTemp)
+            {
+                if (leftFrontTemp < maxColdTemp && leftRearTemp < maxColdTemp &&
+                    rightFrontTemp < maxColdTemp && rightRearTemp < maxColdTemp)
                 {
                     return TyreTempStatus.COLD;
                 }
-                if (getLeftFrontAverage() > maxGoodTemp && getLeftRearAverage() > maxGoodTemp &&
-                    getRightFrontAverage() > maxGoodTemp && getRightRearAverage() > maxGoodTemp)
+                if (leftFrontTemp > maxGoodTemp && leftRearTemp > maxGoodTemp &&
+                    rightFrontTemp > maxGoodTemp && rightRearTemp > maxGoodTemp)
                 {
                     return TyreTempStatus.HOT_ALL_ROUND;
                 }
-                else if (getLeftFrontAverage() > maxGoodTemp && getRightFrontAverage() > maxGoodTemp)
+                else if (leftFrontTemp > maxGoodTemp && rightFrontTemp > maxGoodTemp)
                 {
                     return TyreTempStatus.HOT_FRONTS;
                 }
-                else if (getLeftRearAverage() > maxGoodTemp && getRightRearAverage() > maxGoodTemp)
+                else if (leftRearTemp > maxGoodTemp && rightRearTemp > maxGoodTemp)
                 {
                     return TyreTempStatus.HOT_REARS;
                 }
-                else if (getLeftFrontAverage() > maxGoodTemp && getLeftRearAverage() > maxGoodTemp)
+                else if (leftFrontTemp > maxGoodTemp && leftRearTemp > maxGoodTemp)
                 {
                     return TyreTempStatus.HOT_LEFTS;
                 }
-                else if (getRightFrontAverage() > maxGoodTemp && getRightRearAverage() > maxGoodTemp)
+                else if (rightFrontTemp > maxGoodTemp && rightRearTemp > maxGoodTemp)
                 {
                     return TyreTempStatus.HOT_RIGHTS;
                 }
-                else if (getLeftFrontAverage() > maxGoodTemp)
+                else if (leftFrontTemp > maxGoodTemp)
                 {
                     return TyreTempStatus.HOT_LEFT_FRONT;
                 }
-                else if (getLeftRearAverage() > maxGoodTemp)
+                else if (leftRearTemp > maxGoodTemp)
                 {
                     return TyreTempStatus.HOT_LEFT_REAR;
                 }
-                else if (getRightFrontAverage() > maxGoodTemp)
+                else if (rightFrontTemp > maxGoodTemp)
                 {
                     return TyreTempStatus.HOT_RIGHT_FRONT;
                 }
-                else if (getRightRearAverage() > maxGoodTemp)
+                else if (rightRearTemp > maxGoodTemp)
                 {
                     return TyreTempStatus.HOT_RIGHT_REAR;
                 }
@@ -284,6 +314,5 @@ namespace CrewChiefV2.Events
             HOT_LEFT_FRONT, HOT_RIGHT_FRONT, HOT_LEFT_REAR, HOT_RIGHT_REAR,
             HOT_FRONTS, HOT_REARS, HOT_LEFTS, HOT_RIGHTS, HOT_ALL_ROUND, GOOD, COLD, NO_DATA
         }
-
     }
 }

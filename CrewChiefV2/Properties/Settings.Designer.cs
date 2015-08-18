@@ -544,5 +544,17 @@ namespace CrewChiefV2.Properties {
                 this["messages_volume"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enable_tyre_temp_warnings {
+            get {
+                return ((bool)(this["enable_tyre_temp_warnings"]));
+            }
+            set {
+                this["enable_tyre_temp_warnings"] = value;
+            }
+        }
     }
 }
