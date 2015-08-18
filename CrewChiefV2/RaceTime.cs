@@ -83,7 +83,7 @@ namespace CrewChiefV2.Events
                     Console.WriteLine("Session time remaining = " + timeLeft);
                     halfTime = timeLeft / 2;
                     gotHalfTime = true;
-                    if (CommonData.isRaceStarted && currentState.FuelUseActive == 1)
+                    if (CommonData.isRaceRunning && currentState.FuelUseActive == 1)
                     {
                         // don't allow the half way message to play if fuel use is active - there's already one in there
                         playedHalfWayHome = true;
@@ -105,7 +105,7 @@ namespace CrewChiefV2.Events
 
                 // this event only works if we're leading because we don't know when the leader 
                 // crosses the line :(
-                if (CommonData.isRaceStarted && CommonData.isNewLap && currentState.Player.GameSimulationTime > 60 && !playedLastLap &&
+                if (CommonData.isRaceRunning && CommonData.isNewLap && currentState.Player.GameSimulationTime > 60 && !playedLastLap &&
                     currentState.Position == 1 && timeLeft < currentState.LapTimeBest)
                 {
                     playedLastLap = true;
@@ -146,12 +146,12 @@ namespace CrewChiefV2.Events
                     played15mins = true;
                     played20mins = true;
                     playedHalfWayHome = true;
-                    if (CommonData.isRaceStarted && currentState.Position == 1)
+                    if (CommonData.isRaceRunning && currentState.Position == 1)
                     {
                         // don't add a pearl here - the audio clip already contains encouragement
                         audioPlayer.queueClip(folder5minsLeading, 0, this, pearlType, 0);
                     }
-                    else if (CommonData.isRaceStarted && currentState.Position < 4)
+                    else if (CommonData.isRaceRunning && currentState.Position < 4)
                     {
                         // don't add a pearl here - the audio clip already contains encouragement
                         audioPlayer.queueClip(folder5minsPodium, 0, this, pearlType, 0);

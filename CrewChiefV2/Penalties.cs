@@ -109,7 +109,7 @@ namespace CrewChiefV2.Events
             }
             else if (eventSubType == folderCutTrackInRace) 
             {
-                return !hasOutstandingPenalty && CommonData.isRaceStarted;
+                return !hasOutstandingPenalty && CommonData.isRaceRunning;
             }
             else if(eventSubType == folderCutTrackPracticeOrQual || eventSubType == folderLapDeleted)
             {
@@ -148,7 +148,7 @@ namespace CrewChiefV2.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (CommonData.isRaceStarted && hasDriveThrough(currentState) || hasStopGo(currentState) || hasTimePenalty(currentState))
+            if (CommonData.isRaceRunning && hasDriveThrough(currentState) || hasStopGo(currentState) || hasTimePenalty(currentState))
             {
                 if (hasNewDriveThrough(lastState, currentState))
                 {
@@ -265,7 +265,7 @@ namespace CrewChiefV2.Events
                 // TODO: this ain't right...
                 clearPenaltyState();
             }
-            if (CommonData.isRaceStarted && 
+            if (CommonData.isRaceRunning && 
                 (lastState.Penalties.DriveThrough > 0 && currentState.Penalties.DriveThrough < lastState.Penalties.DriveThrough) ||
                 (lastState.Penalties.StopAndGo > 0 && currentState.Penalties.StopAndGo < lastState.Penalties.StopAndGo))
             {

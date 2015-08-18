@@ -21,7 +21,7 @@ namespace CrewChiefV2
 
         public static Boolean isNew;
 
-        public static Boolean isRaceStarted;
+        public static Boolean isRaceRunning;
 
         public static Boolean isSessionRunning;
 
@@ -38,6 +38,16 @@ namespace CrewChiefV2
 
         private static Boolean crossedLine;
 
+        public static Boolean leaderHasFinishedRace;
+
+        public static Boolean isPittingInRace;
+
+        public static Boolean isInLap;
+
+        public static Boolean isOutLap;
+
+        public static int lapCountWhenEnteredPits;
+
         public static void clearState()
         {
             isNew = true;
@@ -49,9 +59,14 @@ namespace CrewChiefV2
             racingSameCarBehind = false;
             isNewLap = false;
             isNewSector = false;
-            isRaceStarted = false;
+            isRaceRunning = false;
             isSessionRunning = false;
             crossedLine = false;
+            leaderHasFinishedRace = false;
+            isPittingInRace = false;
+            isInLap = false;
+            isOutLap = false;
+            lapCountWhenEnteredPits = -1;
         }
 
         public static void setCommonStateData(Shared lastState, Shared currentState)
@@ -66,16 +81,47 @@ namespace CrewChiefV2
             {
                 crossedLine = currentState.CompletedLaps > 0 && lastState.CompletedLaps < currentState.CompletedLaps;
             }
-            isRaceStarted = currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int)Constant.Session.Race;
+           
+            if (currentState.SessionType == (int)Constant.Session.Race)
+            {
+                leaderHasFinishedRace = currentState.SessionPhase == (int)Constant.SessionPhase.Checkered;
+                if (leaderHasFinishedRace && isNewLap)
+                {
+                    isRaceRunning = false;
+                    Console.WriteLine("Race finished, current position = " + currentState.Position + " laps completed = " + currentState.CompletedLaps);                    
+                }
+                else
+                {
+                    // looks weird, but the session doesn't end when the leader finishes
+                    isRaceRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green ||
+                        currentState.SessionPhase == (int)Constant.SessionPhase.Checkered;
+                }
+                isSessionRunning = isRaceRunning;
+
+                isPittingInRace = currentState.Player.GameSimulationTime > 60 && isRaceRunning &&
+                    currentState.ControlType == (int)Constant.Control.AI;
+                if (isPittingInRace && currentState.CompletedLaps > lapCountWhenEnteredPits && !isInLap && !isOutLap)
+                {
+                    lapCountWhenEnteredPits = currentState.CompletedLaps;
+                    isInLap = true;
+                    Console.WriteLine("Pitting in, lap " + currentState.CompletedLaps);
+                }
+
+                isOutLap = currentState.CompletedLaps > 0 && currentState.CompletedLaps == lapCountWhenEnteredPits + 1;
+                if (isOutLap && isInLap)
+                {
+                    isInLap = false;
+                    Console.WriteLine("Pitting out, lap " + currentState.CompletedLaps);
+                }
+            }
+            else
+            {
+                isSessionRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green;
+            }   
 
             if (isNewLap)
             {
                 Console.WriteLine("New lap, session state is " + currentState.SessionPhase + ", completedLaps = " + currentState.CompletedLaps);
-            }
-            isSessionRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green;
-            if (!isSessionRunning)
-            {
-                Console.WriteLine("Session not running, completedLaps = " + currentState.CompletedLaps);
             }
 
             int lastSector = currentLapSector;
@@ -97,7 +143,7 @@ namespace CrewChiefV2
 
             isLast = currentState.Position == currentState.NumCars;
 
-            if (!sessionLengthSet && isRaceStarted &&
+            if (!sessionLengthSet && isRaceRunning &&
                 currentState.SessionTimeRemaining > 0 && lastState.SessionTimeRemaining > 0 &&
                 currentState.SessionTimeRemaining < lastState.SessionTimeRemaining)
             {
@@ -113,7 +159,7 @@ namespace CrewChiefV2
                 }               
             }
 
-            if (isRaceStarted)
+            if (isRaceRunning)
             {
                 if (lastState.NumCars == currentState.NumCars)
                 {

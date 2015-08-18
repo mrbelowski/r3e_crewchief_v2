@@ -73,6 +73,8 @@ namespace CrewChiefV2.Events
         private float currentLapTimeDeltaToLeader;
         private TimeSpan currentLapTimeDeltaToLeadersBest;
 
+        private float lastLapTime;
+
         public LapTimes(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -89,6 +91,7 @@ namespace CrewChiefV2.Events
             sessionBestLapTimeDeltaToLeader = TimeSpan.MaxValue;
             currentLapTimeDeltaToLeader = 0;
             currentLapTimeDeltaToLeadersBest = TimeSpan.MaxValue;
+            lastLapTime = 0;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -105,7 +108,11 @@ namespace CrewChiefV2.Events
             {
                 lapIsValid = false;
             }
-            if (CommonData.isSessionRunning && CommonData.isNewLap && currentState.CompletedLaps > 1)
+            if (CommonData.isSessionRunning && CommonData.isNewLap)
+            {
+                lastLapTime = currentState.LapTimePrevious;
+            }
+            if (CommonData.isSessionRunning && CommonData.isNewLap && currentState.CompletedLaps > 1 && !CommonData.isInLap && !CommonData.isOutLap)
             {
                 if (lapTimesWindow == null)
                 {
@@ -185,7 +192,7 @@ namespace CrewChiefV2.Events
                         {
                             Boolean playedLapMessage = false;
                             float pearlLikelihood = 0f;
-                            if (CommonData.isRaceStarted)
+                            if (CommonData.isRaceRunning)
                             {
                                 pearlLikelihood = 0.8f;
                             }
@@ -422,10 +429,10 @@ namespace CrewChiefV2.Events
                 voiceMessage.Contains(SpeechRecogniser.LAP_TIME) ||
                 voiceMessage.Contains(SpeechRecogniser.LAST_LAP)))
             {
-                if (lapTimesWindow != null && lapTimesWindow.Count() > 0 && lapTimesWindow[0] > 0)
+                if (lastLapTime > 0)
                 {
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceTime",
-                        new QueuedMessage(folderLapTimeIntro, null, TimeSpan.FromSeconds(lapTimesWindow[0]), 0, this));
+                        new QueuedMessage(folderLapTimeIntro, null, TimeSpan.FromSeconds(lastLapTime), 0, this));
                     audioPlayer.closeChannel();
                 }
                 else
@@ -436,7 +443,7 @@ namespace CrewChiefV2.Events
             }
             else if (voiceMessage.Contains(SpeechRecogniser.PACE))
             {
-                if (CommonData.isRaceStarted)
+                if (CommonData.isRaceRunning)
                 {
                     if (lastLapRating != LastLapRating.NO_DATA && currentLapTimeDeltaToLeadersBest != TimeSpan.MaxValue)
                     {

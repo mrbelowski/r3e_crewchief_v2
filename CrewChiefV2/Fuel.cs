@@ -103,7 +103,7 @@ namespace CrewChiefV2.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
-            if (CommonData.isRaceStarted && currentState.FuelUseActive == 1)
+            if (CommonData.isRaceRunning && currentState.FuelUseActive == 1)
             {
                 fuelUseActive = true;
                 currentFuel = currentState.FuelLeft;

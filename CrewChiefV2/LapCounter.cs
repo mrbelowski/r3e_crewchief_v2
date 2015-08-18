@@ -76,11 +76,8 @@ namespace CrewChiefV2.Events
                 audioPlayer.closeChannel();
                 playedGreenGreenGreen = true;
             }
-            if (!playedFinished && currentState.Player.GameSimulationTime > 60 && currentState.ControlType == (int) Constant.Control.AI &&
-                currentState.SessionPhase == (int)Constant.SessionPhase.Checkered)
+            if (!playedFinished && currentState.Player.GameSimulationTime > 60 && CommonData.leaderHasFinishedRace && !CommonData.isRaceRunning)
             {
-                // hack... sometimes the Checkered sessionPhase doesn't get set at the same time as the newLap, so instead of checking for newLap we look
-                // for AI control here
                 int position = currentState.Position;
                 if (lastState.Position != 0 && lastState.Position != position)
                 {
@@ -118,7 +115,7 @@ namespace CrewChiefV2.Events
                 }
                 playedFinished = true;
             }
-            if (CommonData.isRaceStarted && CommonData.isNewLap && currentState.NumberOfLaps > 0)
+            if (CommonData.isRaceRunning && CommonData.isNewLap && currentState.NumberOfLaps > 0)
             {
                 // a new lap has been started in race mode
                 Console.WriteLine("LapCounter event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);

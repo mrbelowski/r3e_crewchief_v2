@@ -87,7 +87,7 @@ namespace CrewChiefV2.Events
         {
             float currentSpeed = currentState.CarSpeed;
             float previousSpeed = lastState.CarSpeed;
-            if (enabled && CommonData.isRaceStarted &&
+            if (enabled && CommonData.isRaceRunning &&
                 currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate &&
                 currentState.ControlType == (int)Constant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {

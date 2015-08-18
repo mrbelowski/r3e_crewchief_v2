@@ -38,7 +38,7 @@ namespace CrewChiefV2.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return CommonData.isSessionRunning;
+            return CommonData.isSessionRunning && !CommonData.isPittingInRace;
         }
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
@@ -69,7 +69,7 @@ namespace CrewChiefV2.Events
                     {
                         PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.NONE;
                         float pearlLikelihood = 0.2f;
-                        if (CommonData.isRaceStarted)
+                        if (CommonData.isRaceRunning)
                         {
                             if (!CommonData.isLast && (previousPosition > currentState.Position + 5 ||
                                 (previousPosition > currentState.Position && currentState.Position <= 5)))
@@ -132,7 +132,7 @@ namespace CrewChiefV2.Events
                     audioPlayer.playClipImmediately(folderLast, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
-                if (CommonData.isRaceStarted && currentPosition == 1)
+                if (CommonData.isRaceRunning && currentPosition == 1)
                 {
                     audioPlayer.playClipImmediately(folderLeading, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();

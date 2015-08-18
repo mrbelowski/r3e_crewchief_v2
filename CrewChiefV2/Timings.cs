@@ -86,7 +86,7 @@ namespace CrewChiefV2.Events
             {
                 clearState();
             }
-            if (CommonData.isRaceStarted && CommonData.isNewSector)
+            if (CommonData.isRaceRunning && CommonData.isNewSector && !CommonData.isPittingInRace)
             {
                 sectorsSinceLastReport++;
                 if (!CommonData.racingSameCarInFront)

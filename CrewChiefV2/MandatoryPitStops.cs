@@ -118,7 +118,7 @@ namespace CrewChiefV2.Events
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             // once the pit window is closed, the pit data get removed from the data block...
-            if (CommonData.isRaceStarted && (pitDataInitialised ||
+            if (CommonData.isRaceRunning && (pitDataInitialised ||
                 (currentState.PitWindowStatus != (int)Constant.PitWindow.Disabled && currentState.PitWindowStart != -1)) &&
                 currentState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionType == (int)Constant.Session.Race)
             {                
