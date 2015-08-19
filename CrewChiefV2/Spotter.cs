@@ -133,7 +133,6 @@ namespace CrewChiefV2.Events
                     newlyOverlapping = true;
                     Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / currentSpeed);
                     Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " + carLengthToUse / currentSpeed);
-                    Console.WriteLine("race time = " + currentState.Player.GameSimulationTime);
 
                     if (newlyClear)
                     {
@@ -179,7 +178,6 @@ namespace CrewChiefV2.Events
                         }
                         else if (now > timeWhenWeThinkWeAreOverlapping.Add(overlapMessageDelay))
                         {
-                            Console.WriteLine("race time = " + currentState.Player.GameSimulationTime);
                             if (carAlongSideInFront)
                             {
                                 Console.WriteLine("new overlap in front, deltaFront = " + deltaFront + " time gap = " +

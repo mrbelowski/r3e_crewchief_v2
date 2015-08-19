@@ -319,19 +319,16 @@ namespace CrewChiefV2
             {                
                 if (requestChannelOpen)
                 {
-                    Console.WriteLine("Requesting channel open");
                     openRadioChannelInternal();
                     requestChannelOpen = false;
                     holdChannelOpen = true;
                 }
                 if (!holdChannelOpen && channelOpen)
                 {
-                    Console.WriteLine("Closing open channel");
                     closeRadioInternalChannel();
                 }
                 if (immediateClips.Count > 0)
                 {
-                    Console.WriteLine("Playing immediate clips");
                     foreach (String key in immediateClips.Keys)
                     {
                         Console.WriteLine(key + ", ");
@@ -351,7 +348,6 @@ namespace CrewChiefV2
                 }
                 if (requestChannelClose)
                 {
-                    Console.WriteLine("Requesting close channel");
                     if (channelOpen && queuedClips.Count == 0)
                     {
                         closeRadioInternalChannel();
@@ -412,7 +408,6 @@ namespace CrewChiefV2
                 }
                 if (!holdChannelOpen && channelOpen)
                 {
-                    Console.WriteLine("Closing open channel");
                     closeRadioInternalChannel();
                 }
             }
@@ -475,11 +470,9 @@ namespace CrewChiefV2
                         Console.WriteLine("All events are disabled");
                         soundsProcessed.AddRange(keysToPlay);
                     }
-                    Console.WriteLine("finished playing");
                 }
                 foreach (String key in soundsProcessed)
                 {
-                    Console.WriteLine("Removing {0} from queue", key);
                     queueToPlay.Remove(key);
                 }
             }
@@ -488,7 +481,6 @@ namespace CrewChiefV2
         private List<String> playSounds(List<String> eventNames, Boolean isImmediateMessages)
         {
             List<String> soundsProcessed = new List<String>();
-            Console.WriteLine("About to process queue contents: " + String.Join(", ", eventNames.ToArray()));
             OrderedDictionary thisQueue = isImmediateMessages ? immediateClips : queuedClips;
             foreach (String eventName in eventNames)
             {
@@ -519,7 +511,6 @@ namespace CrewChiefV2
                                 List<SoundPlayer> clipsList = clips[message];
                                 int index = random.Next(0, clipsList.Count);
                                 SoundPlayer clip = clipsList[index];
-                                Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
                                 clip.PlaySync();
                             }
                         }
@@ -528,7 +519,6 @@ namespace CrewChiefV2
                             List<SoundPlayer> clipsList = clips[eventName];
                             int index = random.Next(0, clipsList.Count);
                             SoundPlayer clip = clipsList[index];
-                            Console.WriteLine("playing the sound at position " + index + ", name = " + clip.SoundLocation);
                             clip.PlaySync();
                         }
                     }
@@ -549,7 +539,6 @@ namespace CrewChiefV2
 
         private void openRadioChannelInternal()
         {
-            Console.WriteLine("Opening channel, current state is " + channelOpen);
             if (!channelOpen)
             {
                 channelOpen = true;
@@ -591,18 +580,15 @@ namespace CrewChiefV2
 
                 if (enableStartBleep)
                 {
-                    Console.WriteLine("playing start beep");
                     List<SoundPlayer> bleeps = clips["start_bleep"];
                     int bleepIndex = random.Next(0, bleeps.Count);
                     bleeps[bleepIndex].PlaySync();                    
                 }
             }
-            Console.WriteLine("Channel is open");
         }
 
         private void closeRadioInternalChannel()
         {
-            Console.WriteLine("Closing channel, current state is " + channelOpen);
             if (channelOpen)
             {
                 if (enableEndBleep)
@@ -621,7 +607,6 @@ namespace CrewChiefV2
                 }                                
                 channelOpen = false;
             }
-            Console.WriteLine("Channel is closed");
         }
 
         private Boolean playGapFillerMessage()
@@ -702,7 +687,6 @@ namespace CrewChiefV2
                 }
                 else
                 {
-                    Console.WriteLine("Queuing clip for event " + eventName);
                     PearlsOfWisdom.PearlMessagePosition pearlPosition = PearlsOfWisdom.PearlMessagePosition.NONE;
                     if (pearlType != PearlsOfWisdom.PearlType.NONE && checkPearlOfWisdomValid(pearlType))
                     {
@@ -783,7 +767,7 @@ namespace CrewChiefV2
                 {
                     if (clipIsPearlOfWisdom(eventName))
                     {
-                        Console.WriteLine("There's already a pearl in the queue, can't add anothner");
+                        Console.WriteLine("There's already a pearl in the queue, can't add another");
                         isValid = false;
                         if (eventName != PearlsOfWisdom.getMessageFolder(newPearlType))
                         {
