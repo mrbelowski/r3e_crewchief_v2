@@ -23,6 +23,8 @@ namespace CrewChiefV2
 
         public static Boolean isRaceRunning;
 
+        public static Boolean isQualifyRunning;
+
         public static Boolean isSessionRunning;
 
         public static Boolean isLast;
@@ -61,6 +63,7 @@ namespace CrewChiefV2
             isNewSector = false;
             isRaceRunning = false;
             isSessionRunning = false;
+            isQualifyRunning = false;
             crossedLine = false;
             leaderHasFinishedRace = false;
             isPittingInRace = false;
@@ -117,6 +120,7 @@ namespace CrewChiefV2
             else
             {
                 isSessionRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green;
+                isQualifyRunning = isSessionRunning && currentState.SessionType == (int)Constant.Session.Qualify;
             }   
 
             if (isNewLap)
