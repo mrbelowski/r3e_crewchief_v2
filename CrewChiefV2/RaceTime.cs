@@ -74,14 +74,39 @@ namespace CrewChiefV2.Events
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             timeLeft = currentState.SessionTimeRemaining;
-            // used for fixed number of laps races when responding to "how long's left". This should really be in LapCounter
             if (currentState.NumberOfLaps > 0)
             {
                 lapsLeft = currentState.NumberOfLaps - currentState.CompletedLaps;
+                sessionLengthIsTime = false;
             }
-            if (timeLeft > -1 && CommonData.isSessionRunning)
+            else
             {
                 sessionLengthIsTime = true;
+            }
+            if ((currentState.SessionType == (int)Constant.Session.Practice || currentState.SessionType == (int)Constant.Session.Qualify) &&
+                    currentState.Player.GameSimulationTime > 60 && !playedEndOfSession && timeLeft <= 0 && currentState.SessionPhase == (int)Constant.SessionPhase.Checkered)
+            {
+                playedEndOfSession = true;
+                played2mins = true;
+                played5mins = true;
+                played10mins = true;
+                played15mins = true;
+                played20mins = true;
+                playedHalfWayHome = true;
+                // note the null AbstractEvent here - this prevents the validation check being triggered 
+                // which is necessary because otherwise this event only allows messages to be played if the session's running
+                if (currentState.SessionType == (int)Constant.Session.Qualify && currentState.Position == 1)
+                {
+                    audioPlayer.queueClip(folderEndOfSessionPole, 4, null);
+                }
+                else if (currentState.Position > 1)
+                {
+                    audioPlayer.queueClip(folderEndOfSession, 4, null, PearlsOfWisdom.PearlType.NONE, 0);
+                    audioPlayer.queueClip(Position.folderStub + currentState.Position, 4, null);
+                }
+            }
+            if (sessionLengthIsTime && CommonData.isSessionRunning)
+            {
                 if (!gotHalfTime)
                 {
                     Console.WriteLine("Session time remaining = " + timeLeft);
@@ -110,7 +135,7 @@ namespace CrewChiefV2.Events
                 // this event only works if we're leading because we don't know when the leader 
                 // crosses the line :(
                 if (CommonData.isRaceRunning && CommonData.isNewLap && currentState.Player.GameSimulationTime > 60 && !playedLastLap &&
-                    currentState.Position == 1 && timeLeft < currentState.LapTimeBest)
+                    currentState.Position == 1 && timeLeft > 0 && timeLeft < currentState.LapTimeBest)
                 {
                     playedLastLap = true;
                     played2mins = true;
@@ -134,26 +159,7 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(folderLastLap, 0, this, pearlType, 0.7);
                     }
                 }
-                if ((currentState.SessionType == (int)Constant.Session.Practice || currentState.SessionType == (int)Constant.Session.Qualify) &&
-                    currentState.Player.GameSimulationTime > 60 && !playedEndOfSession && timeLeft <= 0)
-                {
-                    playedEndOfSession = true;
-                    played2mins = true;
-                    played5mins = true;
-                    played10mins = true;
-                    played15mins = true;
-                    played20mins = true;
-                    playedHalfWayHome = true;
-                    // note the null AbstractEvent here - this prevents the validation check being triggered 
-                    // which is necessary because otherwise this event only allows messages to be played if the session's running
-                    if (currentState.SessionType == (int)Constant.Session.Qualify && currentState.Position == 1)
-                    {
-                        audioPlayer.queueClip(folderEndOfSessionPole, 4, null);
-                    } else if (currentState.Position > 1) {
-                        audioPlayer.queueClip(folderEndOfSession, 4, null, PearlsOfWisdom.PearlType.NONE, 0);
-                        audioPlayer.queueClip(Position.folderStub + currentState.Position, 4, null);
-                    }                    
-                } if (currentState.Player.GameSimulationTime > 60 && !played2mins && timeLeft / 60 < 2 && timeLeft / 60 > 1.9)
+                if (currentState.Player.GameSimulationTime > 60 && !played2mins && timeLeft / 60 < 2 && timeLeft / 60 > 1.9)
                 {
                     played2mins = true;
                     played5mins = true;
@@ -202,8 +208,8 @@ namespace CrewChiefV2.Events
                     played20mins = true;
                     audioPlayer.queueClip(folder20mins, 0, this, pearlType, 0.7);
                 }
-                else if (currentState.SessionType == (int)Constant.Session.Race && 
-                    currentState.Player.GameSimulationTime > 60 && !playedHalfWayHome && timeLeft < halfTime)
+                else if (currentState.SessionType == (int)Constant.Session.Race &&
+                    currentState.Player.GameSimulationTime > 60 && !playedHalfWayHome && timeLeft > 0 && timeLeft < halfTime)
                 {
                     // this one sounds weird in practice and qual sessions, so skip it
                     playedHalfWayHome = true;
