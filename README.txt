@@ -2,6 +2,8 @@ CrewChief version 2.
 
 Changelog
 ---------
+Version 2.2.4: Reworked lap times event to give more helpful data on race / qual / practice pace and laptimes, and to respond more consistently and accurately to the "how's my pace?" question; added a session end event for practice and qualifying sessions. This update requires a new sound pack
+
 Version 2.2.3: Fixed pearl of wisdom position (was being set to play before the associated even most of the time); removed lots of unnecessary debug messages. No new sound pack for this version
 
 Version 2.2.2: Fixed race time getting set to 0 for some online races (caused missing pit window warnings and maybe some other issues); fixed some errors caused be weird end-of-race data (NumberOfLaps being set to a large number in time-only races); fixed missing exception messages on error; added error checking to R3E process launch; added logging to tyre temps; added option to disable tyre temp warnings; some tweaks to tyre temp logic ("how's my tyre temps" now responds with the instantaneous tyre temp data, not the cumulative average for that lap); don't play messages with numbers in them if the number isn't part of the range the app can play (basically gaps / laps / times > 59 seconds / laps / minutes); don't say pace is OK if we're > 1 second off the leader's pace; some other internal fixes (should hopefully fix the missing race end messages); make events aware of pit in and out laps so there are no confusing pace / laptime / gap / position updates when you're pitting. No new sound pack for this version
