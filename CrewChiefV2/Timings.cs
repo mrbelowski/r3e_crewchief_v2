@@ -121,17 +121,25 @@ namespace CrewChiefV2.Events
                     sectorsSinceLastReport = 0;
                     // here we report on gaps semi-randomly, we'll see how this sounds...
                     sectorsUntilNextReport = rand.Next(3, 7);
+                    TimeSpan gapInFront = TimeSpan.FromMilliseconds(gapsInFront[0] * 1000);
+                    Boolean readGap = gapInFront.Seconds > 0 || gapInFront.Milliseconds > 50;
                     switch (gapInFrontStatus)
                     {
                         case GapStatus.INCREASING:
-                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontIncreasing, folderSeconds,
-                                TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
+                            if (readGap)
+                            {
+                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", 
+                                    new QueuedMessage(folderGapInFrontIncreasing, folderSeconds, gapInFront, 0, this));
+                            }                            
                             lastGapInFrontReport = GapStatus.INCREASING;
                             gapInFrontAtLastReport = gapsInFront[0];
                             break;
                         case GapStatus.DECREASING:
-                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapInFrontDecreasing, folderSeconds,
-                                TimeSpan.FromMilliseconds(gapsInFront[0] * 1000), 0, this));
+                            if (readGap)
+                            {
+                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", 
+                                    new QueuedMessage(folderGapInFrontDecreasing, folderSeconds, gapInFront, 0, this));
+                            }
                             lastGapInFrontReport = GapStatus.DECREASING;
                             gapInFrontAtLastReport = gapsInFront[0];
                             break;
@@ -145,18 +153,26 @@ namespace CrewChiefV2.Events
                 if (playGapBehind && sectorsSinceLastReport > sectorsUntilNextReport)
                 {
                     sectorsSinceLastReport = 0;
-                    sectorsUntilNextReport = rand.Next(2, 6);
+                    sectorsUntilNextReport = rand.Next(3, 7);
+                    TimeSpan gapBehind = TimeSpan.FromMilliseconds(gapsBehind[0] * 1000);
+                    Boolean readGap = gapBehind.Seconds > 0 || gapBehind.Milliseconds > 50;
                     switch (gapBehindStatus)
                     {
                         case GapStatus.INCREASING:
-                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapBehindIncreasing, folderSeconds,
-                                TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
+                            if (readGap)
+                            {
+                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
+                                    new QueuedMessage(folderGapBehindIncreasing, folderSeconds, gapBehind, 0, this));
+                            }
                             lastGapBehindReport = GapStatus.INCREASING;
                             gapBehindAtLastReport = gapsBehind[0];
                             break;
                         case GapStatus.DECREASING:
-                            audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", new QueuedMessage(folderGapBehindDecreasing, folderSeconds,
-                                TimeSpan.FromMilliseconds(gapsBehind[0] * 1000), 0, this));
+                            if (readGap)
+                            {
+                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
+                                    new QueuedMessage(folderGapBehindDecreasing, folderSeconds, gapBehind, 0, this));
+                            }
                             lastGapBehindReport = GapStatus.DECREASING;
                             gapBehindAtLastReport = gapsBehind[0];
                             break;

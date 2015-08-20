@@ -23,7 +23,8 @@ namespace CrewChiefV2
             Formation = 3,
             Countdown = 4,
             Green = 5,
-            Checkered = 6
+            Checkered = 6, 
+            Aborted = 7 // seems to be 7 when the session is 'killed'
         }
 
         public enum Control

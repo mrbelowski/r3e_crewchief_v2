@@ -86,24 +86,7 @@ namespace CrewChiefV2.Events
             if ((currentState.SessionType == (int)Constant.Session.Practice || currentState.SessionType == (int)Constant.Session.Qualify) &&
                     currentState.Player.GameSimulationTime > 60 && !playedEndOfSession && timeLeft <= 0 && currentState.SessionPhase == (int)Constant.SessionPhase.Checkered)
             {
-                playedEndOfSession = true;
-                played2mins = true;
-                played5mins = true;
-                played10mins = true;
-                played15mins = true;
-                played20mins = true;
-                playedHalfWayHome = true;
-                // note the null AbstractEvent here - this prevents the validation check being triggered 
-                // which is necessary because otherwise this event only allows messages to be played if the session's running
-                if (currentState.SessionType == (int)Constant.Session.Qualify && currentState.Position == 1)
-                {
-                    audioPlayer.queueClip(folderEndOfSessionPole, 4, null);
-                }
-                else if (currentState.Position > 1)
-                {
-                    audioPlayer.queueClip(folderEndOfSession, 4, null, PearlsOfWisdom.PearlType.NONE, 0);
-                    audioPlayer.queueClip(Position.folderStub + currentState.Position, 4, null);
-                }
+                playFinishMessage(currentState.SessionType == (int)Constant.Session.Qualify, currentState.Position);
             }
             if (sessionLengthIsTime && CommonData.isSessionRunning)
             {
@@ -292,6 +275,32 @@ namespace CrewChiefV2.Events
                     audioPlayer.closeChannel();
                 }
             }     
+        }
+
+        public void playFinishMessage(Boolean isQual, int position)
+        {
+            if (!playedEndOfSession)
+            {
+                Console.WriteLine("Playing session end message, timeleft = " + timeLeft);
+                playedEndOfSession = true;
+                played2mins = true;
+                played5mins = true;
+                played10mins = true;
+                played15mins = true;
+                played20mins = true;
+                playedHalfWayHome = true;
+                // note the null AbstractEvent here - this prevents the validation check being triggered 
+                // which is necessary because otherwise this event only allows messages to be played if the session's running
+                if (isQual && position == 1)
+                {
+                    audioPlayer.queueClip(folderEndOfSessionPole, 4, null);
+                }
+                else if (position > 1)
+                {
+                    audioPlayer.queueClip(folderEndOfSession, 4, null, PearlsOfWisdom.PearlType.NONE, 0);
+                    audioPlayer.queueClip(Position.folderStub + position, 4, null);
+                }
+            }            
         }
     }
 }

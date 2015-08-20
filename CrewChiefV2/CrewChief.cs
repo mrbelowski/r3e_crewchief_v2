@@ -198,6 +198,27 @@ namespace CrewChiefV2
                     if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
                         && !stateCleared)
                     {
+                        if (lastState.SessionPhase == (int)Constant.SessionPhase.Checkered ||
+                            lastState.SessionPhase == (int)Constant.SessionPhase.Aborted)
+                        {
+                            // yuk... i appear to have put qual / prac session end stuff in raceTime and 
+                            // the race end stuff in lapCounter :(
+                            if (lastState.SessionType == (int)Constant.Session.Race)
+                            {
+                                if (eventsList.ContainsKey("LapCounter"))
+                                {
+                                    ((LapCounter)eventsList["LapCounter"]).playFinishMessage(lastState.Position);
+                                }
+                            }
+                            else
+                            {
+                                if (eventsList.ContainsKey("RaceTime"))
+                                {
+                                    ((RaceTime)eventsList["RaceTime"]).playFinishMessage(
+                                        lastState.SessionType == (int)Constant.Session.Qualify, lastState.Position);
+                                }
+                            }
+                        }
                         Console.WriteLine("Clearing game state...");
                         CommonData.clearState();
                         foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)

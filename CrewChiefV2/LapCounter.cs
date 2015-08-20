@@ -93,27 +93,7 @@ namespace CrewChiefV2.Events
                         position = lastState.Position;
                     }
                 }
-                if (position == 1)
-                {
-                    audioPlayer.queueClip(folderWonRace, 0, this);
-                }
-                else if (position < 4)
-                {
-                    audioPlayer.queueClip(folderPodiumFinish, 0, this);
-                }
-                else if (position >= 4 && !CommonData.isLast)
-                {
-                    audioPlayer.queueClip(folderFinishedRace, 0, this);
-                }
-                else if (CommonData.isLast)
-                {
-                    audioPlayer.queueClip(folderFinishedRaceLast, 0, this);
-                }
-                else
-                {
-                    Console.WriteLine("Race finished but position is 0");
-                }
-                playedFinished = true;
+                playFinishMessage(position);
             }
             if (CommonData.isRaceRunning && CommonData.isNewLap && currentState.NumberOfLaps > 0)
             {
@@ -172,6 +152,34 @@ namespace CrewChiefV2.Events
                     }
                 }
             }
+        }
+
+        public void playFinishMessage(int position)
+        {
+            if (!playedFinished)
+            {
+                if (position == 1)
+                {
+                    audioPlayer.queueClip(folderWonRace, 0, null);
+                }
+                else if (position < 4)
+                {
+                    audioPlayer.queueClip(folderPodiumFinish, 0, null);
+                }
+                else if (position >= 4 && !CommonData.isLast)
+                {
+                    audioPlayer.queueClip(folderFinishedRace, 0, null);
+                }
+                else if (CommonData.isLast)
+                {
+                    audioPlayer.queueClip(folderFinishedRaceLast, 0, null);
+                }
+                else
+                {
+                    Console.WriteLine("Race finished but position is 0");
+                }
+                playedFinished = true;
+            }            
         }
     }
 }

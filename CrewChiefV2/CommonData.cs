@@ -96,8 +96,9 @@ namespace CrewChiefV2
                 else
                 {
                     // looks weird, but the session doesn't end when the leader finishes
-                    isRaceRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green ||
-                        currentState.SessionPhase == (int)Constant.SessionPhase.Checkered;
+                    isRaceRunning = currentState.SessionPhase != (int)Constant.SessionPhase.Aborted &&
+                        (currentState.SessionPhase == (int)Constant.SessionPhase.Green ||
+                        currentState.SessionPhase == (int)Constant.SessionPhase.Checkered);
                 }
                 isSessionRunning = isRaceRunning;
 
