@@ -180,11 +180,11 @@ namespace CrewChiefV2.Events
                 {
                     if (sessionType == (int)Constant.Session.Qualify && position == 1)
                     {
-                        audioPlayer.queueClip(folderEndOfSessionPole, 4, null);
+                        audioPlayer.queueClip(folderEndOfSessionPole, 0, null);
                     }
                     else
                     {
-                        audioPlayer.queueClip(folderEndOfSession, 4, null, PearlsOfWisdom.PearlType.NONE, 0);
+                        audioPlayer.queueClip(folderEndOfSession, 0, null, PearlsOfWisdom.PearlType.NONE, 0);
                         audioPlayer.queueClip(Position.folderStub + position, 4, null);
                     }
                 }                
