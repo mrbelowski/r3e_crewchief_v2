@@ -193,30 +193,17 @@ namespace CrewChiefV2
 
                     // how long has the game been running?
                     double gameRunningTime = currentState.Player.GameSimulationTime;
-                    // if we've gone back in time, this means a new session has started - 
+                    // if we've gone back in time or the session type has changed, this means a new session has started - 
                     // clear all the game state
                     if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
                         && !stateCleared)
                     {
                         if (lastState.SessionPhase == (int)Constant.SessionPhase.Checkered ||
-                            lastState.SessionPhase == (int)Constant.SessionPhase.Aborted)
+                            lastState.SessionPhase == (int)Constant.SessionPhase.Terminated)
                         {
-                            // yuk... i appear to have put qual / prac session end stuff in raceTime and 
-                            // the race end stuff in lapCounter :(
-                            if (lastState.SessionType == (int)Constant.Session.Race)
+                            if (eventsList.ContainsKey("LapCounter"))
                             {
-                                if (eventsList.ContainsKey("LapCounter"))
-                                {
-                                    ((LapCounter)eventsList["LapCounter"]).playFinishMessage(lastState.Position);
-                                }
-                            }
-                            else
-                            {
-                                if (eventsList.ContainsKey("RaceTime"))
-                                {
-                                    ((RaceTime)eventsList["RaceTime"]).playFinishMessage(
-                                        lastState.SessionType == (int)Constant.Session.Qualify, lastState.Position);
-                                }
+                                ((LapCounter)eventsList["LapCounter"]).playFinishMessage(lastState.SessionType, lastState.Position, lastState.NumCars);
                             }
                         }
                         Console.WriteLine("Clearing game state...");

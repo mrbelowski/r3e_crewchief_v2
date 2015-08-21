@@ -34,6 +34,10 @@ namespace CrewChiefV2.Events
 
         private String folderFinishedRaceLast = "lap_counter/finished_race_last";
 
+        private String folderEndOfSession = "lap_counter/end_of_session";
+
+        private String folderEndOfSessionPole = "lap_counter/end_of_session_pole";
+
         Boolean playedGreenGreenGreen;
         Boolean playedGetReady;
 
@@ -93,7 +97,7 @@ namespace CrewChiefV2.Events
                         position = lastState.Position;
                     }
                 }
-                playFinishMessage(position);
+                playFinishMessage((int)Constant.Session.Race, position, currentState.NumCars);
             }
             if (CommonData.isRaceRunning && CommonData.isNewLap && currentState.NumberOfLaps > 0)
             {
@@ -154,30 +158,46 @@ namespace CrewChiefV2.Events
             }
         }
 
-        public void playFinishMessage(int position)
+        public void playFinishMessage(int sessionType, int position, int numCars)
         {
             if (!playedFinished)
             {
-                if (position == 1)
+                if (position < 1)
                 {
-                    audioPlayer.queueClip(folderWonRace, 0, null);
+                    Console.WriteLine("Race finished but position is < 1");
                 }
-                else if (position < 4)
+                else if (sessionType == (int)Constant.Session.Race)
                 {
-                    audioPlayer.queueClip(folderPodiumFinish, 0, null);
+                    Boolean isLast = position == numCars;
+                    if (position == 1)
+                    {
+                        audioPlayer.queueClip(folderWonRace, 0, null);
+                    }
+                    else if (position < 4)
+                    {
+                        audioPlayer.queueClip(folderPodiumFinish, 0, null);
+                    }
+                    else if (position >= 4 && !isLast)
+                    {
+                        audioPlayer.queueClip(folderFinishedRace, 0, null);
+                    }
+                    else if (isLast)
+                    {
+                        audioPlayer.queueClip(folderFinishedRaceLast, 0, null);
+                    }
                 }
-                else if (position >= 4 && !CommonData.isLast)
+                else 
                 {
-                    audioPlayer.queueClip(folderFinishedRace, 0, null);
-                }
-                else if (CommonData.isLast)
-                {
-                    audioPlayer.queueClip(folderFinishedRaceLast, 0, null);
-                }
-                else
-                {
-                    Console.WriteLine("Race finished but position is 0");
-                }
+                    if (sessionType == (int)Constant.Session.Qualify && position == 1)
+                    {
+                        audioPlayer.queueClip(folderEndOfSessionPole, 4, null);
+                    }
+                    else if (position > 1)
+                    {
+                        audioPlayer.queueClip(folderEndOfSession, 4, null, PearlsOfWisdom.PearlType.NONE, 0);
+                        audioPlayer.queueClip(Position.folderStub + position, 4, null);
+                    }
+                }                
                 playedFinished = true;
             }            
         }

@@ -87,7 +87,10 @@ namespace CrewChiefV2
            
             if (currentState.SessionType == (int)Constant.Session.Race)
             {
-                leaderHasFinishedRace = currentState.SessionPhase == (int)Constant.SessionPhase.Checkered;
+                if (lastState.SessionPhase == (int)Constant.SessionPhase.Green && currentState.SessionPhase == (int)Constant.SessionPhase.Checkered)
+                {
+                    leaderHasFinishedRace = true;
+                }
                 if (leaderHasFinishedRace && crossedLine)
                 {
                     isRaceRunning = false;
@@ -95,10 +98,11 @@ namespace CrewChiefV2
                 }
                 else
                 {
-                    // looks weird, but the session doesn't end when the leader finishes
-                    isRaceRunning = currentState.SessionPhase != (int)Constant.SessionPhase.Aborted &&
-                        (currentState.SessionPhase == (int)Constant.SessionPhase.Green ||
-                        currentState.SessionPhase == (int)Constant.SessionPhase.Checkered);
+                    // looks weird, but the session doesn't end when the leader finishes. If it's green or checkered and we've not 
+                    // crossed the line, the session is running. The session will be over when we cross the line, or when the phase gets
+                    // set to 7 (Terminated)
+                    isRaceRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green ||
+                        currentState.SessionPhase == (int)Constant.SessionPhase.Checkered;
                 }
                 isSessionRunning = isRaceRunning;
 
@@ -108,14 +112,12 @@ namespace CrewChiefV2
                 {
                     lapCountWhenEnteredPits = currentState.CompletedLaps;
                     isInLap = true;
-                    Console.WriteLine("Pitting in, lap " + currentState.CompletedLaps);
                 }
 
                 isOutLap = currentState.CompletedLaps > 0 && currentState.CompletedLaps == lapCountWhenEnteredPits + 1;
                 if (isOutLap && isInLap)
                 {
                     isInLap = false;
-                    Console.WriteLine("Pitting out, lap " + currentState.CompletedLaps);
                 }
             }
             else

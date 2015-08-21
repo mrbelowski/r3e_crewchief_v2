@@ -35,11 +35,7 @@ namespace CrewChiefV2.Events
 
         private String folderOneLapAfterThisOne = "race_time/one_more_lap_after_this_one";
 
-        private String folderEndOfSession = "race_time/end_of_session";
-
-        private String folderEndOfSessionPole = "race_time/end_of_session_pole";
-
-        private Boolean played2mins, played5mins, played10mins, played15mins, played20mins, playedHalfWayHome, playedLastLap, playedEndOfSession;
+        private Boolean played2mins, played5mins, played10mins, played15mins, played20mins, playedHalfWayHome, playedLastLap;
 
         private float halfTime;
 
@@ -58,7 +54,7 @@ namespace CrewChiefV2.Events
         public override void clearState()
         {
             played2mins = false; played5mins = false; played10mins = false; played15mins = false;
-            played20mins = false; playedHalfWayHome = false; playedLastLap = false; playedEndOfSession = false;
+            played20mins = false; playedHalfWayHome = false; playedLastLap = false;
             halfTime = 0;
             gotHalfTime = false;
             lapsLeft = -1;
@@ -82,11 +78,6 @@ namespace CrewChiefV2.Events
             else
             {
                 sessionLengthIsTime = true;
-            }
-            if ((currentState.SessionType == (int)Constant.Session.Practice || currentState.SessionType == (int)Constant.Session.Qualify) &&
-                    currentState.Player.GameSimulationTime > 60 && !playedEndOfSession && timeLeft <= 0 && currentState.SessionPhase == (int)Constant.SessionPhase.Checkered)
-            {
-                playFinishMessage(currentState.SessionType == (int)Constant.Session.Qualify, currentState.Position);
             }
             if (sessionLengthIsTime && CommonData.isSessionRunning)
             {
@@ -275,32 +266,6 @@ namespace CrewChiefV2.Events
                     audioPlayer.closeChannel();
                 }
             }     
-        }
-
-        public void playFinishMessage(Boolean isQual, int position)
-        {
-            if (!playedEndOfSession)
-            {
-                Console.WriteLine("Playing session end message, timeleft = " + timeLeft);
-                playedEndOfSession = true;
-                played2mins = true;
-                played5mins = true;
-                played10mins = true;
-                played15mins = true;
-                played20mins = true;
-                playedHalfWayHome = true;
-                // note the null AbstractEvent here - this prevents the validation check being triggered 
-                // which is necessary because otherwise this event only allows messages to be played if the session's running
-                if (isQual && position == 1)
-                {
-                    audioPlayer.queueClip(folderEndOfSessionPole, 4, null);
-                }
-                else if (position > 1)
-                {
-                    audioPlayer.queueClip(folderEndOfSession, 4, null, PearlsOfWisdom.PearlType.NONE, 0);
-                    audioPlayer.queueClip(Position.folderStub + position, 4, null);
-                }
-            }            
         }
     }
 }
