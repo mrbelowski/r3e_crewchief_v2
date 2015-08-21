@@ -6,8 +6,6 @@ using CrewChiefV2.Data;
 
 namespace CrewChiefV2.Events
 {
-    // note this only works for DTM as non-DTM events don't have number of laps *or* a race time remaining
-    // field in the data block
     class LapCounter : AbstractEvent
     {
         private String folderGreenGreenGreen = "lap_counter/green_green_green";
@@ -41,7 +39,7 @@ namespace CrewChiefV2.Events
         Boolean playedGreenGreenGreen;
         Boolean playedGetReady;
 
-        Boolean playedFinished;
+        public Boolean playedFinished;
 
         public LapCounter(AudioPlayer audioPlayer)
         {
@@ -80,24 +78,16 @@ namespace CrewChiefV2.Events
                 audioPlayer.closeChannel();
                 playedGreenGreenGreen = true;
             }
-            if (!playedFinished && currentState.Player.GameSimulationTime > 60 && CommonData.leaderHasFinishedRace && !CommonData.isRaceRunning)
+            if (!playedFinished && currentState.Player.GameSimulationTime > 60 && 
+                (currentState.SessionType == (int)Constant.Session.Race && CommonData.leaderHasFinishedRace && !CommonData.isRaceRunning) ||
+                (!CommonData.isSessionRunning && CommonData.isNewLap))
             {
-                int position = currentState.Position;
-                if (lastState.Position != 0 && lastState.Position != position)
-                {
-                    Console.WriteLine("At end of race, position has changed...");
-                    if (position + 1 > lastState.Position)
-                    {
-                        Console.WriteLine("According to memory block, the player has lost at least 2 positions as he crossed the line, using last state position");
-                        position = lastState.Position;
-                    }
-                    else if (position - 1 < lastState.Position)
-                    {
-                        Console.WriteLine("According to memory block, the player has gained at least 2 positions as he crossed the line, using last state position");
-                        position = lastState.Position;
-                    }
-                }
-                playFinishMessage((int)Constant.Session.Race, position, currentState.NumCars);
+                Console.WriteLine("Playing session finished message from LapCounter, session type = " + currentState.SessionType);
+                Console.WriteLine("Session phase = " + currentState.SessionPhase);
+                Console.WriteLine("Time remaining = " + currentState.SessionTimeRemaining);
+                Console.WriteLine("leaderHasFinishedRace = " + CommonData.leaderHasFinishedRace + ", isRaceRunning = " + CommonData.isRaceRunning);
+                Console.WriteLine("Newlap " + CommonData.isNewLap + "IsSessionRunning = " + CommonData.isSessionRunning);
+                playFinishMessage(currentState.SessionType, currentState.Position, currentState.NumCars);
             }
             if (CommonData.isRaceRunning && CommonData.isNewLap && currentState.NumberOfLaps > 0)
             {
@@ -192,7 +182,7 @@ namespace CrewChiefV2.Events
                     {
                         audioPlayer.queueClip(folderEndOfSessionPole, 4, null);
                     }
-                    else if (position > 1)
+                    else
                     {
                         audioPlayer.queueClip(folderEndOfSession, 4, null, PearlsOfWisdom.PearlType.NONE, 0);
                         audioPlayer.queueClip(Position.folderStub + position, 4, null);

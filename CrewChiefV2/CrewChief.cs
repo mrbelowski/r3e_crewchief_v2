@@ -198,12 +198,23 @@ namespace CrewChiefV2
                     if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
                         && !stateCleared)
                     {
-                        if (lastState.SessionPhase == (int)Constant.SessionPhase.Checkered ||
-                            lastState.SessionPhase == (int)Constant.SessionPhase.Terminated)
+                        if (lastState.SessionPhase != currentState.SessionPhase && 
+                            (lastState.SessionPhase == (int)Constant.SessionPhase.Checkered ||
+                            lastState.SessionPhase == (int)Constant.SessionPhase.Terminated))
                         {
                             if (eventsList.ContainsKey("LapCounter"))
                             {
-                                ((LapCounter)eventsList["LapCounter"]).playFinishMessage(lastState.SessionType, lastState.Position, lastState.NumCars);
+                                LapCounter lapCounter = (LapCounter)eventsList["LapCounter"];
+                                if (!lapCounter.playedFinished)
+                                {
+                                    Console.WriteLine("Playing session finished message from game state clear, session type = " + lastState.SessionType);
+                                    Console.WriteLine("Session phase = " + lastState.SessionPhase);
+                                    Console.WriteLine("Time remaining = " + lastState.SessionTimeRemaining);
+                                    Console.WriteLine("new session type = " + currentState.SessionType);
+                                    Console.WriteLine("new session phase = " + currentState.SessionPhase);
+                                    Console.WriteLine("New time remaining = " + currentState.SessionTimeRemaining);
+                                    lapCounter.playFinishMessage(lastState.SessionType, lastState.Position, lastState.NumCars);
+                                }                                
                             }
                         }
                         Console.WriteLine("Clearing game state...");
