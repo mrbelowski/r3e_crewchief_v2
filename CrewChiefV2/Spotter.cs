@@ -133,13 +133,13 @@ namespace CrewChiefV2.Events
                     // we're clear here, so when we next detect we're overlapping we know this must be
                     // a new overlap
                     newlyOverlapping = true;
-                    Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / currentSpeed);
-                    Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " + carLengthToUse / currentSpeed);
+                    //Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / currentSpeed);
+                    //Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " + carLengthToUse / currentSpeed);
                     audioPlayer.removeImmediateClip(folderHoldYourLine);
                     audioPlayer.removeImmediateClip(folderStillThere);
                     if (newlyClear)
                     {
-                        Console.WriteLine("Waiting " + clearMessageDelay);
+                        //Console.WriteLine("Waiting " + clearMessageDelay);
                         newlyClear = false;
                         timeWhenWeThinkWeAreClear = now;
                     }
@@ -160,7 +160,7 @@ namespace CrewChiefV2.Events
                     if (channelOpen && now > timeOfLastHoldMessage.Add(repeatHoldFrequency))
                     {
                         // channel's already open, still there
-                        Console.WriteLine("Still there...");
+                        //Console.WriteLine("Still there...");
                         timeOfLastHoldMessage = now;
                         audioPlayer.removeImmediateClip(folderHoldYourLine);
                         audioPlayer.removeImmediateClip(folderClear);
@@ -183,7 +183,7 @@ namespace CrewChiefV2.Events
                         }
                         else if (now > timeWhenWeThinkWeAreOverlapping.Add(overlapMessageDelay))
                         {
-                            if (carAlongSideInFront)
+                            /*if (carAlongSideInFront)
                             {
                                 Console.WriteLine("new overlap in front, deltaFront = " + deltaFront + " time gap = " +
                                 carLengthToUse / currentSpeed + " closing speed = " + closingSpeedInFront);
@@ -192,7 +192,7 @@ namespace CrewChiefV2.Events
                             {
                                 Console.WriteLine("new overlap behind, deltaBehind = " + deltaBehind + " time gap = " +
                                 carLengthToUse / currentSpeed + " closing speed = " + closingSpeedBehind);
-                            }
+                            }*/
                             timeOfLastHoldMessage = now;
                             channelOpen = true;                            
                             audioPlayer.openChannel();

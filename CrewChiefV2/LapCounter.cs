@@ -79,6 +79,7 @@ namespace CrewChiefV2.Events
                 audioPlayer.playClipImmediately(folderGreenGreenGreen, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
                 playedGreenGreenGreen = true;
+                CommonData.raceStartPosition = currentState.Position;
             }
             if (!playedFinished && currentState.Player.GameSimulationTime > 60 && 
                 (currentState.SessionType == (int)Constant.Session.Race && CommonData.leaderHasFinishedRace && !CommonData.isRaceRunning) ||

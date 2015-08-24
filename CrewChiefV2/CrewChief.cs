@@ -42,13 +42,14 @@ namespace CrewChiefV2
 
         private List<SessionData> sessionData = new List<SessionData>();
 
-        private TimeSpan minimumSessionParticipationTime = TimeSpan.FromSeconds(1);
+        private TimeSpan minimumSessionParticipationTime = TimeSpan.FromSeconds(6);
         
         class SessionData {
             public int sessionType;
             public int sessionPhase;
             public int sessionIteration;
             public DateTime startPoint;
+            public double runningTime;
 
             public SessionData(int sessionType, int sessionPhase, int sessionIteration)
             {
@@ -215,7 +216,6 @@ namespace CrewChiefV2
                     lastState = currentState;
                     currentState = new Shared();
                     _view.Read(0, out currentState);
-
                     if (updateSessionData(currentState.SessionType, currentState.SessionPhase, currentState.SessionIteration))
                     {
                         // if the current session is race and the phase is terminated (i.e. finished), play the end message - note this might not trigger 
@@ -225,14 +225,19 @@ namespace CrewChiefV2
                         if ((currentState.SessionType == (int)Constant.Session.Race && currentState.SessionPhase == (int)Constant.SessionPhase.Terminated) ||
                             hasNextSessionStarted() && hasParticipatedInPreviousSession())
                         {
-                            ((LapCounter)eventsList["LapCounter"]).playFinishMessage(lastState.SessionType, lastState.Position, lastState.NumCars);
+                            int position = lastState.Position;
+                            if (lastState.LapTimeBestLeader == -1)
+                            {
+                                position = lastState.NumCars;
+                            }
+                            ((LapCounter)eventsList["LapCounter"]).playFinishMessage(lastState.SessionType, position, lastState.NumCars);
                         }
                     }
 
                     // how long has the game been running?
                     double gameRunningTime = currentState.Player.GameSimulationTime;
                     // if we've gone back in time, this means a new session has started so clear all the game state
-                    if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime)
+                    if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
                         && !stateCleared)
                     {
                         Console.WriteLine("Clearing game state...");
@@ -245,6 +250,10 @@ namespace CrewChiefV2
                     }
                     else if (gameRunningTime > _timeInterval.Seconds)
                     {
+                        if (sessionData.Count > 0)
+                        {
+                            sessionData[sessionData.Count - 1].runningTime = gameRunningTime;
+                        }
                         stateCleared = false;
                         CommonData.setCommonStateData(lastState, currentState);
                         Dictionary<String, String> faultingEvents = new Dictionary<String, String>();
@@ -306,8 +315,13 @@ namespace CrewChiefV2
                 if (sessionType != previousSessionData.sessionType || sessionPhase != previousSessionData.sessionPhase || 
                     sessionIteration != previousSessionData.sessionIteration)
                 {
+                    Console.WriteLine("Adding some new sessionData");                    
                     SessionData newSessionData = new SessionData(sessionType, sessionPhase, sessionIteration);
+                    Console.WriteLine("Current:");
                     newSessionData.display();
+                    Console.WriteLine("Previous:");
+                    previousSessionData.display();
+
                     sessionData.Add(newSessionData);
                     return true;
                 }
@@ -329,7 +343,10 @@ namespace CrewChiefV2
             {
                 SessionData currentSessionData = sessionData[sessionData.Count - 1];
                 SessionData previousSessionData = sessionData[sessionData.Count - 2];
-                Boolean sessionHasRecentlyFinished = previousSessionData.startPoint.Add(TimeSpan.FromSeconds(5)) > currentSessionData.startPoint;
+                Boolean sessionHasRecentlyFinished = 
+                    previousSessionData.startPoint.Add(TimeSpan.FromSeconds(10 + previousSessionData.runningTime)) > currentSessionData.startPoint;
+                Console.WriteLine("session has recently finished = " + sessionHasRecentlyFinished);
+                
                 if (previousSessionData.sessionType == (int)Constant.Session.Practice &&
                     (currentSessionData.sessionType == (int)Constant.Session.Qualify ||
                     currentSessionData.sessionType == (int)Constant.Session.Race))
@@ -348,17 +365,18 @@ namespace CrewChiefV2
                 }
                 if (previousSessionData.sessionType == (int)Constant.Session.Qualify &&
                    currentSessionData.sessionType == (int)Constant.Session.Qualify && 
-                    previousSessionData.sessionIteration == 0 && currentSessionData.sessionIteration == 1)
+                    previousSessionData.sessionIteration + 1 == currentSessionData.sessionIteration)
                 {
                     return sessionHasRecentlyFinished;
                 }
                 if (previousSessionData.sessionType == (int)Constant.Session.Race &&
                    currentSessionData.sessionType == (int)Constant.Session.Race &&
-                    previousSessionData.sessionIteration == 0 && currentSessionData.sessionIteration == 1)
+                    previousSessionData.sessionIteration + 1 == currentSessionData.sessionIteration)
                 {
                     return sessionHasRecentlyFinished;
                 }
             }
+            Console.WriteLine("Has next session started = false");
             return false;
         }
 
@@ -376,6 +394,7 @@ namespace CrewChiefV2
                 else if (previousSessionData.sessionPhase == (int)Constant.SessionPhase.Green)
                 {
                     // the previous session ended when it was still green, see if it ran for more than a minute
+                    Console.WriteLine("has particpated = " + (DateTime.Now > previousSessionData.startPoint.Add(minimumSessionParticipationTime)));
                     return DateTime.Now > previousSessionData.startPoint.Add(minimumSessionParticipationTime);
                 }
             }

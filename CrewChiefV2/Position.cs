@@ -30,11 +30,11 @@ namespace CrewChiefV2.Events
 
         private Boolean playedRaceStartMessage;
 
-        private double minTimeBeforeRaceStartMessage = 15d;
-
         private Boolean enableRaceStartMessages = UserSettings.GetUserSettings().getBoolean("enable_race_start_messages");
 
         private Boolean enablePositionMessages = UserSettings.GetUserSettings().getBoolean("enable_position_messages");
+
+        private int startMessageTime;
 
         public Position(AudioPlayer audioPlayer)
         {
@@ -47,6 +47,7 @@ namespace CrewChiefV2.Events
             lapNumberAtLastMessage = 0;
             numberOfLapsInLastPlace = 0;
             playedRaceStartMessage = false;
+            startMessageTime = new Random().Next(30, 50);
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -61,22 +62,22 @@ namespace CrewChiefV2.Events
             {
                 previousPosition = currentState.Position;
             }
-            if (enableRaceStartMessages && CommonData.isNewSector && !playedRaceStartMessage && 
-                currentState.Player.GameSimulationTime > minTimeBeforeRaceStartMessage)
+            if (CommonData.isRaceRunning && enableRaceStartMessages && !playedRaceStartMessage && 
+                currentState.Player.GameSimulationTime > startMessageTime)
             {
                 playedRaceStartMessage = true;
-                if (currentState.Position == 1 || CommonData.raceStartPosition >= currentState.Position)
+                if (CommonData.isLast || CommonData.raceStartPosition + 1 < currentState.Position)
+                {
+                    audioPlayer.queueClip(folderBadStart, 0, this);
+                }
+                else if (currentState.Position == 1 || CommonData.raceStartPosition >= currentState.Position)
                 {
                     audioPlayer.queueClip(folderGoodStart, 0, this);
                 }
                 else if (CommonData.raceStartPosition + 5 < currentState.Position)
                 {
                     audioPlayer.queueClip(folderTerribleStart, 0, this);
-                }
-                else if (CommonData.isLast || CommonData.raceStartPosition + 1 < currentState.Position)
-                {
-                    audioPlayer.queueClip(folderBadStart, 0, this);
-                }
+                }                
                 else if (new Random().NextDouble() > 0.6)
                 {
                     // only play the OK start message sometimes
@@ -85,7 +86,7 @@ namespace CrewChiefV2.Events
             }
             if (enablePositionMessages && CommonData.isNewLap && CommonData.isSessionRunning)
             {
-                playedRaceStartMessage = false;
+                playedRaceStartMessage = true;
                 if (CommonData.isLast)
                 {
                     numberOfLapsInLastPlace++;

@@ -165,8 +165,7 @@ namespace CrewChiefV2
                 {
                     // if the session length is < minSessionLengthMInutes, ignore it
                     Console.WriteLine("setting race session length to " + (raceSessionLength / 60));
-                    sessionLengthSet = true;
-                    raceStartPosition = currentState.Position;
+                    sessionLengthSet = true;                    
                 }               
             }
 

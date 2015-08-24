@@ -2,7 +2,7 @@ CrewChief version 2.
 
 Changelog
 ---------
-Version 2.3.0: Reworked lap times event to give more helpful data on race / qual / practice pace and laptimes, and to respond more consistently and accurately to the "how's my pace?" question; added a session end event for practice and qualifying sessions; reworked session / race end detection code; don't read out the gap ahead / behind in races if it's less than a tenth; added good / ok / bad / terrible start messages; added options to disable some of the race messages. This update requires a new sound pack
+Version 2.3.0: Reworked lap times event to give more helpful data on race / qual / practice pace and laptimes, and to respond more consistently and accurately to the "how's my pace?" question; added a session end event for practice and qualifying sessions; reworked session / race end detection code; don't read out the gap ahead / behind in races if it's less than a tenth; added good / ok / bad / terrible start messages; added options to disable some of the race messages; fixed issue with pitstops where it'd still warn you to pit even while you were actually pitting. This update requires a new sound pack
 
 Version 2.2.3: Fixed pearl of wisdom position (was being set to play before the associated even most of the time); removed lots of unnecessary debug messages. No new sound pack for this version
 

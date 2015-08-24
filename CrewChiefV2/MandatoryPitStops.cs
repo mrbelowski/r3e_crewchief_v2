@@ -211,7 +211,8 @@ namespace CrewChiefV2.Events
                         else if (currentState.CompletedLaps == pitWindowClosedLap -1 )
                         {
                             audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosing, 0, this);
-                            if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed)
+                            if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed && 
+                                currentState.PitWindowStatus != (int)Constant.PitWindow.StopInProgress)
                             {
                                 audioPlayer.queueClip(folderMandatoryPitStopsPitThisLap, 0, this);
                                 playBoxNowMessage = true;
@@ -316,11 +317,8 @@ namespace CrewChiefV2.Events
         }
         private Boolean isMakingMandatoryStop(Shared lastState, Shared currentState)
         {
-            return (lastState.PitWindowStatus == (int)Constant.PitWindow.Open &&
-                currentState.PitWindowStatus == (int)Constant.PitWindow.Completed) ||
-                (currentState.PitWindowStatus == (int)Constant.PitWindow.Open &&
-                lastState.ControlType == (int)Constant.Control.Player &&
-                currentState.ControlType == (int)Constant.Control.AI);
+            return (currentState.PitWindowStatus == (int)Constant.PitWindow.Open || currentState.PitWindowStatus == (int)Constant.PitWindow.StopInProgress) &&
+                (CommonData.isInLap || CommonData.isOutLap);
         }
 
         public override void respond(String voiceMessage)
