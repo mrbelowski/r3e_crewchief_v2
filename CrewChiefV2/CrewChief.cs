@@ -315,14 +315,7 @@ namespace CrewChiefV2
                 if (sessionType != previousSessionData.sessionType || sessionPhase != previousSessionData.sessionPhase || 
                     sessionIteration != previousSessionData.sessionIteration)
                 {
-                    Console.WriteLine("Adding some new sessionData");                    
-                    SessionData newSessionData = new SessionData(sessionType, sessionPhase, sessionIteration);
-                    Console.WriteLine("Current:");
-                    newSessionData.display();
-                    Console.WriteLine("Previous:");
-                    previousSessionData.display();
-
-                    sessionData.Add(newSessionData);
+                    sessionData.Add(new SessionData(sessionType, sessionPhase, sessionIteration));
                     return true;
                 }
             }
@@ -345,7 +338,6 @@ namespace CrewChiefV2
                 SessionData previousSessionData = sessionData[sessionData.Count - 2];
                 Boolean sessionHasRecentlyFinished = 
                     previousSessionData.startPoint.Add(TimeSpan.FromSeconds(10 + previousSessionData.runningTime)) > currentSessionData.startPoint;
-                Console.WriteLine("session has recently finished = " + sessionHasRecentlyFinished);
                 
                 if (previousSessionData.sessionType == (int)Constant.Session.Practice &&
                     (currentSessionData.sessionType == (int)Constant.Session.Qualify ||
@@ -376,7 +368,6 @@ namespace CrewChiefV2
                     return sessionHasRecentlyFinished;
                 }
             }
-            Console.WriteLine("Has next session started = false");
             return false;
         }
 

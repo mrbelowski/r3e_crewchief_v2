@@ -616,5 +616,17 @@ namespace CrewChiefV2.Properties {
                 this["enable_position_messages"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enable_session_end_messages {
+            get {
+                return ((bool)(this["enable_session_end_messages"]));
+            }
+            set {
+                this["enable_session_end_messages"] = value;
+            }
+        }
     }
 }

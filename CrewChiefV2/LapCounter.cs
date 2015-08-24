@@ -43,6 +43,8 @@ namespace CrewChiefV2.Events
 
         private DateTime lastFinishMessageTime = DateTime.MinValue;
 
+        private Boolean enableSessionEndMessages = UserSettings.GetUserSettings().getBoolean("enable_session_end_messages");
+
         public LapCounter(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -153,12 +155,12 @@ namespace CrewChiefV2.Events
 
         public void playFinishMessage(int sessionType, int position, int numCars)
         {
-            if (!playedFinished && lastFinishMessageTime.Add(TimeSpan.FromSeconds(2)) < DateTime.Now)
+            if (enableSessionEndMessages && !playedFinished && lastFinishMessageTime.Add(TimeSpan.FromSeconds(2)) < DateTime.Now)
             {
                 lastFinishMessageTime = DateTime.Now;
                 if (position < 1)
                 {
-                    Console.WriteLine("Race finished but position is < 1");
+                    Console.WriteLine("Session finished but position is < 1");
                 }
                 else if (sessionType == (int)Constant.Session.Race)
                 {
