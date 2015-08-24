@@ -47,6 +47,8 @@ namespace CrewChiefV2.Events
 
         private float currentGapBehind;
 
+        private Boolean enableGapMessages = UserSettings.GetUserSettings().getBoolean("enable_gap_messages");
+
         public Timings(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -86,7 +88,7 @@ namespace CrewChiefV2.Events
             {
                 clearState();
             }
-            if (CommonData.isRaceRunning && CommonData.isNewSector && !CommonData.isPittingInRace)
+            if (enableGapMessages && CommonData.isRaceRunning && CommonData.isNewSector && !CommonData.isPittingInRace)
             {
                 sectorsSinceLastReport++;
                 if (!CommonData.racingSameCarInFront)

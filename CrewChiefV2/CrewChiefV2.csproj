@@ -141,6 +141,12 @@
     <Compile Include="IntPropertyControl.Designer.cs">
       <DependentUpon>IntPropertyControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Spacer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Spacer.Designer.cs">
+      <DependentUpon>Spacer.cs</DependentUpon>
+    </Compile>
     <Compile Include="UserSettings.cs" />
     <Compile Include="Utilities.cs" />
     <EmbeddedResource Include="FloatPropertyControl.resx">
@@ -154,6 +160,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Spacer.resx">
+      <DependentUpon>Spacer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="StringPropertyControl.resx">
       <DependentUpon>StringPropertyControl.cs</DependentUpon>

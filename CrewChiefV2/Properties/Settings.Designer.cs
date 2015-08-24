@@ -556,5 +556,65 @@ namespace CrewChiefV2.Properties {
                 this["enable_tyre_temp_warnings"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enable_race_start_messages {
+            get {
+                return ((bool)(this["enable_race_start_messages"]));
+            }
+            set {
+                this["enable_race_start_messages"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enable_fuel_messages {
+            get {
+                return ((bool)(this["enable_fuel_messages"]));
+            }
+            set {
+                this["enable_fuel_messages"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enable_gap_messages {
+            get {
+                return ((bool)(this["enable_gap_messages"]));
+            }
+            set {
+                this["enable_gap_messages"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enable_laptime_messages {
+            get {
+                return ((bool)(this["enable_laptime_messages"]));
+            }
+            set {
+                this["enable_laptime_messages"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enable_position_messages {
+            get {
+                return ((bool)(this["enable_position_messages"]));
+            }
+            set {
+                this["enable_position_messages"] = value;
+            }
+        }
     }
 }

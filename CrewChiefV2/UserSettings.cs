@@ -55,7 +55,7 @@ namespace CrewChiefV2
             }
         }
 
-        public List<SettingsProperty> getProperties(Type requiredType)
+        public List<SettingsProperty> getProperties(Type requiredType, String nameMustStartWith, String nameMustNotStartWith)
         {
             List<SettingsProperty> props = new List<SettingsProperty>();
             foreach (SettingsProperty prop in Properties.Settings.Default.Properties)
@@ -70,12 +70,14 @@ namespace CrewChiefV2
                     }
                 }
                 if (!isReserved && 
+                    (nameMustStartWith == null || nameMustStartWith.Length == 0 || prop.Name.StartsWith(nameMustStartWith)) &&
+                    (nameMustNotStartWith == null || nameMustNotStartWith.Length == 0 || !prop.Name.StartsWith(nameMustNotStartWith)) &&
                     !prop.IsReadOnly && prop.PropertyType == requiredType)
                 {
                     props.Add(prop);
                 }
             }
-            return props;
+            return props.OrderBy(x => x.Name).ToList();
         }
 
         private static readonly UserSettings _userSettings = new UserSettings();

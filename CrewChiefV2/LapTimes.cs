@@ -78,6 +78,8 @@ namespace CrewChiefV2.Events
 
         private Random random = new Random();
 
+        private Boolean enableLapTimeMessages = UserSettings.GetUserSettings().getBoolean("enable_laptime_messages");
+
         public LapTimes(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -149,7 +151,7 @@ namespace CrewChiefV2.Events
                     {
                         // queue the actual laptime as a 'gap filler' - this is only played if the
                         // queue would otherwise be empty
-                        if (readLapTimes)
+                        if (enableLapTimeMessages && readLapTimes)
                         {
                             QueuedMessage gapFillerLapTime = new QueuedMessage(folderLapTimeIntro, null,
                             TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this);
@@ -157,7 +159,7 @@ namespace CrewChiefV2.Events
                             audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laptime", gapFillerLapTime);
                         }
 
-                        if (currentState.SessionType == (int)Constant.Session.Qualify || currentState.SessionType == (int)Constant.Session.Practice)
+                        if (enableLapTimeMessages && currentState.SessionType == (int)Constant.Session.Qualify || currentState.SessionType == (int)Constant.Session.Practice)
                         {
                             if (lastLapRating == LastLapRating.BEST_IN_CLASS)
                             {
@@ -219,7 +221,7 @@ namespace CrewChiefV2.Events
                                 }
                             }
                         }
-                        else 
+                        else if (enableLapTimeMessages)
                         {
                             Boolean playedLapMessage = false;
                             float pearlLikelihood = 0.8f;

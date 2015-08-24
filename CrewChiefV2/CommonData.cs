@@ -50,6 +50,8 @@ namespace CrewChiefV2
 
         public static int lapCountWhenEnteredPits;
 
+        public static int raceStartPosition;
+
         public static void clearState()
         {
             isNew = true;
@@ -70,6 +72,7 @@ namespace CrewChiefV2
             isInLap = false;
             isOutLap = false;
             lapCountWhenEnteredPits = -1;
+            raceStartPosition = -1;
         }
 
         public static void setCommonStateData(Shared lastState, Shared currentState)
@@ -163,6 +166,7 @@ namespace CrewChiefV2
                     // if the session length is < minSessionLengthMInutes, ignore it
                     Console.WriteLine("setting race session length to " + (raceSessionLength / 60));
                     sessionLengthSet = true;
+                    raceStartPosition = currentState.Position;
                 }               
             }
 

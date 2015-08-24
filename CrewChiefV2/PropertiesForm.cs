@@ -20,49 +20,60 @@ namespace CrewChiefV2
             if (System.Diagnostics.Debugger.IsAttached) {
                 this.button1.Text = "Save (manual restart required)";
             }
-
-            foreach (SettingsProperty strProp in UserSettings.GetUserSettings().getProperties(typeof(String)))
+            int widgetCount = 0;
+            foreach (SettingsProperty strProp in UserSettings.GetUserSettings().getProperties(typeof(String), null, null))
             {
                 this.flowLayoutPanel1.Controls.Add(new StringPropertyControl(strProp.Name, strProp.Name + " (text)",
                    UserSettings.GetUserSettings().getString(strProp.Name), (String)strProp.DefaultValue,
                    UserSettings.GetUserSettings().getHelp(strProp.Name)));
-                /*this.stringPropertiesLayout.Controls.Add(new StringPropertyControl(strProp.Name, strProp.Name + " (text)",
-                   UserSettings.GetUserSettings().getString(strProp.Name), (String) strProp.DefaultValue,
-                   UserSettings.GetUserSettings().getHelp(strProp.Name)));*/
+                widgetCount++;
             }
-            foreach (SettingsProperty boolProp in UserSettings.GetUserSettings().getProperties(typeof(Boolean)))
+            pad(widgetCount);
+            widgetCount = 0;
+            foreach (SettingsProperty boolProp in UserSettings.GetUserSettings().getProperties(typeof(Boolean), "enable", null))
             {
                 Boolean defaultValue;
-                Boolean.TryParse((String) boolProp.DefaultValue, out defaultValue);
+                Boolean.TryParse((String)boolProp.DefaultValue, out defaultValue);
                 this.flowLayoutPanel1.Controls.Add(new BooleanPropertyControl(boolProp.Name, boolProp.Name + " (boolean)",
                     UserSettings.GetUserSettings().getBoolean(boolProp.Name), defaultValue,
                     UserSettings.GetUserSettings().getHelp(boolProp.Name)));
-                /*this.booleanPropertiesLayout.Controls.Add(new BooleanPropertyControl(boolProp.Name, boolProp.Name + " (boolean)",
-                    UserSettings.GetUserSettings().getBoolean(boolProp.Name), defaultValue,
-                    UserSettings.GetUserSettings().getHelp(boolProp.Name)));*/
+                widgetCount++;
             }
-            foreach (SettingsProperty floatProp in UserSettings.GetUserSettings().getProperties(typeof(float)))
+            pad(widgetCount);
+            widgetCount = 0;
+            foreach (SettingsProperty boolProp in UserSettings.GetUserSettings().getProperties(typeof(Boolean), null, "enable"))
+            {
+                Boolean defaultValue;
+                Boolean.TryParse((String)boolProp.DefaultValue, out defaultValue);
+                this.flowLayoutPanel1.Controls.Add(new BooleanPropertyControl(boolProp.Name, boolProp.Name + " (boolean)",
+                    UserSettings.GetUserSettings().getBoolean(boolProp.Name), defaultValue,
+                    UserSettings.GetUserSettings().getHelp(boolProp.Name))); 
+                widgetCount++;
+            }
+            pad(widgetCount);
+            widgetCount = 0;
+            foreach (SettingsProperty floatProp in UserSettings.GetUserSettings().getProperties(typeof(float), null, null))
             {
                 float defaultValue;
                 float.TryParse((String)floatProp.DefaultValue, out defaultValue);
                 this.flowLayoutPanel1.Controls.Add(new FloatPropertyControl(floatProp.Name, floatProp.Name + " (real number)",
                     UserSettings.GetUserSettings().getFloat(floatProp.Name), defaultValue,
-                    UserSettings.GetUserSettings().getHelp(floatProp.Name)));
-                /*this.floatPropertiesLayout.Controls.Add(new FloatPropertyControl(floatProp.Name, floatProp.Name + " (real number)",
-                    UserSettings.GetUserSettings().getFloat(floatProp.Name), defaultValue,
-                    UserSettings.GetUserSettings().getHelp(floatProp.Name)));*/
+                    UserSettings.GetUserSettings().getHelp(floatProp.Name))); 
+                widgetCount++;
             }
-            foreach (SettingsProperty intProp in UserSettings.GetUserSettings().getProperties(typeof(int)))
+            pad(widgetCount);
+            widgetCount = 0;
+            foreach (SettingsProperty intProp in UserSettings.GetUserSettings().getProperties(typeof(int), null, null))
             {
                 int defaultValue;
                 int.TryParse((String) intProp.DefaultValue, out defaultValue);
                 this.flowLayoutPanel1.Controls.Add(new IntPropertyControl(intProp.Name, intProp.Name + " (whole number)",
                     UserSettings.GetUserSettings().getInt(intProp.Name), defaultValue,
-                    UserSettings.GetUserSettings().getHelp(intProp.Name)));
-                /*this.integerPropertiesLayout.Controls.Add(new IntPropertyControl(intProp.Name, intProp.Name + " (whole number)",
-                    UserSettings.GetUserSettings().getInt(intProp.Name), defaultValue,
-                    UserSettings.GetUserSettings().getHelp(intProp.Name)));*/
+                    UserSettings.GetUserSettings().getHelp(intProp.Name))); 
+                widgetCount++;
             }
+            pad(widgetCount);
+            widgetCount = 0;
         }
         public void save()
         {
@@ -104,6 +115,19 @@ namespace CrewChiefV2
                 System.Diagnostics.Process.Start(Application.ExecutablePath); // to start new instance of application
                 parent.Close(); //to turn off current app
             }
+        }
+
+        private void pad(int widgetCount)
+        {
+            int paddedWidgetCount = widgetCount;
+            while (paddedWidgetCount % 3 > 0)
+            {
+                paddedWidgetCount++;
+            }
+            for (int i = 0; i < paddedWidgetCount - widgetCount; i++)
+            {
+                this.flowLayoutPanel1.Controls.Add(new Spacer());
+            }    
         }
 
         private void label1_Click(object sender, EventArgs e)
