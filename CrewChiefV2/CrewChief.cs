@@ -40,6 +40,31 @@ namespace CrewChiefV2
 
         double lastGameStateTime = 0;
 
+        private List<SessionData> sessionData = new List<SessionData>();
+
+        private TimeSpan minimumSessionParticipationTime = TimeSpan.FromSeconds(1);
+        
+        class SessionData {
+            public int sessionType;
+            public int sessionPhase;
+            public int sessionIteration;
+            public DateTime startPoint;
+
+            public SessionData(int sessionType, int sessionPhase, int sessionIteration)
+            {
+                this.sessionType = sessionType;
+                this.sessionPhase = sessionPhase;
+                this.sessionIteration = sessionIteration;
+                this.startPoint = DateTime.Now;
+            }
+
+            public void display()
+            {
+                Console.WriteLine("Session type = " + sessionType + ", session phase = " + sessionPhase +
+                    ", session iteration = " + sessionIteration + ", time = " + startPoint.ToString("HH:mm:ss.fff"));
+            }
+        }
+
         public CrewChief()
         {
             audioPlayer.initialise();
@@ -191,32 +216,25 @@ namespace CrewChiefV2
                     currentState = new Shared();
                     _view.Read(0, out currentState);
 
+                    if (updateSessionData(currentState.SessionType, currentState.SessionPhase, currentState.SessionIteration))
+                    {
+                        // if the current session is race and the phase is terminated (i.e. finished), play the end message - note this might not trigger 
+                        // if it's already been played because of a 'proper' session finish event
+                        //
+                        // 
+                        if ((currentState.SessionType == (int)Constant.Session.Race && currentState.SessionPhase == (int)Constant.SessionPhase.Terminated) ||
+                            hasNextSessionStarted() && hasParticipatedInPreviousSession())
+                        {
+                            ((LapCounter)eventsList["LapCounter"]).playFinishMessage(lastState.SessionType, lastState.Position, lastState.NumCars);
+                        }
+                    }
+
                     // how long has the game been running?
                     double gameRunningTime = currentState.Player.GameSimulationTime;
-                    // if we've gone back in time or the session type has changed, this means a new session has started - 
-                    // clear all the game state
-                    if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
+                    // if we've gone back in time, this means a new session has started so clear all the game state
+                    if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime)
                         && !stateCleared)
                     {
-                        if (lastState.SessionPhase != currentState.SessionPhase && 
-                            (lastState.SessionPhase == (int)Constant.SessionPhase.Checkered ||
-                            lastState.SessionPhase == (int)Constant.SessionPhase.Terminated))
-                        {
-                            if (eventsList.ContainsKey("LapCounter"))
-                            {
-                                LapCounter lapCounter = (LapCounter)eventsList["LapCounter"];
-                                if (!lapCounter.playedFinished)
-                                {
-                                    Console.WriteLine("Playing session finished message from game state clear, session type = " + lastState.SessionType);
-                                    Console.WriteLine("Session phase = " + lastState.SessionPhase);
-                                    Console.WriteLine("Time remaining = " + lastState.SessionTimeRemaining);
-                                    Console.WriteLine("new session type = " + currentState.SessionType);
-                                    Console.WriteLine("new session phase = " + currentState.SessionPhase);
-                                    Console.WriteLine("New time remaining = " + currentState.SessionTimeRemaining);
-                                    lapCounter.playFinishMessage(lastState.SessionType, lastState.Position, lastState.NumCars);
-                                }                                
-                            }
-                        }
                         Console.WriteLine("Clearing game state...");
                         CommonData.clearState();
                         foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
@@ -270,6 +288,98 @@ namespace CrewChiefV2
             }
             audioPlayer.stopMonitor();
             return true;
+        }
+
+        /**
+         * returns whether the current session phase, type, or iteration is different from the previous one
+         */
+        private Boolean updateSessionData(int sessionType, int sessionPhase, int sessionIteration)
+        {
+            if (sessionType == (int)Constant.Session.Unavailable || sessionPhase == (int)Constant.SessionPhase.Unavailable || sessionIteration == -1)
+            {
+                // don't add 'unavailable' data
+                return false;
+            }
+            if (sessionData.Count != 0)
+            {
+                SessionData previousSessionData = sessionData[sessionData.Count - 1];
+                if (sessionType != previousSessionData.sessionType || sessionPhase != previousSessionData.sessionPhase || 
+                    sessionIteration != previousSessionData.sessionIteration)
+                {
+                    SessionData newSessionData = new SessionData(sessionType, sessionPhase, sessionIteration);
+                    newSessionData.display();
+                    sessionData.Add(newSessionData);
+                    return true;
+                }
+            }
+            else
+            {
+                sessionData.Add(new SessionData(sessionType, sessionPhase, sessionIteration));
+            }
+            return false;
+        }
+
+        /**
+         * This should return false if we restart the existing session or if the session that's being started
+         * isn't following on from the previous session (i.e. we've quit to the menu)
+         */
+        private Boolean hasNextSessionStarted()
+        {
+            if (sessionData.Count > 1)
+            {
+                SessionData currentSessionData = sessionData[sessionData.Count - 1];
+                SessionData previousSessionData = sessionData[sessionData.Count - 2];
+                Boolean sessionHasRecentlyFinished = previousSessionData.startPoint.Add(TimeSpan.FromSeconds(5)) > currentSessionData.startPoint;
+                if (previousSessionData.sessionType == (int)Constant.Session.Practice &&
+                    (currentSessionData.sessionType == (int)Constant.Session.Qualify ||
+                    currentSessionData.sessionType == (int)Constant.Session.Race))
+                {
+                    return sessionHasRecentlyFinished;
+                }
+                if (previousSessionData.sessionType == (int)Constant.Session.Qualify &&
+                   currentSessionData.sessionType == (int)Constant.Session.Race)
+                {
+                    return sessionHasRecentlyFinished;
+                }
+                if (previousSessionData.sessionType == (int)Constant.Session.Practice &&
+                   currentSessionData.sessionType == (int)Constant.Session.Race)
+                {
+                    return sessionHasRecentlyFinished;
+                }
+                if (previousSessionData.sessionType == (int)Constant.Session.Qualify &&
+                   currentSessionData.sessionType == (int)Constant.Session.Qualify && 
+                    previousSessionData.sessionIteration == 0 && currentSessionData.sessionIteration == 1)
+                {
+                    return sessionHasRecentlyFinished;
+                }
+                if (previousSessionData.sessionType == (int)Constant.Session.Race &&
+                   currentSessionData.sessionType == (int)Constant.Session.Race &&
+                    previousSessionData.sessionIteration == 0 && currentSessionData.sessionIteration == 1)
+                {
+                    return sessionHasRecentlyFinished;
+                }
+            }
+            return false;
+        }
+
+        private Boolean hasParticipatedInPreviousSession()
+        {
+            if (sessionData.Count > 1)
+            {
+                SessionData previousSessionData = sessionData[sessionData.Count - 2];
+                if (previousSessionData.sessionPhase == (int)Constant.SessionPhase.Checkered ||
+                    previousSessionData.sessionPhase == (int)Constant.SessionPhase.Terminated)
+                {
+                    // the previous session ran till the end
+                    return true;
+                }
+                else if (previousSessionData.sessionPhase == (int)Constant.SessionPhase.Green)
+                {
+                    // the previous session ended when it was still green, see if it ran for more than a minute
+                    return DateTime.Now > previousSessionData.startPoint.Add(minimumSessionParticipationTime);
+                }
+            }
+            return false;
         }
 
         public void stop()

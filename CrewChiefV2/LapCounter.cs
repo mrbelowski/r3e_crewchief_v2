@@ -41,6 +41,8 @@ namespace CrewChiefV2.Events
 
         public Boolean playedFinished;
 
+        private DateTime lastFinishMessageTime = DateTime.MinValue;
+
         public LapCounter(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -150,8 +152,9 @@ namespace CrewChiefV2.Events
 
         public void playFinishMessage(int sessionType, int position, int numCars)
         {
-            if (!playedFinished)
+            if (!playedFinished && lastFinishMessageTime.Add(TimeSpan.FromSeconds(2)) < DateTime.Now)
             {
+                lastFinishMessageTime = DateTime.Now;
                 if (position < 1)
                 {
                     Console.WriteLine("Race finished but position is < 1");
@@ -185,7 +188,7 @@ namespace CrewChiefV2.Events
                     else
                     {
                         audioPlayer.queueClip(folderEndOfSession, 0, null, PearlsOfWisdom.PearlType.NONE, 0);
-                        audioPlayer.queueClip(Position.folderStub + position, 4, null);
+                        audioPlayer.queueClip(Position.folderStub + position, 0, null);
                     }
                 }                
                 playedFinished = true;

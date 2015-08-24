@@ -107,12 +107,6 @@ namespace CrewChiefV2.Events
             if (currentState.LapTimeBest > 0)
             {
                 sessionBestLapTimeDeltaToLeader = TimeSpan.FromSeconds(currentState.LapTimeBest - getLapTimeBestForClassLeader(currentState));
-                if (sessionBestLapTimeDeltaToLeader < TimeSpan.Zero)
-                {
-                    // unfortunately this won't happen. It's a shame because I can see no way to work out how much
-                    // faster you are than the guy in 2nd place, when you're leading
-                    Console.WriteLine("sessionBestLapTimeDeltaToLeader < 0");
-                }
             }
             else
             {
@@ -121,12 +115,6 @@ namespace CrewChiefV2.Events
             if (currentState.LapTimePrevious > 0)
             {
                 currentLapTimeDeltaToLeadersBest = TimeSpan.FromSeconds(currentState.LapTimePrevious - getLapTimeBestForClassLeader(currentState));
-                if (currentLapTimeDeltaToLeadersBest < TimeSpan.Zero)
-                {
-                    // unfortunately this won't happen. It's a shame because I can see no way to work out how much
-                    // faster you are than the guy in 2nd place, when you're leading
-                    Console.WriteLine("currentLapTimeDeltaToLeadersBest < 0");
-                }
             }
             else
             {
@@ -473,7 +461,7 @@ namespace CrewChiefV2.Events
                 {
                     if (lastLapRating != LastLapRating.NO_DATA && currentLapTimeDeltaToLeadersBest != TimeSpan.MaxValue)
                     {
-                        if (currentLapTimeDeltaToLeadersBest.Seconds == 0 && currentLapTimeDeltaToLeadersBest.Milliseconds <= 50)
+                        if (currentLapTimeDeltaToLeadersBest < TimeSpan.FromMilliseconds(50))
                         {
                             audioPlayer.playClipImmediately(folderPaceGood, new QueuedMessage(0, null));
                             audioPlayer.closeChannel();

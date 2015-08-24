@@ -130,10 +130,13 @@ namespace CrewChiefV2.Events
                 if (channelOpen && !carAlongSideInFront && (!require2ClearsForClear || !carAlongSideInFrontPrevious) &&
                     !carAlongSideBehind && (!require2ClearsForClear || !carAlongSideBehindPrevious))
                 {
+                    // we're clear here, so when we next detect we're overlapping we know this must be
+                    // a new overlap
                     newlyOverlapping = true;
                     Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / currentSpeed);
                     Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " + carLengthToUse / currentSpeed);
-
+                    audioPlayer.removeImmediateClip(folderHoldYourLine);
+                    audioPlayer.removeImmediateClip(folderStillThere);
                     if (newlyClear)
                     {
                         Console.WriteLine("Waiting " + clearMessageDelay);
@@ -142,9 +145,7 @@ namespace CrewChiefV2.Events
                     }
                     else if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay))
                     {
-                        channelOpen = false;
-                        audioPlayer.removeImmediateClip(folderHoldYourLine);
-                        audioPlayer.removeImmediateClip(folderStillThere);
+                        channelOpen = false;                        
                         QueuedMessage clearMessage = new QueuedMessage(0, this);
                         clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
                         audioPlayer.playClipImmediately(folderClear, clearMessage);
@@ -170,6 +171,10 @@ namespace CrewChiefV2.Events
                     else if (!channelOpen &&
                         (rearOverlapIsReducing || (frontOverlapIsReducing && !spotterOnlyWhenBeingPassed)))
                     {
+                        audioPlayer.removeImmediateClip(folderClear);
+                        audioPlayer.removeImmediateClip(folderStillThere);
+                        // we're overlapping here, so when we next detect we're 'clear' we know this must be
+                        // a new clear
                         newlyClear = true;
                         if (newlyOverlapping)
                         {
@@ -189,9 +194,7 @@ namespace CrewChiefV2.Events
                                 carLengthToUse / currentSpeed + " closing speed = " + closingSpeedBehind);
                             }
                             timeOfLastHoldMessage = now;
-                            channelOpen = true;
-                            audioPlayer.removeImmediateClip(folderClear);
-                            audioPlayer.removeImmediateClip(folderStillThere);
+                            channelOpen = true;                            
                             audioPlayer.openChannel();
                             QueuedMessage holdMessage = new QueuedMessage(0, this);
                             holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
