@@ -65,7 +65,7 @@ namespace CrewChiefV2.Events
 
         private int cutTrackWarningsCount;
 
-        private TimeSpan cutTrackWarningFrequency = TimeSpan.FromSeconds(10);
+        private TimeSpan cutTrackWarningFrequency = TimeSpan.FromSeconds(30);
 
         private Boolean playCutTrackWarnings = UserSettings.GetUserSettings().getBoolean("play_cut_track_warnings");
 
@@ -262,7 +262,6 @@ namespace CrewChiefV2.Events
             }                     
             else
             {
-                // TODO: this ain't right...
                 clearPenaltyState();
             }
             if (CommonData.isRaceRunning && 

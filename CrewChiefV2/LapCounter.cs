@@ -175,6 +175,7 @@ namespace CrewChiefV2.Events
                     }
                     else if (position >= 4 && !isLast)
                     {
+                        audioPlayer.queueClip(Position.folderStub + position, 0, null);
                         audioPlayer.queueClip(folderFinishedRace, 0, null);
                     }
                     else if (isLast)
