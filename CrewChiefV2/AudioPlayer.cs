@@ -13,7 +13,7 @@ namespace CrewChiefV2
 {
     class AudioPlayer
     {
-        public static float minimumSoundPackVersion = 2.3f;
+        public static float minimumSoundPackVersion = 2.4f;
 
         public static String folderAcknowlegeOK = "acknowledge/OK";
         public static String folderAcknowlegeEnableKeepQuiet = "acknowledge/keepQuietEnabled";
