@@ -71,7 +71,26 @@ namespace CrewChiefV2.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return CommonData.isSessionRunning;
+            if (eventSubType == QueuedMessage.compoundMessageIdentifier + "Timings/gap_in_front")
+            {
+                return CommonData.racingSameCarInFront;
+            }
+            else if (eventSubType == QueuedMessage.compoundMessageIdentifier + "Timings/gap_behind")
+            {
+                return CommonData.racingSameCarBehind;
+            }
+            else if (eventSubType == folderBeingHeldUp)
+            {
+                return CommonData.racingSameCarInFront;
+            }
+            else if (eventSubType == folderBeingPressured)
+            {
+                return CommonData.racingSameCarBehind;
+            }
+            else
+            {
+                return CommonData.isSessionRunning;
+            }
         }
 
         protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
@@ -129,7 +148,7 @@ namespace CrewChiefV2.Events
                         case GapStatus.INCREASING:
                             if (readGap)
                             {
-                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", 
+                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gap_in_front", 
                                     new QueuedMessage(folderGapInFrontIncreasing, folderSeconds, gapInFront, 0, this));
                             }                            
                             lastGapInFrontReport = GapStatus.INCREASING;
@@ -138,7 +157,7 @@ namespace CrewChiefV2.Events
                         case GapStatus.DECREASING:
                             if (readGap)
                             {
-                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps", 
+                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gap_in_front", 
                                     new QueuedMessage(folderGapInFrontDecreasing, folderSeconds, gapInFront, 0, this));
                             }
                             lastGapInFrontReport = GapStatus.DECREASING;
@@ -162,7 +181,7 @@ namespace CrewChiefV2.Events
                         case GapStatus.INCREASING:
                             if (readGap)
                             {
-                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
+                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gap_behind",
                                     new QueuedMessage(folderGapBehindIncreasing, folderSeconds, gapBehind, 0, this));
                             }
                             lastGapBehindReport = GapStatus.INCREASING;
@@ -171,7 +190,7 @@ namespace CrewChiefV2.Events
                         case GapStatus.DECREASING:
                             if (readGap)
                             {
-                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
+                                audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gap_behind",
                                     new QueuedMessage(folderGapBehindDecreasing, folderSeconds, gapBehind, 0, this));
                             }
                             lastGapBehindReport = GapStatus.DECREASING;

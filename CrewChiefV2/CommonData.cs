@@ -27,6 +27,8 @@ namespace CrewChiefV2
 
         public static Boolean isSessionRunning;
 
+        public static Boolean isHotLapping;
+
         public static Boolean isLast;
 
         public static Boolean isLeading;
@@ -76,6 +78,7 @@ namespace CrewChiefV2
             isOutLap = false;
             lapCountWhenEnteredPits = -1;
             raceStartPosition = -1;
+            isHotLapping = false;
         }
 
         public static void setCommonStateData(Shared lastState, Shared currentState)
@@ -130,6 +133,8 @@ namespace CrewChiefV2
             {
                 isSessionRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green;
                 isQualifyRunning = isSessionRunning && currentState.SessionType == (int)Constant.Session.Qualify;
+                // yuk... 1 or 2 cars in qual => hot lapping - one for the player, one for the ghost :(
+                isHotLapping = currentState.SessionType == (int)Constant.Session.Qualify && currentState.NumCars <= 2;
             }   
 
             if (isNewLap)
