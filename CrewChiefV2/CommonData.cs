@@ -29,6 +29,8 @@ namespace CrewChiefV2
 
         public static Boolean isLast;
 
+        public static Boolean isLeading;
+
         public static float raceSessionLength;
 
         public static int minSessionLengthMinutes = 4;
@@ -58,6 +60,7 @@ namespace CrewChiefV2
             currentLapSector = -1;
             raceSessionLength = -1;
             isLast = false;
+            isLeading = false;
             sessionLengthSet = false;
             racingSameCarInFront = false;
             racingSameCarBehind = false;
@@ -152,6 +155,7 @@ namespace CrewChiefV2
             isNewSector = currentLapSector != lastSector;
 
             isLast = currentState.Position == currentState.NumCars;
+            isLeading = currentState.Position == 1;
 
             if (!sessionLengthSet && isRaceRunning &&
                 currentState.SessionTimeRemaining > 0 && lastState.SessionTimeRemaining > 0 &&

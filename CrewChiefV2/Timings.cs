@@ -6,8 +6,7 @@ using CrewChiefV2.Data;
 
 namespace CrewChiefV2.Events
 {
-    // note this only works for DTM as non-DTM events don't have number of laps *or* a race time remaining
-    // field in the data block
+    // note this only works properly in race events as the TimeDeltas aren't populated in practice / qual
     class Timings : AbstractEvent
     {
         private String folderGapInFrontIncreasing = "timings/gap_in_front_increasing";
@@ -226,11 +225,17 @@ namespace CrewChiefV2.Events
                 voiceMessage.Contains(SpeechRecogniser.GAP_AHEAD)) &&
                 currentGapInFront != -1)
             {
-                if (currentGapInFront < 60)
+                if (CommonData.isLeading && CommonData.isRaceRunning)
+                {
+                    audioPlayer.playClipImmediately(Position.folderLeading, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                    haveData = true;
+                }
+                else if (currentGapInFront < 60)
                 {
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
                     new QueuedMessage(null, folderSeconds,
-                    TimeSpan.FromMilliseconds(currentGapInFront * 1000), 0, this));
+                        TimeSpan.FromMilliseconds(currentGapInFront * 1000), 0, this));
                     audioPlayer.closeChannel();
                     haveData = true;
                 }
@@ -242,11 +247,17 @@ namespace CrewChiefV2.Events
             else if (voiceMessage.Contains(SpeechRecogniser.GAP_BEHIND) &&
                 currentGapBehind != -1)
             {
-                if (currentGapBehind < 60)
+                if (CommonData.isLast && CommonData.isRaceRunning)
+                {
+                    audioPlayer.playClipImmediately(Position.folderLast, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                    haveData = true;
+                }
+                else if (currentGapBehind < 60)
                 {
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
                     new QueuedMessage(null, folderSeconds,
-                    TimeSpan.FromMilliseconds(currentGapBehind * 1000), 0, this));
+                        TimeSpan.FromMilliseconds(currentGapBehind * 1000), 0, this));
                     audioPlayer.closeChannel();
                     haveData = true;
                 }

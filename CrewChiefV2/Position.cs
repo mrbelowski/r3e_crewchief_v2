@@ -11,8 +11,9 @@ namespace CrewChiefV2.Events
         public static String folderLeading = "position/leading";
         public static String folderPole = "position/pole";
         public static String folderStub = "position/p";
+        public static String folderLast = "position/last";
+
         private String folderConsistentlyLast = "position/consistently_last";
-        private String folderLast = "position/last";
         private String folderGoodStart = "position/good_start";
         private String folderOKStart = "position/ok_start";
         private String folderBadStart = "position/bad_start";
