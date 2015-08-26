@@ -73,19 +73,19 @@ namespace CrewChiefV2.Events
         {
             if (eventSubType == QueuedMessage.compoundMessageIdentifier + "Timings/gap_in_front")
             {
-                return CommonData.racingSameCarInFront;
+                return CommonData.isSessionRunning && CommonData.racingSameCarInFront;
             }
             else if (eventSubType == QueuedMessage.compoundMessageIdentifier + "Timings/gap_behind")
             {
-                return CommonData.racingSameCarBehind;
+                return CommonData.isSessionRunning && CommonData.racingSameCarBehind;
             }
             else if (eventSubType == folderBeingHeldUp)
             {
-                return CommonData.racingSameCarInFront;
+                return CommonData.isSessionRunning && CommonData.racingSameCarInFront;
             }
             else if (eventSubType == folderBeingPressured)
             {
-                return CommonData.racingSameCarBehind;
+                return CommonData.isSessionRunning && CommonData.racingSameCarBehind;
             }
             else
             {
