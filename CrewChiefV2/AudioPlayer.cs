@@ -91,16 +91,23 @@ namespace CrewChiefV2
 
         public void initialise()
         {
-            if (System.Diagnostics.Debugger.IsAttached)
+            if (soundFolderName.Length > 3 && (soundFolderName.Substring(1, 2) == @":\" || soundFolderName.Substring(1, 2) == @":/"))
             {
-                soundFilesPath = Path.Combine(Path.GetDirectoryName(
-                                        System.Reflection.Assembly.GetEntryAssembly().Location), @"..\", @"..\", soundFolderName);
+                Console.WriteLine("Using full physical path to sound folder: " + soundFolderName);
+                soundFilesPath = soundFolderName;
+            } else {
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    soundFilesPath = Path.Combine(Path.GetDirectoryName(
+                                            System.Reflection.Assembly.GetEntryAssembly().Location), @"..\", @"..\", soundFolderName);
+                }
+                else
+                {
+                    soundFilesPath = Path.Combine(Path.GetDirectoryName(
+                                            System.Reflection.Assembly.GetEntryAssembly().Location), soundFolderName);
+                }
             }
-            else
-            {
-                soundFilesPath = Path.Combine(Path.GetDirectoryName(
-                                        System.Reflection.Assembly.GetEntryAssembly().Location), soundFolderName);
-            }
+            
             voiceFolderPath = Path.Combine(soundFilesPath, "voice");
             fxFolderPath = Path.Combine(soundFilesPath , "fx");
             backgroundFilesPath = Path.Combine(soundFilesPath, "background_sounds");
