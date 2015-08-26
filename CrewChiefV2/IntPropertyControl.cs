@@ -42,8 +42,20 @@ namespace CrewChiefV2
 
         private void button1_Click(object sender, EventArgs e)
         {
+            if (defaultValue != originalValue)
+            {
+                PropertiesForm.hasChanges = true;
+            }
             this.textBox1.Text = defaultValue.ToString();
             this.originalValue = defaultValue;
+        }
+
+        private void textChanged(object sender, EventArgs e)
+        {
+            if (this.textBox1.Text != originalValue.ToString())
+            {
+                PropertiesForm.hasChanges = true;
+            }
         }
     }
 }

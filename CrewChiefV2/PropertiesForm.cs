@@ -12,9 +12,12 @@ namespace CrewChiefV2
 {
     public partial class PropertiesForm : Form
     {
+        public static Boolean hasChanges;
+
         System.Windows.Forms.Form parent;
         public PropertiesForm(System.Windows.Forms.Form parent)
         {
+            hasChanges = false;
             this.parent = parent;
             InitializeComponent();
             if (System.Diagnostics.Debugger.IsAttached) {
@@ -105,6 +108,7 @@ namespace CrewChiefV2
                 }
             }
             UserSettings.GetUserSettings().saveUserSettings();
+            PropertiesForm.hasChanges = false;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -130,29 +134,25 @@ namespace CrewChiefV2
             }    
         }
 
-        private void label1_Click(object sender, EventArgs e)
+        private void properties_FormClosing(object sender, FormClosingEventArgs e)
         {
-
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void flowLayoutPanel3_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void flowLayoutPanel4_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void label6_Click(object sender, EventArgs e)
-        {
-
+            if (PropertiesForm.hasChanges)
+            {
+                String warningMessage = "You have unsaved changes. Click 'Yes' to save these changes and restart the application. Click 'No' to discard these changes";
+                if (System.Diagnostics.Debugger.IsAttached)
+                {
+                    warningMessage = "You have unsaved changes. Click 'Yes' to save these changes (you will need to manually restart the application). Click 'No' to discard these changes";
+                }
+                if (MessageBox.Show(warningMessage, "Save changes", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    save();
+                    if (!System.Diagnostics.Debugger.IsAttached)
+                    {
+                        System.Diagnostics.Process.Start(Application.ExecutablePath); // to start new instance of application
+                        parent.Close(); //to turn off current app
+                    }
+                }
+            }           
         }
     }
 }

@@ -13,14 +13,16 @@ namespace CrewChiefV2
     {
         public String propertyId;
         public Boolean defaultValue;
+        public Boolean originalValue;
         public BooleanPropertyControl(String propertyId, String label, Boolean value, Boolean defaultValue, String helpText)
         {
             InitializeComponent();
             this.propertyId = propertyId;
-            this.checkBox1.Text = label;
+            this.originalValue = value;
+            this.checkBox1.Text = label;            
             this.checkBox1.Checked = value;
             this.defaultValue = defaultValue;
-            this.toolTip1.SetToolTip(this.checkBox1, helpText);
+            this.toolTip1.SetToolTip(this.checkBox1, helpText);            
         }
         public Boolean getValue()
         {
@@ -30,6 +32,18 @@ namespace CrewChiefV2
         private void button1_Click(object sender, EventArgs e)
         {
             this.checkBox1.Checked = defaultValue;
+            if (this.originalValue != this.checkBox1.Checked)
+            {
+                PropertiesForm.hasChanges = true;
+            }
+        }
+
+        private void checkedChanged(object sender, EventArgs e)
+        {
+            if (this.originalValue != this.checkBox1.Checked)
+            {
+                PropertiesForm.hasChanges = true;
+            }
         }
     }
 }

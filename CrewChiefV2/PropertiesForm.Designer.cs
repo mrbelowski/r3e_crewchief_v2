@@ -74,6 +74,7 @@
             this.Controls.Add(this.flowLayoutPanel1);
             this.Name = "PropertiesForm";
             this.Text = "properties_form";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.properties_FormClosing);
             this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
