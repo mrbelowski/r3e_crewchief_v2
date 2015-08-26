@@ -2,7 +2,7 @@ CrewChief version 2.
 
 Changelog
 ---------
-Version 2.4.1: Don't allow gap messages to play if the session's ended. No new sound pack for this version
+Version 2.4.1: Don't allow gap messages to play if the session's ended; fixed missing sounds in bundled sound pack. No new sound pack for this version
 
 Version 2.4: Added finishing position to non-podium finish message; make off-track warnings less frequent in races; added "you're leading" and "you're last" responses for when you ask about the gap in front / behind and there is no gap cos you're first or last; revised track cut warning messages; added 'hot lap' mode for laptimes / gaps in hot lap sessions; added additional checks to gap messages to ensure they're not played if you're not racing the same car ahead / behind; revised laptime worsening messages. This update requires a new sound pack
 
