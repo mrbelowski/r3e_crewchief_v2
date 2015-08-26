@@ -168,9 +168,13 @@ namespace CrewChiefV2.Events
                                 // special case for hot lapping - read best lap message and the laptime
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laptime", new QueuedMessage(folderLapTimeIntro, null,
                                     TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this));
-                                if (lastLapRating == LastLapRating.BEST_IN_CLASS)
+                                if (lastLapRating == LastLapRating.BEST_IN_CLASS || currentLapTimeDeltaToLeadersBest <= TimeSpan.Zero)
                                 {
                                     audioPlayer.queueClip(folderPersonalBest, 0, this);
+                                }
+                                else if (currentLapTimeDeltaToLeadersBest < TimeSpan.FromMilliseconds(50))
+                                {
+                                    audioPlayer.queueClip(folderLessThanATenthOffThePace, 0, this);
                                 }
                                 else if (currentLapTimeDeltaToLeadersBest < TimeSpan.MaxValue)
                                 {
