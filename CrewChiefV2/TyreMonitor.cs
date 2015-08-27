@@ -78,6 +78,8 @@ namespace CrewChiefV2.Events
         private TyreWearStatus lastReportedKnackeredTyreStatus;
         private TyreWearStatus lastReportedWornTyreStatus;
 
+        private Boolean reportedTyreWearForCurrentPitEntry;
+
         public TyreMonitor(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -95,6 +97,7 @@ namespace CrewChiefV2.Events
             rightFrontWear = 0;
             leftRearWear = 0;
             rightRearWear = 0;
+            reportedTyreWearForCurrentPitEntry = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -136,8 +139,21 @@ namespace CrewChiefV2.Events
                     rightFrontWear = (newTyreWearValue - currentState.CarDamage.TireFrontRight) / maxTyreWearBeforeKnackered;
                     leftRearWear = (newTyreWearValue - currentState.CarDamage.TireRearLeft) / maxTyreWearBeforeKnackered;
                     rightRearWear = (newTyreWearValue - currentState.CarDamage.TireRearRight) / maxTyreWearBeforeKnackered;
+
+                    if (CommonData.isPittingInRace)
+                    {
+                        if (!reportedTyreWearForCurrentPitEntry)
+                        {
+                            playTyreWearMessages(true, true);
+                            reportedTyreWearForCurrentPitEntry = true;
+                        }
+                    }
+                    else
+                    {
+                        reportedTyreWearForCurrentPitEntry = false;
+                    }
                 }
-                if (CommonData.isNewLap)
+                if (CommonData.isNewLap && !CommonData.isPittingInRace)
                 {
                     lastLapTyreTemps = thisLapTyreTemps;    // this might still be null
                     thisLapTyreTemps = new TyreTemps();
@@ -149,7 +165,7 @@ namespace CrewChiefV2.Events
                     checkedTempsAtSector3 = false;
                     if (enableTyreWearWarnings && currentState.TireWearActive == 1)
                     {
-                        playTyreWearMessages(true);
+                        playTyreWearMessages(true, false);
                     }
                 }
                 else
@@ -197,28 +213,34 @@ namespace CrewChiefV2.Events
             }
             else if (voiceMessage.Contains(SpeechRecogniser.TYRE_WEAR))
             {
-                playTyreWearMessages(false);
+                playTyreWearMessages(false, true);
             }
         }
 
-        private void playTyreWearMessages(Boolean endOfLapMessage)
+        private void playTyreWearMessages(Boolean isQueuedMessage, Boolean playGoodWearMessage)
         {
             TyreWearStatus knackeredTyres = getKnackeredTyreWearStatus();
             TyreWearStatus wornTyres = getWornTyreWearStatus();
             if (knackeredTyres == TyreWearStatus.NOT_TRIGGERED && wornTyres == TyreWearStatus.NOT_TRIGGERED)
             {
-                if (!endOfLapMessage)
+                if (playGoodWearMessage)
                 {
-                    // only report good wear if we've been asked - don't play this at the start of the lap
-                    audioPlayer.playClipImmediately(folderGoodWear, new QueuedMessage(0, this));
+                    if (isQueuedMessage)
+                    {
+                        audioPlayer.queueClip(folderGoodWear, 0, this);
+                    }
+                    else
+                    {
+                        audioPlayer.playClipImmediately(folderGoodWear, new QueuedMessage(0, this));
+                    }
                 }
             }
             else
             {
                 lastReportedKnackeredTyreStatus = knackeredTyres;
                 lastReportedWornTyreStatus = wornTyres;
-                reportTyreWearStatus(knackeredTyres, endOfLapMessage);
-                reportTyreWearStatus(wornTyres, endOfLapMessage);
+                reportTyreWearStatus(knackeredTyres, isQueuedMessage);
+                reportTyreWearStatus(wornTyres, isQueuedMessage);
             }
         }
 
@@ -336,7 +358,7 @@ namespace CrewChiefV2.Events
             }
         }
 
-        private void reportTyreWearStatus(TyreWearStatus tyreWearStatus, Boolean queueResponse)
+        private void reportTyreWearStatus(TyreWearStatus tyreWearStatus, Boolean isQueuedMessage)
         {
             String clipToPlay = null;
             switch (tyreWearStatus)
@@ -398,7 +420,7 @@ namespace CrewChiefV2.Events
             }
             if (clipToPlay != null)
             {
-                if (queueResponse)
+                if (isQueuedMessage)
                 {
                     audioPlayer.queueClip(clipToPlay, 0, this);
                 }
