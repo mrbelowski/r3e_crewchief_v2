@@ -142,7 +142,7 @@ namespace CrewChiefV2.Events
 
                     if (CommonData.isPittingInRace)
                     {
-                        if (!reportedTyreWearForCurrentPitEntry)
+                        if (enableTyreWearWarnings && !reportedTyreWearForCurrentPitEntry)
                         {
                             playTyreWearMessages(true, true);
                             reportedTyreWearForCurrentPitEntry = true;
@@ -153,17 +153,17 @@ namespace CrewChiefV2.Events
                         reportedTyreWearForCurrentPitEntry = false;
                     }
                 }
-                if (CommonData.isNewLap && !CommonData.isPittingInRace)
+                if (CommonData.isNewLap)
                 {
                     lastLapTyreTemps = thisLapTyreTemps;    // this might still be null
                     thisLapTyreTemps = new TyreTemps();
                     updateTyreTemps(currentState, thisLapTyreTemps);
-                    if (enableTyreTempWarnings && !checkedTempsAtSector3 && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
+                    if (!CommonData.isPittingInRace && enableTyreTempWarnings && !checkedTempsAtSector3 && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
                     {
                         checkTemps(lastLapTyreTemps);
                     }
                     checkedTempsAtSector3 = false;
-                    if (enableTyreWearWarnings && currentState.TireWearActive == 1)
+                    if (!CommonData.isPittingInRace && enableTyreWearWarnings && currentState.TireWearActive == 1)
                     {
                         playTyreWearMessages(true, false);
                     }
@@ -178,7 +178,7 @@ namespace CrewChiefV2.Events
                     if (enableTyreTempWarnings && checkAtSector > 0 && CommonData.isNewSector && CommonData.currentLapSector == checkAtSector)
                     {
                         checkedTempsAtSector3 = true;
-                        if (currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
+                        if (!CommonData.isPittingInRace && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
                         {
                             checkTemps(thisLapTyreTemps);
                         }
