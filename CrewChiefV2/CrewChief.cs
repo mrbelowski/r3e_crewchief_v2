@@ -76,7 +76,7 @@ namespace CrewChiefV2
             eventsList.Add("Fuel", new Fuel(audioPlayer));
             eventsList.Add("Position", new Position(audioPlayer));
             eventsList.Add("RaceTime", new RaceTime(audioPlayer));
-            eventsList.Add("TyreTempMonitor", new TyreTempMonitor(audioPlayer));
+            eventsList.Add("TyreMonitor", new TyreMonitor(audioPlayer));
             eventsList.Add("EngineMonitor", new EngineMonitor(audioPlayer));
             eventsList.Add("Timings", new Timings(audioPlayer));
             eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));

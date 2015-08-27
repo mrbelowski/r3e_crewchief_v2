@@ -13,7 +13,7 @@ namespace CrewChiefV2
 {
     class AudioPlayer
     {
-        public static float minimumSoundPackVersion = 2.4f;
+        public static float minimumSoundPackVersion = 2.5f;
 
         public static String folderAcknowlegeOK = "acknowledge/OK";
         public static String folderAcknowlegeEnableKeepQuiet = "acknowledge/keepQuietEnabled";
@@ -93,7 +93,6 @@ namespace CrewChiefV2
         {
             if (soundFolderName.Length > 3 && (soundFolderName.Substring(1, 2) == @":\" || soundFolderName.Substring(1, 2) == @":/"))
             {
-                Console.WriteLine("Using full physical path to sound folder: " + soundFolderName);
                 soundFilesPath = soundFolderName;
             } else {
                 if (System.Diagnostics.Debugger.IsAttached)

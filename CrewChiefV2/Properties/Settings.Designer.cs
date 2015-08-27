@@ -628,5 +628,17 @@ namespace CrewChiefV2.Properties {
                 this["enable_session_end_messages"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool enable_tyre_wear_warnings {
+            get {
+                return ((bool)(this["enable_tyre_wear_warnings"]));
+            }
+            set {
+                this["enable_tyre_wear_warnings"] = value;
+            }
+        }
     }
 }

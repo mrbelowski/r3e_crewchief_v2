@@ -307,7 +307,7 @@ namespace CrewChiefV2
             }
             else if (recognisedSpeech.Contains(TYRE_TEMPS))
             {
-                return CrewChief.getEvent("TyreTempMonitor");
+                return CrewChief.getEvent("TyreMonitor");
             }
             else if (recognisedSpeech.Contains(HOW_LONGS_LEFT) || 
                 recognisedSpeech.Contains(HOW_MANY_LAPS_TO_GO) ||
