@@ -305,7 +305,8 @@ namespace CrewChiefV2
             {
                 return CrewChief.getEvent("LapTimes");
             }
-            else if (recognisedSpeech.Contains(TYRE_TEMPS))
+            else if (recognisedSpeech.Contains(TYRE_TEMPS) ||
+                recognisedSpeech.Contains(TYRE_WEAR))
             {
                 return CrewChief.getEvent("TyreMonitor");
             }

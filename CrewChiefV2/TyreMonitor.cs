@@ -65,15 +65,15 @@ namespace CrewChiefV2.Events
         public float rightFrontWear;
         public float leftRearWear;
         public float rightRearWear;
-        private float newTyreWearValue = 100f;
+        private float newTyreWearValue = 1f;
 
         // This will change when S3 sort out tyre wear...
         // this is the % damage the tyre can have before it's knackered - in the 
         // current game, damage level <90% means the tyre is effectly dead
-        private float maxTyreWearBeforeKnackered = 10f;
+        private float maxTyreWearBeforeKnackered = 0.1f;
 
         private float knackeredTyreThreshold = 1f;
-        private float warningTyreThreshold = 0.6f;
+        private float warningTyreThreshold = 0.4f;
 
         private TyreWearStatus lastReportedKnackeredTyreStatus;
         private TyreWearStatus lastReportedWornTyreStatus;
@@ -396,14 +396,17 @@ namespace CrewChiefV2.Events
                     clipToPlay = folderWornRightRear;
                     break;
             }
-            if (queueResponse && clipToPlay != null)
+            if (clipToPlay != null)
             {
-                audioPlayer.queueClip(clipToPlay, 0, this);
-            }
-            else
-            {
-                audioPlayer.playClipImmediately(clipToPlay, new QueuedMessage(0, this));
-                audioPlayer.closeChannel();
+                if (queueResponse)
+                {
+                    audioPlayer.queueClip(clipToPlay, 0, this);
+                }
+                else
+                {
+                    audioPlayer.playClipImmediately(clipToPlay, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                }
             }
         }
 
