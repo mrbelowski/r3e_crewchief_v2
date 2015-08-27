@@ -167,7 +167,7 @@ namespace CrewChiefV2.Events
                     {
                         reportEstimatedTyreLife(currentState);
                     }
-                    // if the tyre wear has actually decreased, reset the 'reportdEstimatedTyreWear flag
+                    // if the tyre wear has actually decreased, reset the 'reportdEstimatedTyreWear flag - assume this means the tyres have been changed
                     if (currentState.CarDamage.TireFrontLeft > lastState.CarDamage.TireFrontLeft ||
                         currentState.CarDamage.TireFrontRight > lastState.CarDamage.TireFrontRight ||
                         currentState.CarDamage.TireRearLeft > lastState.CarDamage.TireRearLeft ||

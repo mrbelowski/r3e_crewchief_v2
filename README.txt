@@ -3,7 +3,7 @@ CrewChief version 2.
 Changelog
 ---------
 
-Version 2.5.0: Added tyre wear monitoring - tyre wear status updates on crossing the start/finish line (if the wear state isn't 'good' and it's changed from last lap), automatically reports tyre wear status when entering the pits, reports estimated tyre life left (in minutes or laps depending on the race type), responds to "how's my tyre wear"; allow the audio player to use a full physical path to the sound files (i.e. c:\some\path) instead of just a path relative to the app's runtime folder; pop a dialog box with warning message when closing the properties form with unsaved changes.  This update requires a new sound pack
+Version 2.5.0: Added tyre wear monitoring - tyre wear status updates on crossing the start/finish line (if the wear state isn't 'good' and it's changed from last lap), automatically reports tyre wear status when entering the pits, reports estimated tyre life left (in minutes or laps depending on the race type), responds to "how's my tyre wear"; allow the audio player to use a full physical path to the sound files (i.e. c:\some\path) instead of just a path relative to the app's runtime folder; pop a dialog box with warning message when closing the properties form with unsaved changes; fixed 2 crash bugs.  This update requires a new sound pack
 
 Version 2.4.1: Don't allow gap messages to play if the session's ended; fixed missing sounds in bundled sound pack. No new sound pack for this version
 

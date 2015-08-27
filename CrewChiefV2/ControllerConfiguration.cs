@@ -30,8 +30,12 @@ namespace CrewChiefV2
             {
                 if (ba.joystick != null)
                 {
-                    ba.joystick.Unacquire();
-                    ba.joystick.Dispose();
+                    try
+                    {
+                        ba.joystick.Unacquire();
+                        ba.joystick.Dispose();
+                    }
+                    catch (Exception e) { }
                 }
             }
             directInput.Dispose();

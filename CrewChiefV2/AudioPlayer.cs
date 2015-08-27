@@ -335,10 +335,6 @@ namespace CrewChiefV2
                 }
                 if (immediateClips.Count > 0)
                 {
-                    foreach (String key in immediateClips.Keys)
-                    {
-                        Console.WriteLine(key + ", ");
-                    }
                     try
                     {
                         playQueueContents(immediateClips, true);
@@ -419,6 +415,7 @@ namespace CrewChiefV2
             }
             stopBackgroundPlayer();
         }
+
         private void playQueueContents(OrderedDictionary queueToPlay, Boolean isImmediateMessages)
         {
             long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
