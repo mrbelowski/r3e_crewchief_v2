@@ -73,7 +73,7 @@ namespace CrewChiefV2.Events
         private float maxTyreWearBeforeKnackered = 0.1f;
 
         private float knackeredTyreThreshold = 1f;
-        private float warningTyreThreshold = 0.4f;
+        private float warningTyreThreshold = 0.5f;
 
         private TyreWearStatus lastReportedKnackeredTyreStatus;
         private TyreWearStatus lastReportedWornTyreStatus;
