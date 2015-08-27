@@ -28,6 +28,7 @@ namespace CrewChiefV2.Events
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             audioPlayer.queueClip(folderTest, 0, this);
+            List<String> messages = new List<String>();            
         }
     }
 }

@@ -40,6 +40,10 @@ namespace CrewChiefV2.Events
         private String folderWornRights = "tyre_monitor/worn_rights";
         private String folderWornAllRound = "tyre_monitor/worn_all_round";
 
+        private String folderLapsOnCurrentTyresIntro = "tyre_monitor/laps_on_current_tyres_intro";
+        private String folderLapsOnCurrentTyresOutro = "tyre_monitor/laps_on_current_tyres_outro";
+        private String folderMinutesOnCurrentTyresIntro = "tyre_monitor/minutes_on_current_tyres_intro";
+        private String folderMinutesOnCurrentTyresOutro = "tyre_monitor/minutes_on_current_tyres_outro";
 
         private static float maxColdTemp = UserSettings.GetUserSettings().getFloat("max_cold_tyre_temp");
         private static float maxGoodTemp = UserSettings.GetUserSettings().getFloat("max_good_tyre_temp");
@@ -80,6 +84,8 @@ namespace CrewChiefV2.Events
 
         private Boolean reportedTyreWearForCurrentPitEntry;
 
+        private Boolean reportedEstimatedTimeLeft;
+
         public TyreMonitor(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -98,6 +104,7 @@ namespace CrewChiefV2.Events
             leftRearWear = 0;
             rightRearWear = 0;
             reportedTyreWearForCurrentPitEntry = false;
+            reportedEstimatedTimeLeft = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -139,7 +146,7 @@ namespace CrewChiefV2.Events
                     rightFrontWear = (newTyreWearValue - currentState.CarDamage.TireFrontRight) / maxTyreWearBeforeKnackered;
                     leftRearWear = (newTyreWearValue - currentState.CarDamage.TireRearLeft) / maxTyreWearBeforeKnackered;
                     rightRearWear = (newTyreWearValue - currentState.CarDamage.TireRearRight) / maxTyreWearBeforeKnackered;
-
+                    
                     if (CommonData.isPittingInRace)
                     {
                         if (enableTyreWearWarnings && !reportedTyreWearForCurrentPitEntry)
@@ -152,6 +159,47 @@ namespace CrewChiefV2.Events
                     {
                         reportedTyreWearForCurrentPitEntry = false;
                     }
+                    if (CommonData.isNewLap && !CommonData.isPittingInRace && enableTyreWearWarnings)
+                    {
+                        playTyreWearMessages(true, false);
+                    }
+                    if (!CommonData.isPittingInRace && !reportedEstimatedTimeLeft && enableTyreWearWarnings)
+                    {
+                        float maxWear = Math.Max(leftFrontWear, Math.Max(rightFrontWear, Math.Max(rightRearWear, leftRearWear)));
+                        if (maxWear >= knackeredTyreThreshold / 3)
+                        {
+                            // 1/3 through the tyre's life
+                            reportedEstimatedTimeLeft = true;
+                            if (currentState.NumberOfLaps > 0)
+                            {
+                                int lapsRemainingOnTheseTyres = (currentState.CompletedLaps * 3) - 1;
+                                if (lapsRemainingOnTheseTyres < 59 && lapsRemainingOnTheseTyres > 1 && 
+                                    lapsRemainingOnTheseTyres <= currentState.NumberOfLaps - currentState.CompletedLaps)
+                                {
+                                    List<String> messages = new List<String>();
+                                    messages.Add(folderLapsOnCurrentTyresIntro);
+                                    messages.Add(QueuedMessage.folderNameNumbersStub + lapsRemainingOnTheseTyres);
+                                    messages.Add(folderLapsOnCurrentTyresOutro);
+                                    audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laps_on_current_tyres",
+                                        new QueuedMessage(messages, 0, this));
+                                }
+                            }
+                            else
+                            {
+                                int minutesRemainingOnTheseTyres = ((int) Math.Round((currentState.Player.GameSimulationTime / 60d) * 3d)) - 1;
+                                if (minutesRemainingOnTheseTyres < 59 && minutesRemainingOnTheseTyres > 1 && 
+                                    minutesRemainingOnTheseTyres <= currentState.SessionTimeRemaining / 60)
+                                {
+                                    List<String> messages = new List<String>();
+                                    messages.Add(folderMinutesOnCurrentTyresIntro);
+                                    messages.Add(QueuedMessage.folderNameNumbersStub + minutesRemainingOnTheseTyres);
+                                    messages.Add(folderMinutesOnCurrentTyresOutro);
+                                    audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "minutes_on_current_tyres",
+                                        new QueuedMessage(messages, 0, this));
+                                }
+                            }
+                        }
+                    }                     
                 }
                 if (CommonData.isNewLap)
                 {
@@ -162,11 +210,7 @@ namespace CrewChiefV2.Events
                     {
                         checkTemps(lastLapTyreTemps);
                     }
-                    checkedTempsAtSector3 = false;
-                    if (!CommonData.isPittingInRace && enableTyreWearWarnings && currentState.TireWearActive == 1)
-                    {
-                        playTyreWearMessages(true, false);
-                    }
+                    checkedTempsAtSector3 = false;                                                       
                 }
                 else
                 {
