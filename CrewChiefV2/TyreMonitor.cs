@@ -165,41 +165,17 @@ namespace CrewChiefV2.Events
                     }
                     if (!CommonData.isPittingInRace && !reportedEstimatedTimeLeft && enableTyreWearWarnings)
                     {
-                        float maxWear = Math.Max(leftFrontWear, Math.Max(rightFrontWear, Math.Max(rightRearWear, leftRearWear)));
-                        if (maxWear >= knackeredTyreThreshold / 3)
-                        {
-                            // 1/3 through the tyre's life
-                            reportedEstimatedTimeLeft = true;
-                            if (currentState.NumberOfLaps > 0)
-                            {
-                                int lapsRemainingOnTheseTyres = (currentState.CompletedLaps * 3) - 1;
-                                if (lapsRemainingOnTheseTyres < 59 && lapsRemainingOnTheseTyres > 1 && 
-                                    lapsRemainingOnTheseTyres <= currentState.NumberOfLaps - currentState.CompletedLaps)
-                                {
-                                    List<String> messages = new List<String>();
-                                    messages.Add(folderLapsOnCurrentTyresIntro);
-                                    messages.Add(QueuedMessage.folderNameNumbersStub + lapsRemainingOnTheseTyres);
-                                    messages.Add(folderLapsOnCurrentTyresOutro);
-                                    audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laps_on_current_tyres",
-                                        new QueuedMessage(messages, 0, this));
-                                }
-                            }
-                            else
-                            {
-                                int minutesRemainingOnTheseTyres = ((int) Math.Round((currentState.Player.GameSimulationTime / 60d) * 3d)) - 1;
-                                if (minutesRemainingOnTheseTyres < 59 && minutesRemainingOnTheseTyres > 1 && 
-                                    minutesRemainingOnTheseTyres <= currentState.SessionTimeRemaining / 60)
-                                {
-                                    List<String> messages = new List<String>();
-                                    messages.Add(folderMinutesOnCurrentTyresIntro);
-                                    messages.Add(QueuedMessage.folderNameNumbersStub + minutesRemainingOnTheseTyres);
-                                    messages.Add(folderMinutesOnCurrentTyresOutro);
-                                    audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "minutes_on_current_tyres",
-                                        new QueuedMessage(messages, 0, this));
-                                }
-                            }
-                        }
-                    }                     
+                        reportEstimatedTyreLife(currentState);
+                    }
+                    // if the tyre wear has actually decreased, reset the 'reportdEstimatedTyreWear flag
+                    if (currentState.CarDamage.TireFrontLeft < lastState.CarDamage.TireFrontLeft ||
+                        currentState.CarDamage.TireFrontRight < lastState.CarDamage.TireFrontRight ||
+                        currentState.CarDamage.TireRearLeft < lastState.CarDamage.TireRearLeft ||
+                        currentState.CarDamage.TireRearRight < lastState.CarDamage.TireRearRight)
+                    {
+                        Console.WriteLine("The tyres have been changed");
+                        reportedEstimatedTimeLeft = true;
+                    }
                 }
                 if (CommonData.isNewLap)
                 {
@@ -226,6 +202,44 @@ namespace CrewChiefV2.Events
                         {
                             checkTemps(thisLapTyreTemps);
                         }
+                    }
+                }
+            }
+        }
+
+        private void reportEstimatedTyreLife(Data.Shared currentState)
+        {
+            float maxWear = Math.Max(leftFrontWear, Math.Max(rightFrontWear, Math.Max(rightRearWear, leftRearWear)));
+            if (maxWear >= knackeredTyreThreshold / 3)
+            {
+                // 1/3 through the tyre's life
+                reportedEstimatedTimeLeft = true;
+                if (currentState.NumberOfLaps > 0)
+                {
+                    int lapsRemainingOnTheseTyres = (currentState.CompletedLaps * 3) - 1;
+                    if (lapsRemainingOnTheseTyres < 59 && lapsRemainingOnTheseTyres > 1 &&
+                        lapsRemainingOnTheseTyres <= currentState.NumberOfLaps - currentState.CompletedLaps)
+                    {
+                        List<String> messages = new List<String>();
+                        messages.Add(folderLapsOnCurrentTyresIntro);
+                        messages.Add(QueuedMessage.folderNameNumbersStub + lapsRemainingOnTheseTyres);
+                        messages.Add(folderLapsOnCurrentTyresOutro);
+                        audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laps_on_current_tyres",
+                            new QueuedMessage(messages, 0, this));
+                    }
+                }
+                else
+                {
+                    int minutesRemainingOnTheseTyres = ((int)Math.Round((currentState.Player.GameSimulationTime / 60d) * 3d)) - 1;
+                    if (minutesRemainingOnTheseTyres < 59 && minutesRemainingOnTheseTyres > 1 &&
+                        minutesRemainingOnTheseTyres <= currentState.SessionTimeRemaining / 60)
+                    {
+                        List<String> messages = new List<String>();
+                        messages.Add(folderMinutesOnCurrentTyresIntro);
+                        messages.Add(QueuedMessage.folderNameNumbersStub + minutesRemainingOnTheseTyres);
+                        messages.Add(folderMinutesOnCurrentTyresOutro);
+                        audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "minutes_on_current_tyres",
+                            new QueuedMessage(messages, 0, this));
                     }
                 }
             }
