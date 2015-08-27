@@ -107,19 +107,26 @@ namespace CrewChiefV2.Events
                 float closingSpeedInFront = 9999;
                 float closingSpeedBehind = 9999;
 
-                Boolean carAlongSideInFront = carLengthToUse / currentSpeed > deltaFront;
-                Boolean carAlongSideInFrontPrevious = carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaFront);
-                Boolean carAlongSideBehind = carLengthToUse / currentSpeed > deltaBehind;
-                Boolean carAlongSideBehindPrevious = carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaBehind);
+                // if the delta is exactly zero assume it's noise - the delta appears to be zero when the 
+                // opponent car crosses the line
+                Boolean carAlongSideInFront = isValueValid(deltaFront) && carLengthToUse / currentSpeed > deltaFront;
+                Boolean carAlongSideInFrontPrevious = isValueValid(lastState.TimeDeltaFront)
+                    && carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaFront);
+                Boolean carAlongSideBehind = isValueValid(deltaBehind) && carLengthToUse / currentSpeed > deltaBehind;
+                Boolean carAlongSideBehindPrevious = isValueValid(lastState.TimeDeltaBehind)
+                    && carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaBehind);
 
                 // only say a car is overlapping if it's been overlapping for 2 game state updates
                 // and the closing speed isn't too high
-                if (carAlongSideInFront)
+
+                // note we don't need to check the validity of the currentState.TimeDeltaFront -
+                // carAlongSideInFront can only be true if that check's passed
+                if (carAlongSideInFront && isValueValid(lastState.TimeDeltaFront))
                 {
                     // check the closing speed before warning
                     closingSpeedInFront = getClosingSpeed(lastState, currentState, true);
                 }
-                if (carAlongSideBehind)
+                if (carAlongSideBehind && isValueValid(lastState.TimeDeltaBehind))
                 {
                     // check the closing speed before warning
                     closingSpeedBehind = getClosingSpeed(lastState, currentState, false);
@@ -127,8 +134,9 @@ namespace CrewChiefV2.Events
 
                 DateTime now = DateTime.Now;
 
-                if (channelOpen && !carAlongSideInFront && (!require2ClearsForClear || !carAlongSideInFrontPrevious) &&
-                    !carAlongSideBehind && (!require2ClearsForClear || !carAlongSideBehindPrevious))
+                // again, don't change state when the delta is zero - this is noise
+                if (channelOpen && (!carAlongSideInFront && isValueValid(deltaFront)) && (!require2ClearsForClear || !carAlongSideInFrontPrevious) &&
+                    (!carAlongSideBehind && isValueValid(deltaBehind)) && (!require2ClearsForClear || !carAlongSideBehindPrevious))
                 {
                     // we're clear here, so when we next detect we're overlapping we know this must be
                     // a new overlap
@@ -182,17 +190,7 @@ namespace CrewChiefV2.Events
                             newlyOverlapping = false;
                         }
                         else if (now > timeWhenWeThinkWeAreOverlapping.Add(overlapMessageDelay))
-                        {
-                            /*if (carAlongSideInFront)
-                            {
-                                Console.WriteLine("new overlap in front, deltaFront = " + deltaFront + " time gap = " +
-                                carLengthToUse / currentSpeed + " closing speed = " + closingSpeedInFront);
-                            }
-                            if (carAlongSideBehind)
-                            {
-                                Console.WriteLine("new overlap behind, deltaBehind = " + deltaBehind + " time gap = " +
-                                carLengthToUse / currentSpeed + " closing speed = " + closingSpeedBehind);
-                            }*/
+                        {                            
                             timeOfLastHoldMessage = now;
                             channelOpen = true;                            
                             audioPlayer.openChannel();
@@ -232,6 +230,11 @@ namespace CrewChiefV2.Events
                 return ((Math.Abs(lastState.TimeDeltaBehind) * currentState.CarSpeed) -
                     (Math.Abs(currentState.TimeDeltaBehind) * currentState.CarSpeed)) / timeElapsed;
             }
+        }
+
+        private Boolean isValueValid(float value)
+        {
+            return value != 0f && value != -1f;
         }
 
         public void enableSpotter()

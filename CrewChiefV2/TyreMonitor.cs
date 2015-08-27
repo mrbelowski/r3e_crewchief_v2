@@ -147,7 +147,7 @@ namespace CrewChiefV2.Events
                     leftRearWear = (newTyreWearValue - currentState.CarDamage.TireRearLeft) / maxTyreWearBeforeKnackered;
                     rightRearWear = (newTyreWearValue - currentState.CarDamage.TireRearRight) / maxTyreWearBeforeKnackered;
                     
-                    if (CommonData.isPittingInRace)
+                    if (CommonData.isPittingInRace && !CommonData.leaderHasFinishedRace)
                     {
                         if (enableTyreWearWarnings && !reportedTyreWearForCurrentPitEntry)
                         {

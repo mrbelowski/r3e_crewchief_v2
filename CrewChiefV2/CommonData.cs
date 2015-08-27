@@ -116,7 +116,7 @@ namespace CrewChiefV2
                 isSessionRunning = isRaceRunning;
 
                 isPittingInRace = currentState.Player.GameSimulationTime > 60 && isRaceRunning &&
-                    currentState.ControlType == (int)Constant.Control.AI;
+                    currentState.ControlType == (int)Constant.Control.AI && !leaderHasFinishedRace;
                 if (isPittingInRace && currentState.CompletedLaps > lapCountWhenEnteredPits && !isInLap && !isOutLap)
                 {
                     lapCountWhenEnteredPits = currentState.CompletedLaps;

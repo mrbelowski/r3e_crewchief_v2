@@ -242,7 +242,7 @@ namespace CrewChiefV2.Events
                                 }
                             }
                         }
-                        else if (enableLapTimeMessages)
+                        else if (enableLapTimeMessages && CommonData.isRaceRunning)
                         {
                             Boolean playedLapMessage = false;
                             float pearlLikelihood = 0.8f;
