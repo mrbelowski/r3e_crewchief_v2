@@ -501,6 +501,7 @@ namespace CrewChiefV2
                             queueToPlay.Remove(key);
                         }
                     }
+                    milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
                     foreach (String key in queueToPlay.Keys)
                     {
                         QueuedMessage queuedMessage = (QueuedMessage)queueToPlay[key];
