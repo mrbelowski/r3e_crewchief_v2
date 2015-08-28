@@ -91,7 +91,7 @@ namespace CrewChiefV2
             }
             else
             {
-                crossedLine = currentState.CompletedLaps > 0 && lastState.CompletedLaps < currentState.CompletedLaps;
+                crossedLine = currentState.CompletedLaps > 0 && lastState.CompletedLaps + 1 == currentState.CompletedLaps;
             }
            
             if (currentState.SessionType == (int)Constant.Session.Race)
