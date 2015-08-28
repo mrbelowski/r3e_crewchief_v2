@@ -350,12 +350,20 @@ namespace CrewChiefV2
                 }
                 if (requestChannelClose)
                 {
-                    if (channelOpen && queuedClips.Count == 0)
+                    if (channelOpen)
                     {
-                        closeRadioInternalChannel();
+                        if (queuedClips.Count == 0)
+                        {
+                            requestChannelClose = false;
+                            holdChannelOpen = false;
+                            closeRadioInternalChannel();                            
+                        }
                     }
-                    requestChannelClose = false;
-                    holdChannelOpen = false;
+                    else
+                    {
+                        requestChannelClose = false;
+                        holdChannelOpen = false;
+                    }
                 }
                 var timeNow = DateTime.UtcNow;
                 if (timeNow.Subtract(timeLast) < queueMonitorInterval)
@@ -728,6 +736,11 @@ namespace CrewChiefV2
             requestChannelClose = true;
         }
 
+        public Boolean isChannelOpen()
+        {
+            return channelOpen;
+        }
+
         public void playClipImmediately(String eventName, QueuedMessage queuedMessage)
         {
             if (disableImmediateMessages)
@@ -744,6 +757,7 @@ namespace CrewChiefV2
                 else
                 {
                     immediateClips.Add(eventName, queuedMessage);
+                    Console.WriteLine("Added " + eventName + " to immediate queue");
                 }
             }
         }
@@ -781,7 +795,7 @@ namespace CrewChiefV2
             }
         }
 
-        public void removeQueuedClip(String eventName)
+        public Boolean removeQueuedClip(String eventName)
         {
             lock (queuedClips)
             {
@@ -789,15 +803,17 @@ namespace CrewChiefV2
                 {
                     Console.WriteLine("yanking " + eventName + " from queue");
                     queuedClips.Remove(eventName);
+                    return true;
                 }
+                return false;
             }
         }
 
-        public void removeImmediateClip(String eventName)
+        public Boolean removeImmediateClip(String eventName)
         {
             if (disableImmediateMessages)
             {
-                return;
+                return false;
             }
             lock (immediateClips)
             {
@@ -805,7 +821,9 @@ namespace CrewChiefV2
                 {
                     Console.WriteLine("yanking " + eventName + " from immediate queue");
                     immediateClips.Remove(eventName);
+                    return true;
                 }
+                return false;
             }
         }
 

@@ -152,10 +152,18 @@ namespace CrewChiefV2.Events
                         channelOpen = false;                        
                         QueuedMessage clearMessage = new QueuedMessage(0, this);
                         clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
-                        audioPlayer.removeImmediateClip(folderHoldYourLine);
-                        audioPlayer.removeImmediateClip(folderStillThere);
-                        audioPlayer.playClipImmediately(folderClear, clearMessage);
-                        audioPlayer.closeChannel();
+                        //audioPlayer.removeImmediateClip(folderStillThere);
+                        // don't play this message if the channel's closed
+                        if (audioPlayer.isChannelOpen())
+                        {
+                            Console.WriteLine("Queuing 'clear'");
+                            audioPlayer.playClipImmediately(folderClear, clearMessage);                           
+                            audioPlayer.closeChannel();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Not playing clear message - channel is already closed");
+                        }                       
                     }
                 }
                 else if ((carAlongSideInFront && (!require2OverlapsForHold || carAlongSideInFrontPrevious) && Math.Abs(closingSpeedInFront) < maxClosingSpeed) ||
@@ -170,8 +178,9 @@ namespace CrewChiefV2.Events
                         timeOfLastHoldMessage = now;                        
                         QueuedMessage stillThereMessage = new QueuedMessage(0, this);
                         stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                        audioPlayer.removeImmediateClip(folderHoldYourLine);
-                        audioPlayer.removeImmediateClip(folderClear);
+                        //audioPlayer.removeImmediateClip(folderHoldYourLine);
+                        //audioPlayer.removeImmediateClip(folderClear);
+                        Console.WriteLine("Queuing 'still there'");
                         audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
                     }
                     else if (!channelOpen &&
@@ -192,8 +201,9 @@ namespace CrewChiefV2.Events
                             audioPlayer.openChannel();
                             QueuedMessage holdMessage = new QueuedMessage(0, this);
                             holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                            audioPlayer.removeImmediateClip(folderClear);
-                            audioPlayer.removeImmediateClip(folderStillThere);
+                            //audioPlayer.removeImmediateClip(folderClear);
+                            //audioPlayer.removeImmediateClip(folderStillThere);
+                            Console.WriteLine("Queuing 'hold your line'");
                             audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
                         }
                     }

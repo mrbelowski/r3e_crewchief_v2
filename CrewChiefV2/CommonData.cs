@@ -117,6 +117,11 @@ namespace CrewChiefV2
                     // looks weird, but the session doesn't end when the leader finishes. If it's green or checkered and we've not 
                     // crossed the line, the session is running. The session will be over when we cross the line, or when the phase gets
                     // set to 7 (Terminated)
+                    if (isRaceRunning && currentState.SessionPhase != (int)Constant.SessionPhase.Green &&
+                        currentState.SessionPhase != (int)Constant.SessionPhase.Checkered)
+                    {
+                        Console.WriteLine("Race stopped, session phase = " + currentState.SessionPhase);
+                    }
                     isRaceRunning = currentState.SessionPhase == (int)Constant.SessionPhase.Green ||
                         currentState.SessionPhase == (int)Constant.SessionPhase.Checkered;
                 }
