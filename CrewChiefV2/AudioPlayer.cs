@@ -468,6 +468,10 @@ namespace CrewChiefV2
                         }
                     }
                 }
+                if (queueToPlay.Count > 0 && keysToPlay.Count == 0)
+                {
+                    Console.WriteLine("None of the " + queueToPlay.Count + " message(s) in this queue is due or valid");
+                }
             }
             Boolean wasInterrupted = false;
             if (oneOrMoreEventsEnabled)
@@ -485,6 +489,7 @@ namespace CrewChiefV2
             {
                 soundsProcessed.AddRange(keysToPlay);
             }
+            Boolean queueHasDueMessages = false;
             if (soundsProcessed.Count > 0)
             {
                 lock (queueToPlay)
@@ -496,9 +501,18 @@ namespace CrewChiefV2
                             queueToPlay.Remove(key);
                         }
                     }
+                    foreach (String key in queueToPlay.Keys)
+                    {
+                        QueuedMessage queuedMessage = (QueuedMessage)queueToPlay[key];
+                        if (isImmediateMessages || queuedMessage.dueTime <= milliseconds)
+                        {
+                            queueHasDueMessages = true;
+                            break;
+                        }
+                    }
                 }
             }            
-            if (queueToPlay.Count > 0 && !wasInterrupted)
+            if (queueHasDueMessages && !wasInterrupted)
             {
                 Console.WriteLine("There are " + queueToPlay.Count + " more events in the queue, playing them...");
                 playQueueContents(queueToPlay, isImmediateMessages);
