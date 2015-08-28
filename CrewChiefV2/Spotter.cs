@@ -141,10 +141,6 @@ namespace CrewChiefV2.Events
                     // we're clear here, so when we next detect we're overlapping we know this must be
                     // a new overlap
                     newlyOverlapping = true;
-                    //Console.WriteLine("think we're clear, deltaFront = " + deltaFront + " time gap = " + carLengthToUse / currentSpeed);
-                    //Console.WriteLine("deltaBehind = " + deltaBehind + " time gap = " + carLengthToUse / currentSpeed);
-                    audioPlayer.removeImmediateClip(folderHoldYourLine);
-                    audioPlayer.removeImmediateClip(folderStillThere);
                     if (newlyClear)
                     {
                         //Console.WriteLine("Waiting " + clearMessageDelay);
@@ -156,6 +152,8 @@ namespace CrewChiefV2.Events
                         channelOpen = false;                        
                         QueuedMessage clearMessage = new QueuedMessage(0, this);
                         clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
+                        audioPlayer.removeImmediateClip(folderHoldYourLine);
+                        audioPlayer.removeImmediateClip(folderStillThere);
                         audioPlayer.playClipImmediately(folderClear, clearMessage);
                         audioPlayer.closeChannel();
                     }
@@ -169,18 +167,16 @@ namespace CrewChiefV2.Events
                     {
                         // channel's already open, still there
                         //Console.WriteLine("Still there...");
-                        timeOfLastHoldMessage = now;
-                        audioPlayer.removeImmediateClip(folderHoldYourLine);
-                        audioPlayer.removeImmediateClip(folderClear);
+                        timeOfLastHoldMessage = now;                        
                         QueuedMessage stillThereMessage = new QueuedMessage(0, this);
                         stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                        audioPlayer.removeImmediateClip(folderHoldYourLine);
+                        audioPlayer.removeImmediateClip(folderClear);
                         audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
                     }
                     else if (!channelOpen &&
                         (rearOverlapIsReducing || (frontOverlapIsReducing && !spotterOnlyWhenBeingPassed)))
-                    {
-                        audioPlayer.removeImmediateClip(folderClear);
-                        audioPlayer.removeImmediateClip(folderStillThere);
+                    {                        
                         // we're overlapping here, so when we next detect we're 'clear' we know this must be
                         // a new clear
                         newlyClear = true;
@@ -196,6 +192,8 @@ namespace CrewChiefV2.Events
                             audioPlayer.openChannel();
                             QueuedMessage holdMessage = new QueuedMessage(0, this);
                             holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                            audioPlayer.removeImmediateClip(folderClear);
+                            audioPlayer.removeImmediateClip(folderStillThere);
                             audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
                         }
                     }
@@ -203,8 +201,16 @@ namespace CrewChiefV2.Events
             }
             else if (channelOpen)
             {
-                channelOpen = false;
-                audioPlayer.closeChannel();
+                if (isValueValid(currentSpeed))
+                {
+                    Console.WriteLine("Closing open channel in spotter");
+                    Console.WriteLine("CommonData.isRaceRunning = " + CommonData.isRaceRunning + 
+                        "GameSimulationTime = " + currentState.Player.GameSimulationTime + 
+                        "currentState.ControlType = " + currentState.ControlType + 
+                        "currentSpeed = " + currentSpeed);
+                    channelOpen = false;
+                    audioPlayer.closeChannel();
+                }                
             }
         }
 

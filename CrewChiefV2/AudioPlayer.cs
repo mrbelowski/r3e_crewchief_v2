@@ -472,13 +472,26 @@ namespace CrewChiefV2
                 {
                     Console.WriteLine("None of the " + queueToPlay.Count + " message(s) in this queue is due or valid");
                 }
-            }
+            }            
             Boolean wasInterrupted = false;
             if (oneOrMoreEventsEnabled)
             {
                 Console.WriteLine(keysToPlay.Count + " events are valid and enabled, playing them...");
-                openRadioChannelInternal();
-                soundsProcessed.AddRange(playSounds(keysToPlay, isImmediateMessages, out wasInterrupted));
+                // block for immediate messages...
+                if (isImmediateMessages)
+                {
+                    lock (queueToPlay)
+                    {
+                        openRadioChannelInternal();
+                        soundsProcessed.AddRange(playSounds(keysToPlay, isImmediateMessages, out wasInterrupted));
+                    }
+                }
+                else
+                {
+                    // for queued messages, allow other messages to be inserted into the queue while these are being read
+                    openRadioChannelInternal();
+                    soundsProcessed.AddRange(playSounds(keysToPlay, isImmediateMessages, out wasInterrupted));
+                }                
                 Console.WriteLine("finished playing");
                 if (wasInterrupted)
                 {
@@ -522,6 +535,7 @@ namespace CrewChiefV2
 
         private List<String> playSounds(List<String> eventNames, Boolean isImmediateMessages, out Boolean wasInterrupted)
         {
+            Console.WriteLine("Playing sounds, events: " + String.Join(", ", eventNames));
             List<String> soundsProcessed = new List<String>();
             OrderedDictionary thisQueue = isImmediateMessages ? immediateClips : queuedClips;
             wasInterrupted = false;
@@ -773,6 +787,7 @@ namespace CrewChiefV2
             {
                 if (queuedClips.Contains(eventName))
                 {
+                    Console.WriteLine("yanking " + eventName + " from queue");
                     queuedClips.Remove(eventName);
                 }
             }
@@ -788,6 +803,7 @@ namespace CrewChiefV2
             {
                 if (immediateClips.Contains(eventName))
                 {
+                    Console.WriteLine("yanking " + eventName + " from immediate queue");
                     immediateClips.Remove(eventName);
                 }
             }
