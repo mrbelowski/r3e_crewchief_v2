@@ -101,7 +101,6 @@ namespace CrewChiefV2.Events
                 engineDamage = currentState.CarDamage.Engine;
                 if (!playedBustedEngine && currentState.CarDamage.Engine <= bustedEngineThreshold)
                 {
-                    audioPlayer.queueClip(folderBustedEngine, 0, this);
                     playedBustedEngine = true;
                     playedSevereEngineDamage = true;
                     playedMinorEngineDamage = true;
@@ -111,51 +110,52 @@ namespace CrewChiefV2.Events
                     playedMinorTransmissionDamage = true;
                     playedSevereAeroDamage = true;
                     playedMinorAeroDamage = true;
+                    audioPlayer.queueClip(folderBustedEngine, 0, this);
                 }
                 else if (!playedSevereEngineDamage && currentState.CarDamage.Engine <= severeEngineDamageThreshold)
                 {
-                    audioPlayer.queueClip(folderSevereEngineDamage, 5, this);
                     playedSevereEngineDamage = true;
                     playedMinorEngineDamage = true;
+                    audioPlayer.queueClip(folderSevereEngineDamage, 5, this);
                 }
                 else if (!playedMinorEngineDamage && currentState.CarDamage.Engine <= minorEngineDamageThreshold)
                 {
-                    audioPlayer.queueClip(folderMinorEngineDamage, 5, this);
                     playedMinorEngineDamage = true;
+                    audioPlayer.queueClip(folderMinorEngineDamage, 5, this);
                 }
 
                 if (!playedBustedTransmission && currentState.CarDamage.Transmission <= bustedTransmissionThreshold)
                 {
-                    audioPlayer.queueClip(folderBustedTransmission, 5, this);
                     playedBustedTransmission = true;
                     playedSevereTransmissionDamage = true;
                     playedMinorTransmissionDamage = true;
                     // if we've busted out transmission, don't moan about aero
                     playedSevereAeroDamage = true;
                     playedMinorAeroDamage = true;
+                    audioPlayer.queueClip(folderBustedTransmission, 5, this);
                 }
                 else if (!playedSevereTransmissionDamage && currentState.CarDamage.Transmission <= severeTransmissionDamageThreshold)
                 {
-                    audioPlayer.queueClip(folderSevereTransmissionDamage, 5, this);
                     playedSevereTransmissionDamage = true;
                     playedMinorTransmissionDamage = true;
+                    audioPlayer.queueClip(folderSevereTransmissionDamage, 5, this);
                 }
                 else if (!playedMinorTransmissionDamage && currentState.CarDamage.Transmission <= minorTransmissionDamageThreshold)
                 {
-                    audioPlayer.queueClip(folderMinorTransmissionDamage, 5, this);
                     playedMinorTransmissionDamage = true;
+                    audioPlayer.queueClip(folderMinorTransmissionDamage, 5, this);
                 }
 
                 if (!playedSevereAeroDamage && currentState.CarDamage.Aerodynamics <= severeAeroDamageThreshold)
                 {
-                    audioPlayer.queueClip(folderSevereAeroDamage, 5, this);
                     playedSevereAeroDamage = true;
                     playedMinorAeroDamage = true;
+                    audioPlayer.queueClip(folderSevereAeroDamage, 5, this);
                 }
                 else if (!playedMinorAeroDamage && currentState.CarDamage.Aerodynamics <= minorAeroDamageThreshold)
                 {
-                    audioPlayer.queueClip(folderMinorAeroDamage, 5, this);
                     playedMinorAeroDamage = true;
+                    audioPlayer.queueClip(folderMinorAeroDamage, 5, this);
                 }
             }
         }
