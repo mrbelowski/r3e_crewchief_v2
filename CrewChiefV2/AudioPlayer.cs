@@ -352,7 +352,7 @@ namespace CrewChiefV2
                 {
                     if (channelOpen)
                     {
-                        if (queuedClips.Count == 0)
+                        if (queuedClips.Count == 0 && immediateClips.Count == 0)
                         {
                             requestChannelClose = false;
                             holdChannelOpen = false;
@@ -448,6 +448,7 @@ namespace CrewChiefV2
                             (queuedMessage.expiryTime == 0 || queuedMessage.expiryTime > milliseconds))
                         {
                             keysToPlay.Add(key);
+                            Console.WriteLine("Adding message " + key + " to set for playing");
                         }
                         else
                         {

@@ -80,7 +80,7 @@ namespace CrewChiefV2.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return CommonData.isSessionRunning;
+            return true;
         }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
@@ -157,6 +157,7 @@ namespace CrewChiefV2.Events
                         if (audioPlayer.isChannelOpen())
                         {
                             Console.WriteLine("Queuing 'clear'");
+                            audioPlayer.removeImmediateClip(folderStillThere);
                             audioPlayer.playClipImmediately(folderClear, clearMessage);                           
                             audioPlayer.closeChannel();
                         }

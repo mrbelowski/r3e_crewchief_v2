@@ -296,6 +296,12 @@ namespace CrewChiefV2
                     lastGameStateTime = currentState.Player.GameSimulationTime;
                 }
             }
+            CommonData.clearState();
+            foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
+            {
+                entry.Value.clearState();
+            }
+            stateCleared = true;
             audioPlayer.stopMonitor();
             return true;
         }

@@ -111,12 +111,14 @@ namespace CrewChiefV2.Events
                     playedSevereAeroDamage = true;
                     playedMinorAeroDamage = true;
                     audioPlayer.queueClip(folderBustedEngine, 0, this);
+                    audioPlayer.removeQueuedClip(folderSevereEngineDamage);
                 }
                 else if (!playedSevereEngineDamage && currentState.CarDamage.Engine <= severeEngineDamageThreshold)
                 {
                     playedSevereEngineDamage = true;
                     playedMinorEngineDamage = true;
                     audioPlayer.queueClip(folderSevereEngineDamage, 5, this);
+                    audioPlayer.removeQueuedClip(folderMinorEngineDamage);
                 }
                 else if (!playedMinorEngineDamage && currentState.CarDamage.Engine <= minorEngineDamageThreshold)
                 {
@@ -133,12 +135,14 @@ namespace CrewChiefV2.Events
                     playedSevereAeroDamage = true;
                     playedMinorAeroDamage = true;
                     audioPlayer.queueClip(folderBustedTransmission, 5, this);
+                    audioPlayer.removeQueuedClip(folderSevereTransmissionDamage);
                 }
                 else if (!playedSevereTransmissionDamage && currentState.CarDamage.Transmission <= severeTransmissionDamageThreshold)
                 {
                     playedSevereTransmissionDamage = true;
                     playedMinorTransmissionDamage = true;
                     audioPlayer.queueClip(folderSevereTransmissionDamage, 5, this);
+                    audioPlayer.removeQueuedClip(folderMinorTransmissionDamage);
                 }
                 else if (!playedMinorTransmissionDamage && currentState.CarDamage.Transmission <= minorTransmissionDamageThreshold)
                 {
@@ -151,6 +155,7 @@ namespace CrewChiefV2.Events
                     playedSevereAeroDamage = true;
                     playedMinorAeroDamage = true;
                     audioPlayer.queueClip(folderSevereAeroDamage, 5, this);
+                    audioPlayer.removeQueuedClip(folderSevereAeroDamage);
                 }
                 else if (!playedMinorAeroDamage && currentState.CarDamage.Aerodynamics <= minorAeroDamageThreshold)
                 {
