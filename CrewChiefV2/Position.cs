@@ -167,16 +167,19 @@ namespace CrewChiefV2.Events
             {
                 if (CommonData.isLast)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderLast, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
-                if (CommonData.isRaceRunning && currentPosition == 1)
+                else if (CommonData.isRaceRunning && currentPosition == 1)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderLeading, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
                 else
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderStub + currentPosition, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }

@@ -200,6 +200,7 @@ namespace CrewChiefV2.Events
                 if (CommonData.leaderHasFinishedRace)
                 {
                     Console.WriteLine("Playing last lap message, timeleft = " + timeLeft);
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
@@ -213,12 +214,14 @@ namespace CrewChiefV2.Events
                     List<String> messages = new List<String>();
                     messages.Add(QueuedMessage.folderNameNumbersStub + timeLeftTimeSpan.Minutes);
                     messages.Add(folderMinutesLeft);
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/time_remaining",
                         new QueuedMessage(messages, 0, this));
                     audioPlayer.closeChannel();
                 }
                 else if (timeLeft >= 60)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderOneMinuteRemaining, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
@@ -226,6 +229,7 @@ namespace CrewChiefV2.Events
                 {
                     // TODO: check these - if the timeLeft value contains -1 for some reason this message will be wrong
                     Console.WriteLine("Playing last lap message, timeleft = " + timeLeft);
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
@@ -233,6 +237,7 @@ namespace CrewChiefV2.Events
                 {
                     // TODO: check these - if the timeLeft value contains -1 for some reason this message will be wrong
                     Console.WriteLine("Playing less than a minute message, timeleft = " + timeLeft);
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderLessThanOneMinute, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
@@ -248,6 +253,7 @@ namespace CrewChiefV2.Events
                     List<String> messages = new List<String>();
                     messages.Add(QueuedMessage.folderNameNumbersStub + lapsLeft);
                     messages.Add(folderLapsLeft);
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/laps_remaining",
                         new QueuedMessage(messages, 0, this));
 
@@ -257,11 +263,13 @@ namespace CrewChiefV2.Events
                 }
                 else if (lapsLeft == 1)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderOneLapAfterThisOne, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
                 else if (lapsLeft == 0)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderThisIsTheLastLap, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }

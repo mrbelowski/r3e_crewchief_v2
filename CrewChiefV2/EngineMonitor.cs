@@ -112,28 +112,28 @@ namespace CrewChiefV2.Events
                             switch (currentEngineStatus)
                             {
                                 case EngineStatus.ALL_CLEAR:
-                                    audioPlayer.queueClip(folderAllClear, 0, this);
                                     lastStatusMessage = currentEngineStatus;
+                                    audioPlayer.queueClip(folderAllClear, 0, this);
                                     break;
                                 case EngineStatus.HOT_OIL:
                                     // don't play this if the last message was about hot oil *and* water - wait for 'all clear'
                                     if (lastStatusMessage != EngineStatus.HOT_OIL_AND_WATER)
                                     {
-                                        audioPlayer.queueClip(folderHotOil, 0, this);
                                         lastStatusMessage = currentEngineStatus;
+                                        audioPlayer.queueClip(folderHotOil, 0, this);
                                     }
                                     break;
                                 case EngineStatus.HOT_WATER:
                                     // don't play this if the last message was about hot oil *and* water - wait for 'all clear'
                                     if (lastStatusMessage != EngineStatus.HOT_OIL_AND_WATER)
                                     {
-                                        audioPlayer.queueClip(folderHotWater, 0, this);
                                         lastStatusMessage = currentEngineStatus;
+                                        audioPlayer.queueClip(folderHotWater, 0, this);
                                     }
                                     break;
                                 case EngineStatus.HOT_OIL_AND_WATER:
-                                    audioPlayer.queueClip(folderHotOilAndWater, 0, this);
                                     lastStatusMessage = currentEngineStatus;
+                                    audioPlayer.queueClip(folderHotOilAndWater, 0, this);
                                     break;
                             }
                         }

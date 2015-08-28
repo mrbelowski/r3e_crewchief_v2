@@ -246,12 +246,14 @@ namespace CrewChiefV2.Events
             {
                 if (CommonData.isLeading && CommonData.isRaceRunning)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(Position.folderLeading, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                     haveData = true;
                 }
                 else if (currentGapInFront < 60)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
                     new QueuedMessage(null, folderSeconds,
                         TimeSpan.FromMilliseconds(currentGapInFront * 1000), 0, this));
@@ -268,12 +270,14 @@ namespace CrewChiefV2.Events
             {
                 if (CommonData.isLast && CommonData.isRaceRunning)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(Position.folderLast, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                     haveData = true;
                 }
                 else if (currentGapBehind < 60)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Timings/gaps",
                     new QueuedMessage(null, folderSeconds,
                         TimeSpan.FromMilliseconds(currentGapBehind * 1000), 0, this));
@@ -287,6 +291,7 @@ namespace CrewChiefV2.Events
             }
             if (!haveData)
             {
+                audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
             }

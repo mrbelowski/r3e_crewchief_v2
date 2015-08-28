@@ -421,6 +421,12 @@ namespace CrewChiefV2
             long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             List<String> keysToPlay = new List<String>();
             List<String> soundsProcessed = new List<String>();
+
+            Boolean oneOrMoreEventsEnabled = false;
+            if (queueToPlay.Count > 0)
+            {
+                Console.WriteLine("Processing queue of " + queueToPlay.Count + " events");
+            }
             lock (queueToPlay)
             {
                 foreach (String key in queueToPlay.Keys)
@@ -444,7 +450,6 @@ namespace CrewChiefV2
                 }
                 if (keysToPlay.Count > 0)
                 {
-                    Boolean oneOrMoreEventsEnabled = false;
                     if (keysToPlay.Count == 1 && clipIsPearlOfWisdom(keysToPlay[0]) && hasPearlJustBeenPlayed())
                     {
                         Console.WriteLine("Rejecting pearl of wisdom " + keysToPlay[0] +
@@ -462,56 +467,87 @@ namespace CrewChiefV2
                             }
                         }
                     }
-
-                    if (oneOrMoreEventsEnabled)
-                    {
-                        openRadioChannelInternal();
-                        soundsProcessed.AddRange(playSounds(keysToPlay, isImmediateMessages));
-                    }
-                    else
-                    {
-                        Console.WriteLine("All events are disabled");
-                        soundsProcessed.AddRange(keysToPlay);
-                    }
                 }
-                foreach (String key in soundsProcessed)
+            }
+            Boolean wasInterrupted = false;
+            if (oneOrMoreEventsEnabled)
+            {
+                Console.WriteLine(keysToPlay.Count + " events are valid and enabled, playing them...");
+                openRadioChannelInternal();
+                soundsProcessed.AddRange(playSounds(keysToPlay, isImmediateMessages, out wasInterrupted));
+                Console.WriteLine("finished playing");
+                if (wasInterrupted)
                 {
-                    queueToPlay.Remove(key);
+                    Console.WriteLine("We were interrupted");
                 }
+            }
+            else
+            {
+                soundsProcessed.AddRange(keysToPlay);
+            }
+            if (soundsProcessed.Count > 0)
+            {
+                lock (queueToPlay)
+                {
+                    foreach (String key in soundsProcessed)
+                    {
+                        if (queueToPlay.Contains(key))
+                        {
+                            queueToPlay.Remove(key);
+                        }
+                    }
+                }
+            }            
+            if (queueToPlay.Count > 0 && !wasInterrupted)
+            {
+                Console.WriteLine("There are " + queueToPlay.Count + " more events in the queue, playing them...");
+                playQueueContents(queueToPlay, isImmediateMessages);
             }
         }
 
-        private List<String> playSounds(List<String> eventNames, Boolean isImmediateMessages)
+        private List<String> playSounds(List<String> eventNames, Boolean isImmediateMessages, out Boolean wasInterrupted)
         {
             List<String> soundsProcessed = new List<String>();
             OrderedDictionary thisQueue = isImmediateMessages ? immediateClips : queuedClips;
+            wasInterrupted = false;
             foreach (String eventName in eventNames)
             {
                 // if there's anything in the immediateClips queue, stop processing
                 if (isImmediateMessages || immediateClips.Count == 0)
                 {
-                    if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) &&
-                    ((QueuedMessage)thisQueue[eventName]).isValid) || enabledSounds.Contains(eventName))
+                    if (thisQueue.Contains(eventName))
                     {
-                        if (clipIsPearlOfWisdom(eventName))
+                        QueuedMessage thisMessage = (QueuedMessage)thisQueue[eventName];
+                        if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) && thisMessage.isValid) ||
+                            enabledSounds.Contains(eventName))
                         {
-                            if (hasPearlJustBeenPlayed())
+                            if (clipIsPearlOfWisdom(eventName))
                             {
-                                Console.WriteLine("Rejecting pearl of wisdom " + eventName +
-                                    " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds");
-                                soundsProcessed.Add(eventName);
-                                continue;
+                                if (hasPearlJustBeenPlayed())
+                                {
+                                    Console.WriteLine("Rejecting pearl of wisdom " + eventName +
+                                        " because one has been played in the last " + minTimeBetweenPearlsOfWisdom + " seconds");
+                                    soundsProcessed.Add(eventName);
+                                    continue;
+                                }
+                                else
+                                {
+                                    timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
+                                }
+                            }
+                            if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier))
+                            {
+                                foreach (String message in thisMessage.getMessageFolders())
+                                {
+                                    List<SoundPlayer> clipsList = clips[message];
+                                    int index = random.Next(0, clipsList.Count);
+                                    SoundPlayer clip = clipsList[index];
+                                    clip.PlaySync();
+                                }
                             }
                             else
                             {
-                                timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
-                            }
-                        }
-                        if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier))
-                        {
-                            foreach (String message in ((QueuedMessage)thisQueue[eventName]).getMessageFolders())
-                            {
-                                List<SoundPlayer> clipsList = clips[message];
+                                List<SoundPlayer> clipsList = clips[eventName];
                                 int index = random.Next(0, clipsList.Count);
                                 SoundPlayer clip = clipsList[index];
                                 clip.PlaySync();
@@ -519,24 +555,26 @@ namespace CrewChiefV2
                         }
                         else
                         {
-                            List<SoundPlayer> clipsList = clips[eventName];
-                            int index = random.Next(0, clipsList.Count);
-                            SoundPlayer clip = clipsList[index];
-                            clip.PlaySync();
+                            Console.WriteLine("Event " + eventName + " is disabled");
                         }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Event " + eventName + " is disabled");
-                    }
-                    soundsProcessed.Add(eventName);
+                        soundsProcessed.Add(eventName);
+                    }                    
                 }
                 else
                 {
                     Console.WriteLine("we've been interrupted");
+                    wasInterrupted = true;
+                    break;
                 }
             }
-            Console.WriteLine("Processed " + String.Join(", ", soundsProcessed.ToArray()));
+            if (soundsProcessed.Count == 0)
+            {
+                Console.WriteLine("Processed no messages in this queue");
+            }
+            else
+            {
+                Console.WriteLine("Processed " + String.Join(", ", soundsProcessed.ToArray()));
+            }
             return soundsProcessed;
         }
 
@@ -545,6 +583,7 @@ namespace CrewChiefV2
             if (!channelOpen)
             {
                 channelOpen = true;
+                Console.WriteLine("Opening channel");
                 if (getBackgroundVolume() > 0 && loadNewBackground && backgroundToLoad != null)
                 {
                     Console.WriteLine("Setting background sounds file to  " + backgroundToLoad);
@@ -594,6 +633,7 @@ namespace CrewChiefV2
         {
             if (channelOpen)
             {
+                Console.WriteLine("Closing channel");
                 if (enableEndBleep)
                 {
                     List<SoundPlayer> bleeps = clips["end_bleep"];

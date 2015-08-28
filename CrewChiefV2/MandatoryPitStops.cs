@@ -214,19 +214,19 @@ namespace CrewChiefV2.Events
                             if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed && 
                                 currentState.PitWindowStatus != (int)Constant.PitWindow.StopInProgress)
                             {
-                                audioPlayer.queueClip(folderMandatoryPitStopsPitThisLap, 0, this);
                                 playBoxNowMessage = true;
+                                audioPlayer.queueClip(folderMandatoryPitStopsPitThisLap, 0, this);
                             }
                         }
                         else if (currentState.CompletedLaps == pitWindowClosedLap)
                         {
-                            audioPlayer.setBackgroundSound(AudioPlayer.dtmPitWindowClosedBackground);
-                            audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosed, 0, this);
                             mandatoryStopBoxThisLap = false;
                             if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed)
                             {
                                 mandatoryStopMissed = true;
                             }
+                            audioPlayer.setBackgroundSound(AudioPlayer.dtmPitWindowClosedBackground);
+                            audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosed, 0, this);                            
                         }
                     }
                     else if (CommonData.isNewLap && currentState.CompletedLaps > 0 && currentState.SessionTimeRemaining > 0)
@@ -240,19 +240,19 @@ namespace CrewChiefV2.Events
                             if (playPitThisLap && currentState.LapTimeBest + 10 > timeLeftToPit)
                             {
                                 // oh dear, we might have missed the pit window.
-                                audioPlayer.queueClip(folderMandatoryPitStopsPitThisLapTooLate, 0, this);
                                 playBoxNowMessage = true;
                                 playPitThisLap = false;
                                 mandatoryStopBoxThisLap = true;
+                                audioPlayer.queueClip(folderMandatoryPitStopsPitThisLapTooLate, 0, this);
                             }
                             else if (playPitThisLap && currentState.LapTimeBest + 10 < timeLeftToPit &&
                                 (currentState.LapTimeBest * 2) + 10 > timeLeftToPit)
                             {
                                 // we probably won't make it round twice - pit at the end of this lap
-                                audioPlayer.queueClip(folderMandatoryPitStopsPitThisLap, 0, this);
                                 playBoxNowMessage = true;
                                 playPitThisLap = false;
                                 mandatoryStopBoxThisLap = true;
+                                audioPlayer.queueClip(folderMandatoryPitStopsPitThisLap, 0, this);
                             }
                         }
                     }
@@ -286,12 +286,12 @@ namespace CrewChiefV2.Events
                         play1minCloseWarning = false;
                         play2minCloseWarning = false;
                         playPitThisLap = false;
-                        audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosed, 0, this);
                         mandatoryStopBoxThisLap = false;
                         if (currentState.PitWindowStatus != (int)Constant.PitWindow.Completed)
                         {
                             mandatoryStopMissed = true;
                         }
+                        audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosed, 0, this);
                     }
                     else if (play1minCloseWarning && currentState.SessionTimeRemaining > 0 &&
                         CommonData.raceSessionLength - currentState.SessionTimeRemaining > ((pitWindowClosedTime - 1) * 60))
@@ -309,8 +309,8 @@ namespace CrewChiefV2.Events
 
                     if (playBoxNowMessage && CommonData.currentLapSector == 3)
                     {
-                        audioPlayer.queueClip(folderMandatoryPitStopsPitNow, 6, this);
                         playBoxNowMessage = false;
+                        audioPlayer.queueClip(folderMandatoryPitStopsPitNow, 6, this);
                     }
                 }
             }
@@ -325,11 +325,13 @@ namespace CrewChiefV2.Events
         {
             if (!mandatoryStopRequired || mandatoryStopCompleted)
             {
+                audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(AudioPlayer.folderNo, new QueuedMessage(0, null));
                 audioPlayer.closeChannel();
             }
             else if (mandatoryStopMissed)
             {
+                audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(folderMandatoryPitStopsMissedStop, new QueuedMessage(0, null));
                 audioPlayer.closeChannel();
             }
@@ -338,6 +340,7 @@ namespace CrewChiefV2.Events
                 List<String> messages = new List<String>();
                 messages.Add(AudioPlayer.folderYes);
                 messages.Add(folderMandatoryPitStopsPitThisLap);
+                audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesBoxThisLap", new QueuedMessage(messages, 0, null));
                 audioPlayer.closeChannel();
             }
@@ -346,6 +349,7 @@ namespace CrewChiefV2.Events
                 List<String> messages = new List<String>();
                 messages.Add(folderMandatoryPitStopsYesStopOnLap);
                 messages.Add(QueuedMessage.folderNameNumbersStub + pitWindowOpenLap);
+                audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesBoxOnLap", new QueuedMessage(messages, 0, null));
                 audioPlayer.closeChannel();
             }
@@ -355,6 +359,7 @@ namespace CrewChiefV2.Events
                 messages.Add(folderMandatoryPitStopsYesStopAfter);
                 messages.Add(QueuedMessage.folderNameNumbersStub + pitWindowOpenTime);
                 messages.Add(folderMandatoryPitStopsMinutes);
+                audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesBoxAfter", new QueuedMessage(messages, 0, null));
                 audioPlayer.closeChannel();
             }

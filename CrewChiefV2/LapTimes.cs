@@ -249,29 +249,29 @@ namespace CrewChiefV2.Events
                             switch (lastLapRating)
                             {
                                 case LastLapRating.BEST_OVERALL:
-                                    audioPlayer.queueClip(folderBestLapInRace, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
                                     playedLapMessage = true;
+                                    audioPlayer.queueClip(folderBestLapInRace, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
                                     break;
                                 case LastLapRating.BEST_IN_CLASS:
-                                     audioPlayer.queueClip(folderBestLapInRaceForClass, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
                                     playedLapMessage = true;
+                                    audioPlayer.queueClip(folderBestLapInRaceForClass, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
                                     break;
                                 case LastLapRating.PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER:
                                 case LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER:
-                                    audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
                                     playedLapMessage = true;
+                                    audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.GOOD, pearlLikelihood);
                                     break;
                                 case LastLapRating.PERSONAL_BEST_STILL_SLOW:
-                                    audioPlayer.queueClip(folderPersonalBest, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, pearlLikelihood);
                                     playedLapMessage = true;
+                                    audioPlayer.queueClip(folderPersonalBest, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, pearlLikelihood);
                                     break;
                                 case LastLapRating.CLOSE_TO_OVERALL_LEADER:
                                 case LastLapRating.CLOSE_TO_CLASS_LEADER:
                                     // this is an OK lap but not a PB. We only want to say "decent lap" occasionally here
                                     if (random.NextDouble() > 0.8)
                                     {
-                                        audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, pearlLikelihood);
                                         playedLapMessage = true;
+                                        audioPlayer.queueClip(folderGoodLap, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, pearlLikelihood);
                                     }
                                     break;
                                 default:
@@ -468,12 +468,14 @@ namespace CrewChiefV2.Events
             {
                 if (lastLapTime > 0)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeNotRaceTime",
                         new QueuedMessage(folderLapTimeIntro, null, TimeSpan.FromSeconds(lastLapTime), 0, this));
                     audioPlayer.closeChannel();
                 }
                 else
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
@@ -486,6 +488,7 @@ namespace CrewChiefV2.Events
                     {
                         if (currentLapTimeDeltaToLeadersBest < TimeSpan.FromMilliseconds(50))
                         {
+                            audioPlayer.openChannel();
                             audioPlayer.playClipImmediately(folderPaceGood, new QueuedMessage(0, null));
                             audioPlayer.closeChannel();
                         }
@@ -515,6 +518,7 @@ namespace CrewChiefV2.Events
                             {
                                 case LastLapRating.BEST_OVERALL:
                                 case LastLapRating.BEST_IN_CLASS:
+                                    audioPlayer.openChannel();
                                     audioPlayer.playClipImmediately(folderPaceGood, new QueuedMessage(0, null));
                                     audioPlayer.closeChannel();
                                     break;
@@ -534,6 +538,7 @@ namespace CrewChiefV2.Events
                                     }
                                     if (messages.Count > 0)
                                     {
+                                        audioPlayer.openChannel();
                                         audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeRacePaceReport",
                                         new QueuedMessage(messages, 0, null));
                                         audioPlayer.closeChannel();
@@ -545,11 +550,13 @@ namespace CrewChiefV2.Events
                                     {
                                         messages.Add(timeToFindFolder);
                                     }
+                                    audioPlayer.openChannel();
                                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_lapTimeRacePaceReport",
                                         new QueuedMessage(messages, 0, null));
                                     audioPlayer.closeChannel();
                                         break;
                                 default:
+                                    audioPlayer.openChannel();
                                     audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
                                     audioPlayer.closeChannel();
                                     break;                     
@@ -557,6 +564,7 @@ namespace CrewChiefV2.Events
                         }                        
                     }
                     else {
+                        audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
                         audioPlayer.closeChannel();
                     }
@@ -570,11 +578,13 @@ namespace CrewChiefV2.Events
                             {
                                 if (CommonData.isQualifyRunning && currentPosition == 1)
                                 {
+                                    audioPlayer.openChannel();
                                     audioPlayer.playClipImmediately(Position.folderPole, new QueuedMessage(0, null));
                                     audioPlayer.closeChannel();
                                 }
                                 else
                                 {
+                                    audioPlayer.openChannel();
                                     if (currentPosition > 1)
                                     {
                                         audioPlayer.playClipImmediately(Position.folderStub + currentPosition, new QueuedMessage(0, null));
@@ -593,11 +603,13 @@ namespace CrewChiefV2.Events
                             {
                                 if (CommonData.isQualifyRunning && currentPosition == 1)
                                 {
+                                    audioPlayer.openChannel();
                                     audioPlayer.playClipImmediately(Position.folderPole, new QueuedMessage(0, null));
                                     audioPlayer.closeChannel();
                                 }
                                 else
                                 {
+                                    audioPlayer.openChannel();
                                     audioPlayer.playClipImmediately(folderQuickestOverall, new QueuedMessage(0, null));
                                     audioPlayer.closeChannel();
                                 }
@@ -617,6 +629,7 @@ namespace CrewChiefV2.Events
                         }
                         else if (sessionBestLapTimeDeltaToLeader.Seconds == 0 && sessionBestLapTimeDeltaToLeader.Milliseconds < 50)
                         {
+                            audioPlayer.openChannel();
                             if (currentPosition > 1)
                             {
                                 // should always trigger
@@ -627,6 +640,7 @@ namespace CrewChiefV2.Events
                         }
                         else
                         {
+                            audioPlayer.openChannel();
                             if (currentPosition > 1)
                             {
                                 // should always trigger
@@ -638,6 +652,7 @@ namespace CrewChiefV2.Events
                         }
                     }
                     else {
+                        audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
                         audioPlayer.closeChannel();
                     }

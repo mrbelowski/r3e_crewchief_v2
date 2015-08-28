@@ -167,20 +167,24 @@ namespace CrewChiefV2.Events
                 Console.WriteLine("Aero damage = " + aeroDamage);
                 if (aeroDamage == 1 || aeroDamage == -1)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderNoAeroDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
                 else if (aeroDamage <= severeAeroDamageThreshold)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderSevereAeroDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
                 else if (aeroDamage <= minorAeroDamageThreshold)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderMinorAeroDamage, new QueuedMessage(0, null));
                 }
                 else if (aeroDamage <= trivialAeroDamageThreshold)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderJustAScratch, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
@@ -189,21 +193,25 @@ namespace CrewChiefV2.Events
             {
                 if (trannyDamage == 1 || trannyDamage == -1)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderNoTransmissionDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
                 else if (trannyDamage <= bustedTransmissionThreshold)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderBustedTransmission, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
                 else if (trannyDamage <= severeTransmissionDamageThreshold)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderSevereTransmissionDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
                 else if (trannyDamage <= minorTransmissionDamageThreshold)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderMinorTransmissionDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
@@ -212,21 +220,25 @@ namespace CrewChiefV2.Events
             {
                 if (engineDamage == 1 || engineDamage == -1)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderNoEngineDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
                 else if (engineDamage <= bustedEngineThreshold)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderBustedEngine, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
                 else if (engineDamage <= severeEngineDamageThreshold)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderSevereEngineDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
                 else if (engineDamage <= minorEngineDamageThreshold)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderMinorEngineDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }

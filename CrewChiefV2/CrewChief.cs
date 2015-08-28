@@ -159,6 +159,7 @@ namespace CrewChiefV2
 
         public void youWot()
         {
+            audioPlayer.openChannel();
             audioPlayer.playClipImmediately(AudioPlayer.folderDidntUnderstand, new QueuedMessage(0, null));
             audioPlayer.closeChannel();
         }

@@ -140,6 +140,7 @@ namespace CrewChiefV2.Events
                 (getOpponentBestLapInWindow(true) - currentState.LapTimeBest) * numLapsLeft > currentState.TimeDeltaFront)
             {
                 // going flat out, we're going to catch the guy ahead us before the end
+                playedMessage = true;
                 if (currentState.Position == 2)
                 {
                     audioPlayer.queueClip(folderPushToGetWin, 0, this);
@@ -156,14 +157,13 @@ namespace CrewChiefV2.Events
                 {
                     audioPlayer.queueClip(folderPushToImprove, 0, this);
                 }
-                playedMessage = true;
             }
             else if (!CommonData.isLast && pushDataBehind.Count >= previousDataWindowSizeToCheck &&
                 (currentState.LapTimeBest - getOpponentBestLapInWindow(false)) * numLapsLeft > currentState.TimeDeltaBehind)
             {
                 // even with us going flat out, the guy behind is going to catch us before the end
-                audioPlayer.queueClip(folderPushToHoldPosition, 0, this);
                 playedMessage = true;
+                audioPlayer.queueClip(folderPushToHoldPosition, 0, this);
             }
             return playedMessage;
         }

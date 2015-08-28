@@ -276,6 +276,7 @@ namespace CrewChiefV2.Events
         {
             if (!hasHadAPenalty)
             {
+                audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(folderYouDontHaveAPenalty, new QueuedMessage(0, null));
                 audioPlayer.closeChannel();
                 return;
@@ -287,17 +288,20 @@ namespace CrewChiefV2.Events
                         List<String> messages = new List<String>();
                         messages.Add(folderYouHavePenalty);
                         messages.Add(MandatoryPitStops.folderMandatoryPitStopsPitThisLap);
+                        audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_youHaveAPenaltyBoxThisLap",
                             new QueuedMessage(messages, 0, null));
                         audioPlayer.closeChannel();
                     } else
                     {
+                        audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(folderYouHavePenalty, new QueuedMessage(0, null));
                         audioPlayer.closeChannel();
                     }
                 }
                 else
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderYouDontHaveAPenalty, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
@@ -313,6 +317,7 @@ namespace CrewChiefV2.Events
                     {
                         messages.Add(MandatoryPitStops.folderMandatoryPitStopsPitThisLap);
                     }
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_noYouStillHaveAPenalty",
                         new QueuedMessage(messages, 0, null));
                     audioPlayer.closeChannel();
@@ -322,6 +327,7 @@ namespace CrewChiefV2.Events
                     List<String> messages = new List<String>();
                     messages.Add(AudioPlayer.folderYes);
                     messages.Add(folderPenaltyServed);
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesYouServedYourPenalty",
                         new QueuedMessage(messages, 0, null));
                     audioPlayer.closeChannel();
@@ -337,6 +343,7 @@ namespace CrewChiefV2.Events
                     {
                         messages.Add(MandatoryPitStops.folderMandatoryPitStopsPitThisLap);
                     }
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_yesYouStillHaveAPenalty",
                         new QueuedMessage(messages, 0, null));
                     audioPlayer.closeChannel();
@@ -346,6 +353,7 @@ namespace CrewChiefV2.Events
                     List<String> messages = new List<String>();
                     messages.Add(AudioPlayer.folderNo);
                     messages.Add(folderPenaltyServed);
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_noYouServedYourPenalty",
                         new QueuedMessage(messages, 0, null));
                     audioPlayer.closeChannel();

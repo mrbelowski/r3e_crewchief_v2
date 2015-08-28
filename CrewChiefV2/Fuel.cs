@@ -263,6 +263,7 @@ namespace CrewChiefV2.Events
                     int lapsOfFuelLeft = (int)Math.Floor(currentFuel / averageUsagePerLap);
                     if (lapsOfFuelLeft > 60)
                     {
+                        audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(folderPlentyOfFuel, new QueuedMessage(0, this));
                         audioPlayer.closeChannel();
                     }
@@ -272,6 +273,7 @@ namespace CrewChiefV2.Events
                         messages.Add(folderWeEstimate);
                         messages.Add(QueuedMessage.folderNameNumbersStub + lapsOfFuelLeft);
                         messages.Add(folderLapsRemaining);
+                        audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Fuel/estimate",
                             new QueuedMessage(messages, 0, this));
                         audioPlayer.closeChannel();
@@ -282,6 +284,7 @@ namespace CrewChiefV2.Events
                 {
                     int minutesOfFuelLeft = (int)Math.Floor(currentFuel / averageUsagePerMinute);
                     if (minutesOfFuelLeft > 60) {
+                        audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(folderPlentyOfFuel, new QueuedMessage(0, this));
                         audioPlayer.closeChannel();
                     }
@@ -291,6 +294,7 @@ namespace CrewChiefV2.Events
                         messages.Add(folderWeEstimate);
                         messages.Add(QueuedMessage.folderNameNumbersStub + minutesOfFuelLeft);
                         messages.Add(folderMinutesRemaining);
+                        audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "Fuel/estimate",
                             new QueuedMessage(messages, 0, this));
                         audioPlayer.closeChannel();
@@ -300,6 +304,7 @@ namespace CrewChiefV2.Events
             }
             if (!haveData)
             {
+                audioPlayer.openChannel();
                 if (!fuelUseActive)
                 {
                     audioPlayer.playClipImmediately(folderPlentyOfFuel, new QueuedMessage(0, this));

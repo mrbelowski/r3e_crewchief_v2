@@ -258,12 +258,14 @@ namespace CrewChiefV2.Events
                         Console.WriteLine("Tyre temp status is: " + status);
                         thisLapTyreTemps.displayCurrent();
                         gotData = true;
+                        audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(messageFolder, new QueuedMessage(0, this));
                         audioPlayer.closeChannel();
                     }
                 }
                 if (!gotData)
                 {
+                    audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
@@ -288,7 +290,9 @@ namespace CrewChiefV2.Events
                     }
                     else
                     {
+                        audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(folderGoodWear, new QueuedMessage(0, this));
+                        audioPlayer.closeChannel();
                     }
                 }
             }
