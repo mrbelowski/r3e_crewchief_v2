@@ -56,6 +56,8 @@ namespace CrewChiefV2
 
         public static int raceStartPosition;
 
+        public static int completedLaps;
+
         public static void clearState()
         {
             isNew = true;
@@ -79,6 +81,7 @@ namespace CrewChiefV2
             lapCountWhenEnteredPits = -1;
             raceStartPosition = -1;
             isHotLapping = false;
+            completedLaps = 0;
         }
 
         public static void setCommonStateData(Shared lastState, Shared currentState)
@@ -91,7 +94,11 @@ namespace CrewChiefV2
             }
             else
             {
-                crossedLine = currentState.CompletedLaps > 0 && lastState.CompletedLaps + 1 == currentState.CompletedLaps;
+                crossedLine = currentState.CompletedLaps > 0 && currentState.CompletedLaps == completedLaps + 1;
+                if (crossedLine)
+                {
+                    completedLaps = currentState.CompletedLaps;
+                }                
             }
            
             if (currentState.SessionType == (int)Constant.Session.Race)
