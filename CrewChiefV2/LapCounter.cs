@@ -97,7 +97,6 @@ namespace CrewChiefV2.Events
             if (CommonData.isRaceRunning && CommonData.isNewLap && currentState.NumberOfLaps > 0)
             {
                 // a new lap has been started in race mode
-                Console.WriteLine("LapCounter event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);
                 int position = currentState.Position;
                 if (position < 1)
                 {

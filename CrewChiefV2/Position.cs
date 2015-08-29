@@ -127,7 +127,6 @@ namespace CrewChiefV2.Events
                                 pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
                             }
                         }
-                        Console.WriteLine("Position event: position at lap " + currentState.CompletedLaps + " = " + currentState.Position);
                         if (currentState.Position == 1)
                         {
                             if (currentState.SessionType == (int)Constant.Session.Race)
