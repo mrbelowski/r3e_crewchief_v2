@@ -36,6 +36,8 @@ namespace CrewChiefV2
 
         private readonly TimeSpan queueMonitorInterval = TimeSpan.FromMilliseconds(1000);
 
+        private readonly int immediateMessagesMonitorInterval = 20;
+
         private Dictionary<String, List<SoundPlayer>> clips = new Dictionary<String, List<SoundPlayer>>();
 
         private String soundFolderName = UserSettings.GetUserSettings().getString("sound_files_path");
@@ -368,7 +370,7 @@ namespace CrewChiefV2
                 var timeNow = DateTime.UtcNow;
                 if (timeNow.Subtract(timeLast) < queueMonitorInterval)
                 {
-                    Thread.Sleep(50);
+                    Thread.Sleep(immediateMessagesMonitorInterval);
                     continue;
                 }
                 timeLast = timeNow;
@@ -433,7 +435,7 @@ namespace CrewChiefV2
             Boolean oneOrMoreEventsEnabled = false;
             if (queueToPlay.Count > 0)
             {
-                Console.WriteLine("Processing queue of " + queueToPlay.Count + " events");
+                Console.WriteLine("Processing queue of " + queueToPlay.Count + " event(s)");
             }
             lock (queueToPlay)
             {
@@ -448,7 +450,6 @@ namespace CrewChiefV2
                             (queuedMessage.expiryTime == 0 || queuedMessage.expiryTime > milliseconds))
                         {
                             keysToPlay.Add(key);
-                            Console.WriteLine("Adding message " + key + " to set for playing");
                         }
                         else
                         {
@@ -485,7 +486,6 @@ namespace CrewChiefV2
             Boolean wasInterrupted = false;
             if (oneOrMoreEventsEnabled)
             {
-                Console.WriteLine(keysToPlay.Count + " events are valid and enabled, playing them...");
                 // block for immediate messages...
                 if (isImmediateMessages)
                 {
@@ -501,11 +501,6 @@ namespace CrewChiefV2
                     openRadioChannelInternal();
                     soundsProcessed.AddRange(playSounds(keysToPlay, isImmediateMessages, out wasInterrupted));
                 }                
-                Console.WriteLine("finished playing");
-                if (wasInterrupted)
-                {
-                    Console.WriteLine("We were interrupted");
-                }
             }
             else
             {
@@ -535,7 +530,7 @@ namespace CrewChiefV2
                     }
                 }
             }            
-            if (queueHasDueMessages && !wasInterrupted)
+            if (queueHasDueMessages && !wasInterrupted && !isImmediateMessages)
             {
                 Console.WriteLine("There are " + queueToPlay.Count + " more events in the queue, playing them...");
                 playQueueContents(queueToPlay, isImmediateMessages);
@@ -548,6 +543,7 @@ namespace CrewChiefV2
             List<String> soundsProcessed = new List<String>();
             OrderedDictionary thisQueue = isImmediateMessages ? immediateClips : queuedClips;
             wasInterrupted = false;
+            int playedEventCount = 0;
             foreach (String eventName in eventNames)
             {
                 // if there's anything in the immediateClips queue, stop processing
@@ -596,11 +592,12 @@ namespace CrewChiefV2
                             Console.WriteLine("Event " + eventName + " is disabled");
                         }
                         soundsProcessed.Add(eventName);
+                        playedEventCount++;
                     }                    
                 }
                 else
                 {
-                    Console.WriteLine("we've been interrupted");
+                    Console.WriteLine("we've been interrupted after playing " + playedEventCount + " events");
                     wasInterrupted = true;
                     break;
                 }
@@ -608,6 +605,7 @@ namespace CrewChiefV2
             if (soundsProcessed.Count == 0)
             {
                 Console.WriteLine("Processed no messages in this queue");
+                holdChannelOpen = true;
             }
             else
             {
@@ -621,7 +619,7 @@ namespace CrewChiefV2
             if (!channelOpen)
             {
                 channelOpen = true;
-                Console.WriteLine("Opening channel");
+                Console.WriteLine("*** Opening channel");
                 if (getBackgroundVolume() > 0 && loadNewBackground && backgroundToLoad != null)
                 {
                     Console.WriteLine("Setting background sounds file to  " + backgroundToLoad);
@@ -671,7 +669,7 @@ namespace CrewChiefV2
         {
             if (channelOpen)
             {
-                Console.WriteLine("Closing channel");
+                Console.WriteLine("*** Closing channel");
                 if (enableEndBleep)
                 {
                     List<SoundPlayer> bleeps = clips["end_bleep"];
@@ -727,9 +725,17 @@ namespace CrewChiefV2
             queueClip(eventName, queuedMessage, PearlsOfWisdom.PearlType.NONE, 0);
         }
 
+
         public void openChannel()
         {
             requestChannelOpen = true;
+        }
+
+        public void holdOpenChannel()
+        {
+            requestChannelOpen = true;
+            holdChannelOpen = true;
+            requestChannelClose = false;
         }
 
         public void closeChannel()
@@ -758,7 +764,6 @@ namespace CrewChiefV2
                 else
                 {
                     immediateClips.Add(eventName, queuedMessage);
-                    Console.WriteLine("Added " + eventName + " to immediate queue");
                 }
             }
         }
@@ -802,7 +807,6 @@ namespace CrewChiefV2
             {
                 if (queuedClips.Contains(eventName))
                 {
-                    Console.WriteLine("yanking " + eventName + " from queue");
                     queuedClips.Remove(eventName);
                     return true;
                 }
@@ -820,7 +824,6 @@ namespace CrewChiefV2
             {
                 if (immediateClips.Contains(eventName))
                 {
-                    Console.WriteLine("yanking " + eventName + " from immediate queue");
                     immediateClips.Remove(eventName);
                     return true;
                 }

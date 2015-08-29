@@ -62,6 +62,10 @@ namespace CrewChiefV2.Events
 
         private Boolean initialEnabledState;
 
+        private DateTime timeChannelCloseRequestMade = DateTime.MaxValue;
+
+        private TimeSpan timeToWaitBeforeClosingChannelLeftOpen = TimeSpan.FromMilliseconds(500);
+
         public Spotter(AudioPlayer audioPlayer, Boolean initialEnabledState)
         {
             this.audioPlayer = audioPlayer;
@@ -76,6 +80,7 @@ namespace CrewChiefV2.Events
             newlyClear = true;
             newlyOverlapping = true;
             enabled = initialEnabledState;
+            timeChannelCloseRequestMade = DateTime.MaxValue;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -91,6 +96,7 @@ namespace CrewChiefV2.Events
                 currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate &&
                 currentState.ControlType == (int)Constant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {
+                timeChannelCloseRequestMade = DateTime.MaxValue; 
                 float deltaFront = Math.Abs(currentState.TimeDeltaFront);
                 float deltaBehind = Math.Abs(currentState.TimeDeltaBehind);
 
@@ -156,7 +162,6 @@ namespace CrewChiefV2.Events
                         // don't play this message if the channel's closed
                         if (audioPlayer.isChannelOpen())
                         {
-                            Console.WriteLine("Queuing 'clear'");
                             audioPlayer.removeImmediateClip(folderStillThere);
                             audioPlayer.playClipImmediately(folderClear, clearMessage);                           
                             audioPlayer.closeChannel();
@@ -181,7 +186,6 @@ namespace CrewChiefV2.Events
                         stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
                         //audioPlayer.removeImmediateClip(folderHoldYourLine);
                         //audioPlayer.removeImmediateClip(folderClear);
-                        Console.WriteLine("Queuing 'still there'");
                         audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
                     }
                     else if (!channelOpen &&
@@ -199,12 +203,11 @@ namespace CrewChiefV2.Events
                         {                            
                             timeOfLastHoldMessage = now;
                             channelOpen = true;                            
-                            audioPlayer.openChannel();
+                            audioPlayer.holdOpenChannel();
                             QueuedMessage holdMessage = new QueuedMessage(0, this);
                             holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
                             //audioPlayer.removeImmediateClip(folderClear);
                             //audioPlayer.removeImmediateClip(folderStillThere);
-                            Console.WriteLine("Queuing 'hold your line'");
                             audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
                         }
                     }
@@ -212,16 +215,17 @@ namespace CrewChiefV2.Events
             }
             else if (channelOpen)
             {
-                if (isValueValid(currentSpeed))
+                if (DateTime.Now.Subtract(timeToWaitBeforeClosingChannelLeftOpen) > timeChannelCloseRequestMade)
                 {
-                    Console.WriteLine("Closing open channel in spotter");
-                    Console.WriteLine("CommonData.isRaceRunning = " + CommonData.isRaceRunning + 
-                        "GameSimulationTime = " + currentState.Player.GameSimulationTime + 
-                        "currentState.ControlType = " + currentState.ControlType + 
-                        "currentSpeed = " + currentSpeed);
+                    Console.WriteLine("Closing channel left open in spotter");
+                    timeChannelCloseRequestMade = DateTime.MaxValue; 
                     channelOpen = false;
                     audioPlayer.closeChannel();
-                }                
+                }
+                else
+                {
+                    timeChannelCloseRequestMade = DateTime.Now;
+                }        
             }
         }
 
