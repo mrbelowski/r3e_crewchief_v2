@@ -109,7 +109,7 @@ namespace CrewChiefV2.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return CommonData.isSessionRunning;
+            return CommonData.isSessionRunning && !CommonData.leaderHasFinishedRace;
         }
 
         private void checkTemps(TyreTemps tyreTempsToCheck)
@@ -159,11 +159,11 @@ namespace CrewChiefV2.Events
                     {
                         reportedTyreWearForCurrentPitEntry = false;
                     }
-                    if (CommonData.isNewLap && !CommonData.isPittingInRace && enableTyreWearWarnings)
+                    if (CommonData.isNewLap && !CommonData.isPittingInRace && enableTyreWearWarnings && !CommonData.leaderHasFinishedRace)
                     {
                         playTyreWearMessages(true, false);
                     }
-                    if (!CommonData.isPittingInRace && !reportedEstimatedTimeLeft && enableTyreWearWarnings)
+                    if (!CommonData.isPittingInRace && !reportedEstimatedTimeLeft && enableTyreWearWarnings && !CommonData.leaderHasFinishedRace)
                     {
                         reportEstimatedTyreLife(currentState);
                     }
@@ -181,7 +181,8 @@ namespace CrewChiefV2.Events
                     lastLapTyreTemps = thisLapTyreTemps;    // this might still be null
                     thisLapTyreTemps = new TyreTemps();
                     updateTyreTemps(currentState, thisLapTyreTemps);
-                    if (!CommonData.isPittingInRace && enableTyreTempWarnings && !checkedTempsAtSector3 && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
+                    if (!CommonData.isPittingInRace && enableTyreTempWarnings && !checkedTempsAtSector3 &&
+                        currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage && !CommonData.leaderHasFinishedRace)
                     {
                         checkTemps(lastLapTyreTemps);
                     }
@@ -197,7 +198,7 @@ namespace CrewChiefV2.Events
                     if (enableTyreTempWarnings && checkAtSector > 0 && CommonData.isNewSector && CommonData.currentLapSector == checkAtSector)
                     {
                         checkedTempsAtSector3 = true;
-                        if (!CommonData.isPittingInRace && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage)
+                        if (!CommonData.isPittingInRace && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage && !CommonData.leaderHasFinishedRace)
                         {
                             checkTemps(thisLapTyreTemps);
                         }
@@ -286,7 +287,7 @@ namespace CrewChiefV2.Events
                 {
                     if (isQueuedMessage)
                     {
-                        audioPlayer.queueClip(folderGoodWear, 0, this);
+                        audioPlayer.queueClip(folderGoodWear, 1, this);
                     }
                     else
                     {
