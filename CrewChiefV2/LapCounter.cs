@@ -156,6 +156,7 @@ namespace CrewChiefV2.Events
         {
             if (enableSessionEndMessages && !playedFinished && lastFinishMessageTime.Add(TimeSpan.FromSeconds(2)) < DateTime.Now)
             {
+                playedFinished = true;
                 lastFinishMessageTime = DateTime.Now;
                 if (position < 1)
                 {
@@ -194,7 +195,6 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(Position.folderStub + position, 0, null);
                     }
                 }                
-                playedFinished = true;
             }            
         }
     }

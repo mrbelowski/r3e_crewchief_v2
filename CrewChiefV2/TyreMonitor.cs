@@ -109,7 +109,8 @@ namespace CrewChiefV2.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return CommonData.isSessionRunning && !CommonData.leaderHasFinishedRace;
+            return CommonData.isSessionRunning && !CommonData.leaderHasFinishedRace &&
+                !((LapCounter)CrewChief.getEvent("LapCounter")).playedFinished;
         }
 
         private void checkTemps(TyreTemps tyreTempsToCheck)

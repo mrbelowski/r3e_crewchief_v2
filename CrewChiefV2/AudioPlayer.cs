@@ -446,7 +446,7 @@ namespace CrewChiefV2
                     {
                         if ((isImmediateMessages || !keepQuiet) && 
                             (queuedMessage.abstractEvent == null || queuedMessage.abstractEvent.isClipStillValid(key)) &&
-                            !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || playGapFillerMessage()) &&
+                            !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || playGapFillerMessage(queueToPlay)) &&
                             (queuedMessage.expiryTime == 0 || queuedMessage.expiryTime > milliseconds))
                         {
                             keysToPlay.Add(key);
@@ -688,9 +688,13 @@ namespace CrewChiefV2
             }
         }
 
-        private Boolean playGapFillerMessage()
+        /**
+         * If this queue only contains a single gap filler message, always play it. If it contains 2
+         * messages we play it 50% of the time. Otherwise it's not played.
+         */
+        private Boolean playGapFillerMessage(OrderedDictionary queueToPlay)
         {
-            return queuedClips.Count == 1 || (queuedClips.Count == 2 && random.Next() > 0.5);
+            return queueToPlay.Count == 1 || (queueToPlay.Count == 2 && random.NextDouble() >= 0.5);
         }
 
         public void close()

@@ -71,6 +71,10 @@ namespace CrewChiefV2.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
+            if (((LapCounter)CrewChief.getEvent("LapCounter")).playedFinished)
+            {
+                return false;
+            }
             if (eventSubType == QueuedMessage.compoundMessageIdentifier + "Timings/gap_in_front")
             {
                 return CommonData.isSessionRunning && CommonData.racingSameCarInFront;

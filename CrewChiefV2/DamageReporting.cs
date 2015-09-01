@@ -69,7 +69,8 @@ namespace CrewChiefV2.Events
 
         public override bool isClipStillValid(string eventSubType)
         {
-            return CommonData.isSessionRunning;
+            return CommonData.isSessionRunning && 
+                !((LapCounter)CrewChief.getEvent("LapCounter")).playedFinished;
         }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
