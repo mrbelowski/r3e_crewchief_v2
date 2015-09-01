@@ -25,6 +25,8 @@ namespace CrewChiefV2
         public static String folderYes = "acknowledge/yes";
         public static String folderNo = "acknowledge/no";
 
+        private Dictionary<String, int> playedMessagesCount = new Dictionary<String, int>();
+
         private Boolean monitorRunning = false;
 
         private Boolean keepQuiet = false;
@@ -354,7 +356,7 @@ namespace CrewChiefV2
                 {
                     if (channelOpen)
                     {
-                        if (queuedClips.Count == 0 && immediateClips.Count == 0)
+                        if (!queueHasDueMessages(queuedClips, false) && !queueHasDueMessages(immediateClips, true))
                         {
                             requestChannelClose = false;
                             holdChannelOpen = false;
@@ -387,7 +389,18 @@ namespace CrewChiefV2
                     }
                 }
             }
+            writeMessagePlayedStats();
+            playedMessagesCount.Clear();
             stopBackgroundPlayer();
+        }
+
+        private void writeMessagePlayedStats()
+        {
+            Console.WriteLine("Count, event name");
+            foreach (KeyValuePair<String, int> entry in playedMessagesCount)
+            {
+                Console.WriteLine(entry.Value + " instances of event " + entry.Key);
+            }
         }
 
         public void enableKeepQuietMode()
@@ -423,6 +436,8 @@ namespace CrewChiefV2
                     closeRadioInternalChannel();
                 }
             }
+            writeMessagePlayedStats();
+            playedMessagesCount.Clear();
             stopBackgroundPlayer();
         }
 
@@ -506,7 +521,6 @@ namespace CrewChiefV2
             {
                 soundsProcessed.AddRange(keysToPlay);
             }
-            Boolean queueHasDueMessages = false;
             if (soundsProcessed.Count > 0)
             {
                 lock (queueToPlay)
@@ -518,23 +532,40 @@ namespace CrewChiefV2
                             queueToPlay.Remove(key);
                         }
                     }
-                    milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                    foreach (String key in queueToPlay.Keys)
-                    {
-                        QueuedMessage queuedMessage = (QueuedMessage)queueToPlay[key];
-                        if (isImmediateMessages || queuedMessage.dueTime <= milliseconds)
-                        {
-                            queueHasDueMessages = true;
-                            break;
-                        }
-                    }
                 }
             }            
-            if (queueHasDueMessages && !wasInterrupted && !isImmediateMessages)
+            if (queueHasDueMessages(queueToPlay, isImmediateMessages) && !wasInterrupted && !isImmediateMessages)
             {
                 Console.WriteLine("There are " + queueToPlay.Count + " more events in the queue, playing them...");
                 playQueueContents(queueToPlay, isImmediateMessages);
             }
+        }
+
+        private Boolean queueHasDueMessages(OrderedDictionary queueToCheck, Boolean isImmediateMessages)
+        {
+            if (isImmediateMessages)
+            {
+                return queueToCheck.Count > 0;
+            }
+            else if (queueToCheck.Count == 0)
+            {
+                return false;
+            }            
+            else
+            {
+                long milliseconds = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                lock (queueToCheck)
+                {
+                    foreach (String key in queueToCheck.Keys)
+                    {
+                        if (((QueuedMessage)queueToCheck[key]).dueTime <= milliseconds)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }            
         }
 
         private List<String> playSounds(List<String> eventNames, Boolean isImmediateMessages, out Boolean wasInterrupted)
@@ -568,9 +599,9 @@ namespace CrewChiefV2
                                 {
                                     timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
                                 }
-                            }
+                            }                            
                             if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier))
-                            {
+                            {                                
                                 foreach (String message in thisMessage.getMessageFolders())
                                 {
                                     List<SoundPlayer> clipsList = clips[message];
@@ -585,6 +616,15 @@ namespace CrewChiefV2
                                 int index = random.Next(0, clipsList.Count);
                                 SoundPlayer clip = clipsList[index];
                                 clip.PlaySync();
+                            }
+                            if (playedMessagesCount.ContainsKey(eventName))
+                            {
+                                int count = playedMessagesCount[eventName] + 1;
+                                playedMessagesCount[eventName] = count;
+                            }
+                            else
+                            {
+                                playedMessagesCount.Add(eventName, 1);
                             }
                         }
                         else
