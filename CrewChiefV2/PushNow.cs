@@ -80,24 +80,20 @@ namespace CrewChiefV2.Events
                 {
                     clearState();
                 }
+                if (!CommonData.racingSameCarInFront ||
+                    (currentState.TimeDeltaFront > 0 && currentState.TimeDeltaFront < 1))
+                {
+                    pushDataInFront.Clear();
+                }
+                if (!CommonData.racingSameCarBehind ||
+                    (currentState.TimeDeltaBehind > 0 && currentState.TimeDeltaBehind < 1))
+                {
+                    pushDataBehind.Clear();
+                }
                 if (CommonData.isNewLap)
                 {
-                    if (CommonData.racingSameCarInFront && currentState.TimeDeltaFront > 1)
-                    {
-                        pushDataInFront.Add(new PushData(currentState.LapTimePrevious, currentState.TimeDeltaFront));
-                    }
-                    else
-                    {
-                        pushDataInFront.Clear();
-                    }
-                    if (CommonData.racingSameCarBehind && currentState.TimeDeltaBehind > 1)
-                    {
-                        pushDataBehind.Add(new PushData(currentState.LapTimePrevious, currentState.TimeDeltaBehind));
-                    }
-                    else
-                    {
-                        pushDataBehind.Clear();
-                    }
+                    pushDataInFront.Add(new PushData(currentState.LapTimePrevious, currentState.TimeDeltaFront));
+                    pushDataBehind.Add(new PushData(currentState.LapTimePrevious, currentState.TimeDeltaBehind));                    
                 }
                 if (currentState.NumberOfLaps == -1 && !playedNearEndTimePush &&
                         currentState.SessionTimeRemaining < 4 * 60 && currentState.SessionTimeRemaining > 2 * 60)

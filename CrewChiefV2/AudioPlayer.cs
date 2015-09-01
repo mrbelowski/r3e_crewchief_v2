@@ -389,7 +389,7 @@ namespace CrewChiefV2
                     }
                 }
             }
-            writeMessagePlayedStats();
+            //writeMessagePlayedStats();
             playedMessagesCount.Clear();
             stopBackgroundPlayer();
         }
@@ -545,6 +545,7 @@ namespace CrewChiefV2
         {
             if (isImmediateMessages)
             {
+                // immediate messages can't be delayed so no point in checking their due times
                 return queueToCheck.Count > 0;
             }
             else if (queueToCheck.Count == 0)

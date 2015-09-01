@@ -47,7 +47,7 @@ namespace CrewChiefV2.Events
         private float currentGapBehind;
 
         private Boolean enableGapMessages = UserSettings.GetUserSettings().getBoolean("enable_gap_messages");
-
+        
         public Timings(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -77,19 +77,19 @@ namespace CrewChiefV2.Events
             }
             if (eventSubType == QueuedMessage.compoundMessageIdentifier + "Timings/gap_in_front")
             {
-                return CommonData.isSessionRunning && CommonData.racingSameCarInFront;
+                return CommonData.isSessionRunning;
             }
             else if (eventSubType == QueuedMessage.compoundMessageIdentifier + "Timings/gap_behind")
             {
-                return CommonData.isSessionRunning && CommonData.racingSameCarBehind;
+                return CommonData.isSessionRunning;
             }
             else if (eventSubType == folderBeingHeldUp)
             {
-                return CommonData.isSessionRunning && CommonData.racingSameCarInFront;
+                return CommonData.isSessionRunning;
             }
             else if (eventSubType == folderBeingPressured)
             {
-                return CommonData.isSessionRunning && CommonData.racingSameCarBehind;
+                return CommonData.isSessionRunning;
             }
             else
             {
@@ -110,17 +110,17 @@ namespace CrewChiefV2.Events
             {
                 clearState();
             }
+            if (!CommonData.racingSameCarInFront)
+            {
+                gapsInFront.Clear();
+            }
+            if (!CommonData.racingSameCarBehind)
+            {
+                gapsBehind.Clear();
+            }
             if (enableGapMessages && CommonData.isRaceRunning && CommonData.isNewSector && !CommonData.isPittingInRace)
             {
-                sectorsSinceLastReport++;
-                if (!CommonData.racingSameCarInFront)
-                {
-                    gapsInFront.Clear();
-                }
-                if (!CommonData.racingSameCarBehind)
-                {
-                    gapsBehind.Clear();
-                }
+                sectorsSinceLastReport++;                
                 GapStatus gapInFrontStatus = GapStatus.NONE;
                 GapStatus gapBehindStatus = GapStatus.NONE;
                 if (currentState.Position != 1)
