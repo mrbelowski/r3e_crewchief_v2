@@ -83,12 +83,15 @@ namespace CrewChiefV2.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool disable_immediate_messages {
             get {
                 return ((bool)(this["disable_immediate_messages"]));
+            }
+            set {
+                this["disable_immediate_messages"] = value;
             }
         }
         

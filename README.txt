@@ -2,7 +2,7 @@ CrewChief version 2.
 
 Changelog
 ---------
-Version 2.5.2: Fixed another queue issue that could cause the radio channel to hang open if a delayed message is queued during a spotter call; fixed broken check for race position change that caused the push-now and gap repoting events to play when they shouldn't; made lap-time message more likely to play; don't queue or validate some messages (like tyre wear) once the leader's finished the race. No new sound pack for this version
+Version 2.5.2: Fixed another queue issue that could cause the radio channel to hang open if a delayed message is queued during a spotter call; fixed broken check for race position change that caused the push-now and gap reporting events to play when they shouldn't; made lap-time message more likely to play; don't queue or validate some messages (like tyre wear) once the leader's finished the race. No new sound pack for this version
 
 Version 2.5.1: Restructured some of the queue and spotter code to remove errors and make the interrupting and queuing process more effective; fixed issue in damage reporter so it's less likely to spam message; added check for RaceRoom decreasing, rather than increasing, the number of completed laps during a race (yes, is does do this from time to time...); a few other minor fixes. No new sound pack for this version
 
