@@ -14,10 +14,6 @@ namespace CrewChiefV2.Events
         private int clearMessageExpiresAfter = 2000;
         private int holdMessageExpiresAfter = 1000;
 
-        private Boolean require2OverlapsForHold = UserSettings.GetUserSettings().getBoolean("require_2_overlaps_for_hold_message");
-
-        private Boolean require2ClearsForClear = UserSettings.GetUserSettings().getBoolean("require_2_clears_for_clear_message");
-
         // how long is a car? we use 3.5 meters by default here. Too long and we'll get 'hold your line' messages
         // when we're clearly directly behind the car
         private float carLength = UserSettings.GetUserSettings().getFloat("spotter_car_length");
@@ -40,13 +36,13 @@ namespace CrewChiefV2.Events
 
         private Boolean spotterOnlyWhenBeingPassed = UserSettings.GetUserSettings().getBoolean("spotter_only_when_being_passed");
 
-        private Boolean channelOpen;
+        private Boolean isCurrentlyOverlapping;
 
         private String folderClear = "spotter/clear";
         private String folderHoldYourLine = "spotter/hold_your_line";
         private String folderStillThere = "spotter/still_there";
 
-        // don't play 'clear' messages unless we've actually been clear for 0.5 seconds
+        // don't play 'clear' or 'hold' messages unless we've actually been clear or overlapping for some time
         private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(UserSettings.GetUserSettings().getInt("spotter_clear_delay"));
         private TimeSpan overlapMessageDelay = TimeSpan.FromMilliseconds(UserSettings.GetUserSettings().getInt("spotter_overlap_delay"));
 
@@ -66,16 +62,20 @@ namespace CrewChiefV2.Events
 
         private TimeSpan timeToWaitBeforeClosingChannelLeftOpen = TimeSpan.FromMilliseconds(500);
 
+        // this is -1 * the time taken to travel 1 car length at the minimum spotter speed
+        private float biggestAllowedNegativeTimeDelta;
+
         public Spotter(AudioPlayer audioPlayer, Boolean initialEnabledState)
         {
             this.audioPlayer = audioPlayer;
             this.enabled = initialEnabledState;
             this.initialEnabledState = initialEnabledState;
+            this.biggestAllowedNegativeTimeDelta = -1 * carLength / minSpeedForSpotterToOperate;
         }
 
         public override void clearState()
         {
-            channelOpen = false;
+            isCurrentlyOverlapping = false;
             timeOfLastHoldMessage = DateTime.Now;
             newlyClear = true;
             newlyOverlapping = true;
@@ -87,6 +87,17 @@ namespace CrewChiefV2.Events
         {
             return true;
         }
+        
+        /**
+         * The time delta should always be positive. It does briefly go negative at the end of the passing
+         * phase (when the cars are exactly along side). Any negative value that we see which happens before
+         * a valid overlap is considered to be noise in the data.
+         */
+        private Boolean checkDelta(float rawDelta, float speed)
+        {
+            return rawDelta > 0 ||
+                (isCurrentlyOverlapping && rawDelta > (-1 * carLength / speed));
+        }
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
@@ -97,129 +108,132 @@ namespace CrewChiefV2.Events
                 currentState.ControlType == (int)Constant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {
                 timeChannelCloseRequestMade = DateTime.MaxValue; 
-                float deltaFront = Math.Abs(currentState.TimeDeltaFront);
-                float deltaBehind = Math.Abs(currentState.TimeDeltaBehind);
+                float currentDeltaFront = currentState.TimeDeltaFront;
+                float currentDeltaBehind = currentState.TimeDeltaBehind;
+                float previousDeltaFront = lastState.TimeDeltaFront;
+                float previousDeltaBehind = lastState.TimeDeltaBehind;
 
-                // if we think there's already a car along side, add a little to the car length so we're
-                // sure it's gone before calling clear
-                float carLengthToUse = carLength;
-                if (channelOpen)
+                if (checkDelta(currentDeltaFront, currentSpeed) && checkDelta(currentDeltaBehind, currentSpeed) && 
+                    checkDelta(previousDeltaFront, previousSpeed) && checkDelta(previousDeltaBehind, previousSpeed))
                 {
-                    carLengthToUse += gapNeededForClear;
-                }
-
-                // initialise to some large value and put the real value in here only if the
-                // time gap suggests we're overlapping
-                float closingSpeedInFront = 9999;
-                float closingSpeedBehind = 9999;
-
-                // if the delta is exactly zero assume it's noise - the delta appears to be zero when the 
-                // opponent car crosses the line
-                Boolean carAlongSideInFront = isValueValid(deltaFront) && carLengthToUse / currentSpeed > deltaFront;
-                Boolean carAlongSideInFrontPrevious = isValueValid(lastState.TimeDeltaFront)
-                    && carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaFront);
-                Boolean carAlongSideBehind = isValueValid(deltaBehind) && carLengthToUse / currentSpeed > deltaBehind;
-                Boolean carAlongSideBehindPrevious = isValueValid(lastState.TimeDeltaBehind)
-                    && carLengthToUse / previousSpeed > Math.Abs(lastState.TimeDeltaBehind);
-
-                // only say a car is overlapping if it's been overlapping for 2 game state updates
-                // and the closing speed isn't too high
-
-                // note we don't need to check the validity of the currentState.TimeDeltaFront -
-                // carAlongSideInFront can only be true if that check's passed
-                if (carAlongSideInFront && isValueValid(lastState.TimeDeltaFront))
-                {
-                    // check the closing speed before warning
-                    closingSpeedInFront = getClosingSpeed(lastState, currentState, true);
-                }
-                if (carAlongSideBehind && isValueValid(lastState.TimeDeltaBehind))
-                {
-                    // check the closing speed before warning
-                    closingSpeedBehind = getClosingSpeed(lastState, currentState, false);
-                }
-
-                DateTime now = DateTime.Now;
-
-                // again, don't change state when the delta is zero - this is noise
-                if (channelOpen && (!carAlongSideInFront && isValueValid(deltaFront)) && (!require2ClearsForClear || !carAlongSideInFrontPrevious) &&
-                    (!carAlongSideBehind && isValueValid(deltaBehind)) && (!require2ClearsForClear || !carAlongSideBehindPrevious))
-                {
-                    // we're clear here, so when we next detect we're overlapping we know this must be
-                    // a new overlap
-                    newlyOverlapping = true;
-                    if (newlyClear)
+                    // if we think there's already a car along side, add a little to the car length so we're
+                    // sure it's gone before calling clear
+                    float carLengthToUse = carLength;
+                    if (isCurrentlyOverlapping)
                     {
-                        //Console.WriteLine("Waiting " + clearMessageDelay);
-                        newlyClear = false;
-                        timeWhenWeThinkWeAreClear = now;
+                        carLengthToUse += gapNeededForClear;
                     }
-                    else if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay))
+                    // the time deltas might be small negative numbers while the cars are along side. They might also be large 
+                    // negative numbers if the data are noisy - either way, use the absolute value to check for overlap
+                    Boolean carAlongSideInFront = carLengthToUse / currentSpeed > Math.Abs(currentDeltaFront);
+                    Boolean carAlongSideBehind = carLengthToUse / currentSpeed > Math.Abs(currentDeltaBehind);
+
+                    DateTime now = DateTime.Now;
+
+                    if (!carAlongSideInFront && !carAlongSideBehind)
                     {
-                        channelOpen = false;                        
-                        QueuedMessage clearMessage = new QueuedMessage(0, this);
-                        clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
-                        //audioPlayer.removeImmediateClip(folderStillThere);
-                        // don't play this message if the channel's closed
-                        if (audioPlayer.isChannelOpen())
+                        // we're clear here, so when we next detect we're overlapping we know this must be
+                        // a new overlap. This may be valid or due to noise.
+                        newlyOverlapping = true;
+
+                        if (isCurrentlyOverlapping)
                         {
-                            audioPlayer.removeImmediateClip(folderStillThere);
-                            audioPlayer.playClipImmediately(folderClear, clearMessage);                           
-                            audioPlayer.closeChannel();
+                            if (newlyClear)
+                            {
+                                // start the timer...
+                                newlyClear = false;
+                                timeWhenWeThinkWeAreClear = now;
+                            }
+                            // only play "clear" if we've been clear for the specified time
+                            if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay))
+                            {
+                                Console.WriteLine("Clear - delta front = " + currentDeltaFront + " delta behind = " + currentDeltaBehind);
+                                isCurrentlyOverlapping = false;
+                                QueuedMessage clearMessage = new QueuedMessage(0, this);
+                                clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
+                                // don't play this message if the channel's closed
+                                if (audioPlayer.isChannelOpen())
+                                {
+                                    audioPlayer.removeImmediateClip(folderStillThere);
+                                    audioPlayer.playClipImmediately(folderClear, clearMessage);
+                                    audioPlayer.closeChannel();
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Not playing clear message - channel is already closed");
+                                }
+                            }
                         }
-                        else
-                        {
-                            Console.WriteLine("Not playing clear message - channel is already closed");
-                        }                       
                     }
-                }
-                else if ((carAlongSideInFront && (!require2OverlapsForHold || carAlongSideInFrontPrevious) && Math.Abs(closingSpeedInFront) < maxClosingSpeed) ||
-                    (carAlongSideBehind && (!require2OverlapsForHold || carAlongSideBehindPrevious) && Math.Abs(closingSpeedBehind) < maxClosingSpeed))
-                {
-                    Boolean frontOverlapIsReducing = carAlongSideInFront && closingSpeedInFront > 0;
-                    Boolean rearOverlapIsReducing = carAlongSideBehind && closingSpeedBehind > 0;
-                    if (channelOpen && now > timeOfLastHoldMessage.Add(repeatHoldFrequency))
+                    else
                     {
-                        // channel's already open, still there
-                        //Console.WriteLine("Still there...");
-                        timeOfLastHoldMessage = now;                        
-                        QueuedMessage stillThereMessage = new QueuedMessage(0, this);
-                        stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                        //audioPlayer.removeImmediateClip(folderHoldYourLine);
-                        //audioPlayer.removeImmediateClip(folderClear);
-                        audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
-                    }
-                    else if (!channelOpen &&
-                        (rearOverlapIsReducing || (frontOverlapIsReducing && !spotterOnlyWhenBeingPassed)))
-                    {                        
                         // we're overlapping here, so when we next detect we're 'clear' we know this must be
-                        // a new clear
+                        // a new clear. This may be valid or due to noise
                         newlyClear = true;
                         if (newlyOverlapping)
                         {
                             timeWhenWeThinkWeAreOverlapping = now;
                             newlyOverlapping = false;
                         }
-                        else if (now > timeWhenWeThinkWeAreOverlapping.Add(overlapMessageDelay))
-                        {                            
-                            timeOfLastHoldMessage = now;
-                            channelOpen = true;                            
-                            audioPlayer.holdOpenChannel();
-                            QueuedMessage holdMessage = new QueuedMessage(0, this);
-                            holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                            //audioPlayer.removeImmediateClip(folderClear);
-                            //audioPlayer.removeImmediateClip(folderStillThere);
-                            audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);
-                        }
+                        if (now > timeWhenWeThinkWeAreOverlapping.Add(overlapMessageDelay))
+                        {
+                            if (isCurrentlyOverlapping)
+                            {
+                                // play "still there" if we've not played one for a while
+                                if (now > timeOfLastHoldMessage.Add(repeatHoldFrequency))
+                                {
+                                    // channel's already open, still there
+                                    Console.WriteLine("Still there - delta front = " + currentDeltaFront + " delta behind = " + currentDeltaBehind);
+                                    timeOfLastHoldMessage = now;
+                                    QueuedMessage stillThereMessage = new QueuedMessage(0, this);
+                                    stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                                    audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
+                                }
+                            }
+                            else
+                            {
+                                // only say a car is overlapping if the closing speed isn't too high
+                                float timeElapsed = (float)currentState.Player.GameSimulationTime - (float)lastState.Player.GameSimulationTime;
+                                float closingSpeedInFront = (previousDeltaFront - currentDeltaFront) * currentSpeed / timeElapsed;
+                                float closingSpeedBehind = (previousDeltaBehind - currentDeltaBehind) * currentSpeed / timeElapsed;
+
+                                if ((carAlongSideInFront && Math.Abs(closingSpeedInFront) < maxClosingSpeed) ||
+                                    (carAlongSideBehind && Math.Abs(closingSpeedBehind) < maxClosingSpeed))
+                                {
+                                    Boolean frontOverlapIsReducing = carAlongSideInFront && closingSpeedInFront > 0;
+                                    Boolean rearOverlapIsReducing = carAlongSideBehind && closingSpeedBehind > 0;
+                                    if (rearOverlapIsReducing || (frontOverlapIsReducing && !spotterOnlyWhenBeingPassed))
+                                    {
+                                        Console.WriteLine("New overlap");
+                                        Console.WriteLine("delta front  = " + currentDeltaFront + " closing speed front  = " + closingSpeedInFront);
+                                        Console.WriteLine("delta behind = " + currentDeltaBehind + " closing speed behind = " + closingSpeedBehind);
+                                        timeOfLastHoldMessage = now;
+                                        isCurrentlyOverlapping = true;
+                                        audioPlayer.holdOpenChannel();
+                                        QueuedMessage holdMessage = new QueuedMessage(0, this);
+                                        holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                                        audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);                                        
+                                    }
+                                }
+                            }
+                        }                        
                     }
-                }
+                }/*
+                else
+                {
+                    Console.WriteLine("bollocks data...");
+                    Console.WriteLine("position = " + currentState.Position + ", current speed = " + currentSpeed + " previous speed = " + lastState.CarSpeed);
+                    Console.WriteLine("Current front  = " + currentDeltaFront + " previous front   = " + previousDeltaFront);
+                    Console.WriteLine("Current behind = " + currentDeltaBehind + " previous behind = " + previousDeltaBehind);
+                }*/
             }
-            else if (channelOpen)
+            else if (isCurrentlyOverlapping)
             {
                 if (DateTime.Now.Subtract(timeToWaitBeforeClosingChannelLeftOpen) > timeChannelCloseRequestMade)
                 {
                     Console.WriteLine("Closing channel left open in spotter");
                     timeChannelCloseRequestMade = DateTime.MaxValue; 
-                    channelOpen = false;
+                    isCurrentlyOverlapping = false;
                     audioPlayer.closeChannel();
                 }
                 else
@@ -227,35 +241,6 @@ namespace CrewChiefV2.Events
                     timeChannelCloseRequestMade = DateTime.Now;
                 }        
             }
-        }
-
-        // get the closing speed (> 0 if we're getting closer, < 0 if we're getting further away)
-        private float getClosingSpeed(Shared lastState, Shared currentState, Boolean front)
-        {
-            // note that we always use current speed here. This is because the data are noisy and the
-            // gap and speed data occasionally contain incorrect small values. If this happens to the 
-            // currentSpeed, we'll already have discarded the data in this iteration (currentSpeed < minSpotterSpeed).
-            // If the either of the timeDeltas are very small we'll either interpret this as a very high closing speed 
-            // or a negative closing speed, neither of which should trigger a 'hold your line' message.
-
-            // We really should be using the speed from the lastState when calculating the gap at the
-            // lastState, but the speed should (if the data are correct) be fairly similar
-            float timeElapsed = (float)currentState.Player.GameSimulationTime - (float)lastState.Player.GameSimulationTime;
-            if (front)
-            {
-                return ((Math.Abs(lastState.TimeDeltaFront) * currentState.CarSpeed) -
-                    (Math.Abs(currentState.TimeDeltaFront) * currentState.CarSpeed)) / timeElapsed;
-            }
-            else
-            {
-                return ((Math.Abs(lastState.TimeDeltaBehind) * currentState.CarSpeed) -
-                    (Math.Abs(currentState.TimeDeltaBehind) * currentState.CarSpeed)) / timeElapsed;
-            }
-        }
-
-        private Boolean isValueValid(float value)
-        {
-            return value != 0f && value != -1f;
         }
 
         public void enableSpotter()

@@ -35,12 +35,6 @@
     <Setting Name="speech_recognition_location" Type="System.String" Scope="User">
       <Value Profile="(Default)">en-GB</Value>
     </Setting>
-    <Setting Name="require_2_overlaps_for_hold_message" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="require_2_clears_for_clear_message" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
     <Setting Name="spotter_car_length" Type="System.Single" Scope="User">
       <Value Profile="(Default)">3.6</Value>
     </Setting>
@@ -157,6 +151,9 @@
     </Setting>
     <Setting Name="enable_tyre_wear_warnings" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="spotter_update_interval" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">50</Value>
     </Setting>
   </Settings>
 </SettingsFile>

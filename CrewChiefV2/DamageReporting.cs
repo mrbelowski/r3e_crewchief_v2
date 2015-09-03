@@ -89,12 +89,6 @@ namespace CrewChiefV2.Events
                 damageEnabled = false;
                 return;
             }
-            if (CommonData.isNewLap)
-            {
-                Console.WriteLine("Aero " + currentState.CarDamage.Aerodynamics);
-                Console.WriteLine("Engine " + currentState.CarDamage.Engine);
-                Console.WriteLine("Tranny " + currentState.CarDamage.Transmission);
-            }
             if (damageEnabled)
             {
                 aeroDamage = currentState.CarDamage.Aerodynamics;

@@ -27,12 +27,17 @@ namespace CrewChiefV2
 
         public static TimeSpan _timeInterval = TimeSpan.FromMilliseconds(UserSettings.GetUserSettings().getInt("update_interval"));
 
+        public static TimeSpan spotterInterval = TimeSpan.FromMilliseconds(UserSettings.GetUserSettings().getInt("spotter_update_interval"));
+        
         private static Dictionary<String, AbstractEvent> eventsList = new Dictionary<String, AbstractEvent>();
 
         public AudioPlayer audioPlayer = new AudioPlayer();
 
         Shared lastState;
         Shared currentState;
+
+        Shared lastSpotterState;
+        Shared currentSpotterState;
 
         Boolean stateCleared = false;
 
@@ -43,6 +48,18 @@ namespace CrewChiefV2
         private List<SessionData> sessionData = new List<SessionData>();
 
         private TimeSpan minimumSessionParticipationTime = TimeSpan.FromSeconds(6);
+
+        private Dictionary<String, String> faultingEvents = new Dictionary<String, String>();
+        
+        private Dictionary<String, int> faultingEventsCount = new Dictionary<String, int>();
+
+        private Spotter spotter;
+
+        private Boolean spotterIsRunning = false;
+
+        private Boolean runSpotterThread = false;
+
+        private Boolean disableImmediateMessages = UserSettings.GetUserSettings().getBoolean("disable_immediate_messages");
         
         class SessionData {
             public int sessionType;
@@ -81,7 +98,7 @@ namespace CrewChiefV2
             eventsList.Add("Timings", new Timings(audioPlayer));
             eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
             eventsList.Add("PushNow", new PushNow(audioPlayer));
-            eventsList.Add("Spotter", new Spotter(audioPlayer, spotterEnabled));            
+            spotter = new Spotter(audioPlayer, spotterEnabled);            
         }
 
         public void Dispose()
@@ -147,14 +164,18 @@ namespace CrewChiefV2
 
         public void enableSpotter()
         {
+            if (disableImmediateMessages)
+            {
+                Console.WriteLine("Unable to start spotter - immediate messages are disabled");
+            }
             spotterEnabled = true;
-            ((Spotter)eventsList["Spotter"]).enableSpotter();
+            spotter.enableSpotter();
         }
 
         public void disableSpotter()
         {
             spotterEnabled = false;
-            ((Spotter)eventsList["Spotter"]).disableSpotter();
+            spotter.disableSpotter();
         }
 
         public void youWot()
@@ -164,9 +185,42 @@ namespace CrewChiefV2
             audioPlayer.closeChannel();
         }
 
+        private void startSpotterThread()
+        {
+            ThreadStart work = spotterWork;
+            Thread thread = new Thread(work);
+            runSpotterThread = true;
+            thread.Start();
+        }
+
+        private void spotterWork()
+        {
+            int threadSleepTime = (int) spotterInterval.Milliseconds / 10;
+            DateTime lastRunTime = DateTime.Now;
+            Console.WriteLine("Invoking spotter every " + spotterInterval.Milliseconds + "ms, pausing " + threadSleepTime + "ms between invocations");
+
+            while (runSpotterThread)
+            {
+                DateTime now = DateTime.Now;
+                if (lastRunTime.Add(spotterInterval) < now)
+                {
+                    spotterIsRunning = true;
+                    lastSpotterState = currentSpotterState;
+                    currentSpotterState = new Shared();
+                    if (_view != null)
+                    {
+                        _view.Read(0, out currentSpotterState);
+                        triggerEvent("Spotter", spotter, lastSpotterState, currentSpotterState);
+                    }
+                    lastRunTime = now;
+                }
+                Thread.Sleep(threadSleepTime);
+            }
+            spotterIsRunning = false;
+        }
+
         public Boolean Run()
         {
-            Console.WriteLine("Polling for shared data every " + _timeInterval.Milliseconds + " milliseconds");
             running = true;
             var timeReset = DateTime.UtcNow;
             var timeLast = timeReset;
@@ -178,18 +232,20 @@ namespace CrewChiefV2
             audioPlayer.startMonitor();
             Boolean displayedMappingMessage = false;
             Boolean attemptedToRunRRRE = false;
+            DateTime timeLastSpotter = timeReset;
+
+            int threadSleepTime = (int)_timeInterval.Milliseconds / 10;
+            Console.WriteLine("Polling for shared data every " + _timeInterval.Milliseconds + "ms, pausing " + threadSleepTime + "ms between invocations");
+
             while (running)
             {
                 var timeNow = DateTime.UtcNow;
-
                 if (timeNow.Subtract(timeLast) < _timeInterval)
                 {
-                    Thread.Sleep(1);
+                    Thread.Sleep(threadSleepTime);
                     continue;
                 }
-
                 timeLast = timeNow;
-
                 if (Utilities.IsRrreRunning()) {
                     if (!Mapped)
                     {
@@ -221,8 +277,6 @@ namespace CrewChiefV2
                     {
                         // if the current session is race and the phase is terminated (i.e. finished), play the end message - note this might not trigger 
                         // if it's already been played because of a 'proper' session finish event
-                        //
-                        // 
                         if ((currentState.SessionType == (int)Constant.Session.Race && currentState.SessionPhase == (int)Constant.SessionPhase.Terminated) ||
                             hasNextSessionStarted() && hasParticipatedInPreviousSession())
                         {
@@ -247,6 +301,8 @@ namespace CrewChiefV2
                         {
                             entry.Value.clearState();
                         }
+                        faultingEvents.Clear();
+                        faultingEventsCount.Clear();
                         stateCleared = true;
                     }
                     else if (gameRunningTime > _timeInterval.Seconds)
@@ -257,41 +313,20 @@ namespace CrewChiefV2
                         }
                         stateCleared = false;
                         CommonData.setCommonStateData(lastState, currentState);
-                        Dictionary<String, String> faultingEvents = new Dictionary<String, String>();
-                        Dictionary<String, int> faultingEventsCount = new Dictionary<String, int>();
-
                         foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
                         {
-                            try
-                            {
-                                entry.Value.trigger(lastState, currentState);
-                            }
-                            catch (Exception e)
-                            {
-                                if (faultingEventsCount.ContainsKey(entry.Key))
-                                {
-                                    faultingEventsCount[entry.Key]++;
-                                    if (faultingEventsCount[entry.Key] > 5)
-                                    {
-                                        Console.WriteLine("Event " + entry.Key +
-                                            " has failed > 5 times in this session");
-                                    }
-                                }
-                                if (!faultingEvents.ContainsKey(entry.Key))
-                                {
-                                    Console.WriteLine("Event " + entry.Key + " threw exception " + e.Message);
-                                    Console.WriteLine("This is the first time this event has failed in this session");
-                                    faultingEvents.Add(entry.Key, e.Message);
-                                    faultingEventsCount.Add(entry.Key, 1);
-                                }
-                                else if (faultingEvents[entry.Key] != e.Message)
-                                {
-                                    Console.WriteLine("Event " + entry.Key + " threw a different exception: " + e.Message);
-                                    faultingEvents[entry.Key] = e.Message;
-                                }
-                            }
+                            triggerEvent(entry.Key, entry.Value, lastState, currentState);                            
                         }
                         CommonData.isNew = false;
+                        if (spotterEnabled && !spotterIsRunning)
+                        {
+                            spotter.clearState();
+                            startSpotterThread();
+                        }
+                        else if (spotterIsRunning && !spotterEnabled)
+                        {
+                            runSpotterThread = false;
+                        }
                     }
                     lastGameStateTime = currentState.Player.GameSimulationTime;
                 }
@@ -301,11 +336,43 @@ namespace CrewChiefV2
             {
                 entry.Value.clearState();
             }
+            spotter.clearState();
             stateCleared = true;
             audioPlayer.stopMonitor();
             return true;
         }
 
+        private void triggerEvent(String eventName, AbstractEvent abstractEvent, Shared lastState, Shared currentState)
+        {
+            try
+            {
+                abstractEvent.trigger(lastState, currentState);
+            }
+            catch (Exception e)
+            {
+                if (faultingEventsCount.ContainsKey(eventName))
+                {
+                    faultingEventsCount[eventName]++;
+                    if (faultingEventsCount[eventName] > 5)
+                    {
+                        Console.WriteLine("Event " + eventName +
+                            " has failed > 5 times in this session");
+                    }
+                }
+                if (!faultingEvents.ContainsKey(eventName))
+                {
+                    Console.WriteLine("Event " + eventName + " threw exception " + e.Message);
+                    Console.WriteLine("This is the first time this event has failed in this session");
+                    faultingEvents.Add(eventName, e.Message);
+                    faultingEventsCount.Add(eventName, 1);
+                }
+                else if (faultingEvents[eventName] != e.Message)
+                {
+                    Console.WriteLine("Event " + eventName + " threw a different exception: " + e.Message);
+                    faultingEvents[eventName] = e.Message;
+                }
+            }
+        }
         /**
          * returns whether the current session phase, type, or iteration is different from the previous one
          */
@@ -403,6 +470,7 @@ namespace CrewChiefV2
         {
             lastGameStateTime = 0;
             running = false;
+            runSpotterThread = false;
             if (_view != null)
             {
                 _view.Dispose();

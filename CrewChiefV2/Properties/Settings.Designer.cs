@@ -154,30 +154,6 @@ namespace CrewChiefV2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool require_2_overlaps_for_hold_message {
-            get {
-                return ((bool)(this["require_2_overlaps_for_hold_message"]));
-            }
-            set {
-                this["require_2_overlaps_for_hold_message"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool require_2_clears_for_clear_message {
-            get {
-                return ((bool)(this["require_2_clears_for_clear_message"]));
-            }
-            set {
-                this["require_2_clears_for_clear_message"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("3.6")]
         public float spotter_car_length {
             get {
@@ -641,6 +617,18 @@ namespace CrewChiefV2.Properties {
             }
             set {
                 this["enable_tyre_wear_warnings"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
+        public int spotter_update_interval {
+            get {
+                return ((int)(this["spotter_update_interval"]));
+            }
+            set {
+                this["spotter_update_interval"] = value;
             }
         }
     }

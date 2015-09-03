@@ -146,7 +146,8 @@ namespace CrewChiefV2
 
             if (isNewLap)
             {
-                Console.WriteLine("New lap, session state is " + currentState.SessionPhase + ", completedLaps = " + currentState.CompletedLaps);
+                Console.WriteLine("New lap, session state is " + currentState.SessionPhase + 
+                    ", completedLaps = " + currentState.CompletedLaps + ", position = " + currentState.Position);
             }
 
             int lastSector = currentLapSector;
