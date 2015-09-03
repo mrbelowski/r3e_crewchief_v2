@@ -2,7 +2,7 @@ CrewChief version 2.
 
 Changelog
 ---------
-Version 2.5.3: Some CPU overhead fixes for low powered systems using the 'disable_immediate_messages' mode; reworked the spotter logic and move spotter into a separate Thread; 
+Version 2.5.3: Some CPU overhead fixes for low powered systems using the 'disable_immediate_messages' mode; reworked the spotter logic and moved spotter into a separate Thread - it's a lot more reliable now;
 
 Version 2.5.2: Fixed another queue issue that could cause the radio channel to hang open if a delayed message is queued during a spotter call; fixed broken check for race position change that caused the push-now and gap reporting events to play when they shouldn't; made lap-time message more likely to play; don't queue or validate some messages (like tyre wear) once the leader's finished the race. No new sound pack for this version
 
