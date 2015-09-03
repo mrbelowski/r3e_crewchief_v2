@@ -30,7 +30,7 @@ namespace CrewChiefV2
         {
             if (enablePearlsOfWisdom && messageProbability * pearlsLikelihood > random.NextDouble())
             {
-                if (random.NextDouble() < 0.5)
+                if (random.NextDouble() < 0.33)
                 {
                     return PearlMessagePosition.BEFORE;
                 }

@@ -65,6 +65,8 @@ namespace CrewChiefV2.Events
         // this is -1 * the time taken to travel 1 car length at the minimum spotter speed
         private float biggestAllowedNegativeTimeDelta;
 
+        private Boolean makeEmergencyChannelCloseRequest = false;
+
         public Spotter(AudioPlayer audioPlayer, Boolean initialEnabledState)
         {
             this.audioPlayer = audioPlayer;
@@ -81,6 +83,7 @@ namespace CrewChiefV2.Events
             newlyOverlapping = true;
             enabled = initialEnabledState;
             timeChannelCloseRequestMade = DateTime.MaxValue;
+            makeEmergencyChannelCloseRequest = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -147,13 +150,13 @@ namespace CrewChiefV2.Events
                             // only play "clear" if we've been clear for the specified time
                             if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay))
                             {
-                                Console.WriteLine("Clear - delta front = " + currentDeltaFront + " delta behind = " + currentDeltaBehind);
-                                isCurrentlyOverlapping = false;
-                                QueuedMessage clearMessage = new QueuedMessage(0, this);
-                                clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
-                                // don't play this message if the channel's closed
+                                // don't play this message if the channel's closed                                
                                 if (audioPlayer.isChannelOpen())
                                 {
+                                    Console.WriteLine("Clear - delta front = " + currentDeltaFront + " delta behind = " + currentDeltaBehind);
+                                    isCurrentlyOverlapping = false;
+                                    QueuedMessage clearMessage = new QueuedMessage(0, this);
+                                    clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
                                     audioPlayer.removeImmediateClip(folderStillThere);
                                     audioPlayer.playClipImmediately(folderClear, clearMessage);
                                     audioPlayer.closeChannel();
@@ -218,14 +221,7 @@ namespace CrewChiefV2.Events
                             }
                         }                        
                     }
-                }/*
-                else
-                {
-                    Console.WriteLine("bollocks data...");
-                    Console.WriteLine("position = " + currentState.Position + ", current speed = " + currentSpeed + " previous speed = " + lastState.CarSpeed);
-                    Console.WriteLine("Current front  = " + currentDeltaFront + " previous front   = " + previousDeltaFront);
-                    Console.WriteLine("Current behind = " + currentDeltaBehind + " previous behind = " + previousDeltaBehind);
-                }*/
+                }
             }
             else if (isCurrentlyOverlapping)
             {
@@ -235,10 +231,12 @@ namespace CrewChiefV2.Events
                     timeChannelCloseRequestMade = DateTime.MaxValue; 
                     isCurrentlyOverlapping = false;
                     audioPlayer.closeChannel();
+                    makeEmergencyChannelCloseRequest = false;
                 }
-                else
+                else if (!makeEmergencyChannelCloseRequest)
                 {
                     timeChannelCloseRequestMade = DateTime.Now;
+                    makeEmergencyChannelCloseRequest = true;
                 }        
             }
         }
