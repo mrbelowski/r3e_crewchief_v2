@@ -35,6 +35,7 @@ namespace CrewChiefV2
         private Boolean requestChannelOpen = false;
         private Boolean requestChannelClose = false;
         private Boolean holdChannelOpen = false;
+        private Boolean useShortBeepWhenOpeningChannel = false;
 
         private readonly TimeSpan queueMonitorInterval = TimeSpan.FromMilliseconds(1000);
 
@@ -163,6 +164,11 @@ namespace CrewChiefV2
                         {
                             enableEndBleep = true;
                             openAndCacheClip("end_bleep", bleepFile.FullName);
+                        }
+                        else if (bleepFile.Name.StartsWith("short"))
+                        {
+                            enableEndBleep = true;
+                            openAndCacheClip("short_bleep", bleepFile.FullName);
                         }
                     }
                 }
@@ -659,8 +665,7 @@ namespace CrewChiefV2
         {
             if (!channelOpen)
             {
-                channelOpen = true;
-                Console.WriteLine("*** Opening channel");
+                channelOpen = true;                
                 if (getBackgroundVolume() > 0 && loadNewBackground && backgroundToLoad != null)
                 {
                     Console.WriteLine("Setting background sounds file to  " + backgroundToLoad);
@@ -698,9 +703,19 @@ namespace CrewChiefV2
                 }
 
                 if (enableStartBleep)
-                {
-                    List<SoundPlayer> bleeps = clips["start_bleep"];
+                {                    
+                    String bleepName;
+                    if (useShortBeepWhenOpeningChannel)
+                    {
+                        bleepName = "short_bleep";
+                    }
+                    else
+                    {
+                        bleepName = "start_bleep";
+                    }
+                    List<SoundPlayer> bleeps = clips[bleepName];
                     int bleepIndex = random.Next(0, bleeps.Count);
+                    Console.WriteLine("*** Opening channel, using bleep " + bleepName + " at position " + bleepIndex);
                     bleeps[bleepIndex].PlaySync();                    
                 }
             }
@@ -727,6 +742,7 @@ namespace CrewChiefV2
                 }                                
                 channelOpen = false;
             }
+            useShortBeepWhenOpeningChannel = false;
         }
 
         /**
@@ -770,14 +786,25 @@ namespace CrewChiefV2
             queueClip(eventName, queuedMessage, PearlsOfWisdom.PearlType.NONE, 0);
         }
 
-
         public void openChannel()
         {
-            requestChannelOpen = true;
+            openChannel(false);
         }
 
         public void holdOpenChannel()
         {
+            holdOpenChannel(false);
+        }
+
+        public void openChannel(Boolean useShortBeep)
+        {
+            useShortBeepWhenOpeningChannel = useShortBeep;
+            requestChannelOpen = true;
+        }
+
+        public void holdOpenChannel(Boolean useShortBeep)
+        {
+            useShortBeepWhenOpeningChannel = useShortBeep;
             requestChannelOpen = true;
             holdChannelOpen = true;
             requestChannelClose = false;

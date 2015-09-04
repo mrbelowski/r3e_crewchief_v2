@@ -195,7 +195,7 @@ namespace CrewChiefV2
 
         private void spotterWork()
         {
-            int threadSleepTime = (int) spotterInterval.Milliseconds / 10;
+            int threadSleepTime = ((int) spotterInterval.Milliseconds / 10) + 1;
             DateTime lastRunTime = DateTime.Now;
             Console.WriteLine("Invoking spotter every " + spotterInterval.Milliseconds + "ms, pausing " + threadSleepTime + "ms between invocations");
 
@@ -234,7 +234,7 @@ namespace CrewChiefV2
             Boolean attemptedToRunRRRE = false;
             DateTime timeLastSpotter = timeReset;
 
-            int threadSleepTime = (int)_timeInterval.Milliseconds / 10;
+            int threadSleepTime = ((int)_timeInterval.Milliseconds / 10) + 1;
             Console.WriteLine("Polling for shared data every " + _timeInterval.Milliseconds + "ms, pausing " + threadSleepTime + "ms between invocations");
 
             while (running)
