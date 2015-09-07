@@ -196,13 +196,13 @@ namespace CrewChiefV2
         private void spotterWork()
         {
             int threadSleepTime = ((int) spotterInterval.Milliseconds / 10) + 1;
-            DateTime lastRunTime = DateTime.Now;
+            DateTime nextRunTime = DateTime.Now;
             Console.WriteLine("Invoking spotter every " + spotterInterval.Milliseconds + "ms, pausing " + threadSleepTime + "ms between invocations");
 
             while (runSpotterThread)
             {
                 DateTime now = DateTime.Now;
-                if (lastRunTime.Add(spotterInterval) < now)
+                if (now > nextRunTime)
                 {
                     spotterIsRunning = true;
                     lastSpotterState = currentSpotterState;
@@ -212,7 +212,7 @@ namespace CrewChiefV2
                         _view.Read(0, out currentSpotterState);
                         triggerEvent("Spotter", spotter, lastSpotterState, currentSpotterState);
                     }
-                    lastRunTime = now;
+                    nextRunTime = nextRunTime.Add(spotterInterval);
                 }
                 Thread.Sleep(threadSleepTime);
             }
@@ -222,8 +222,7 @@ namespace CrewChiefV2
         public Boolean Run()
         {
             running = true;
-            var timeReset = DateTime.UtcNow;
-            var timeLast = timeReset;
+            DateTime nextEventTrigger = DateTime.Now;
             if (!audioPlayer.initialised)
             {
                 Console.WriteLine("Failed to initialise audio player");
@@ -231,105 +230,106 @@ namespace CrewChiefV2
             }
             audioPlayer.startMonitor();
             Boolean displayedMappingMessage = false;
-            Boolean attemptedToRunRRRE = false;
-            DateTime timeLastSpotter = timeReset;
+            Boolean attemptedToRunRRRE = false;            
 
             int threadSleepTime = ((int)_timeInterval.Milliseconds / 10) + 1;
             Console.WriteLine("Polling for shared data every " + _timeInterval.Milliseconds + "ms, pausing " + threadSleepTime + "ms between invocations");
 
             while (running)
             {
-                var timeNow = DateTime.UtcNow;
-                if (timeNow.Subtract(timeLast) < _timeInterval)
+                if (DateTime.Now > nextEventTrigger)
+                {
+                    nextEventTrigger = nextEventTrigger.Add(_timeInterval);
+                    if (Utilities.IsRrreRunning())
+                    {
+                        if (!Mapped)
+                        {
+                            if (!displayedMappingMessage)
+                            {
+                                Console.WriteLine("Found RRRE.exe, mapping shared memory...");
+                                displayedMappingMessage = true;
+                            }
+
+                            if (Map())
+                            {
+                                Console.WriteLine("Memory mapped successfully");
+                            }
+                        }
+                    }
+                    else if (UserSettings.GetUserSettings().getBoolean("launch_raceroom") && !attemptedToRunRRRE)
+                    {
+                        Utilities.runRrre();
+                        attemptedToRunRRRE = true;
+                    }
+
+                    if (Mapped)
+                    {
+                        lastState = currentState;
+                        currentState = new Shared();
+                        _view.Read(0, out currentState);
+                        if (updateSessionData(currentState.SessionType, currentState.SessionPhase, currentState.SessionIteration))
+                        {
+                            // if the current session is race and the phase is terminated (i.e. finished), play the end message - note this might not trigger 
+                            // if it's already been played because of a 'proper' session finish event
+                            if ((currentState.SessionType == (int)Constant.Session.Race && currentState.SessionPhase == (int)Constant.SessionPhase.Terminated) ||
+                                hasNextSessionStarted() && hasParticipatedInPreviousSession())
+                            {
+                                int position = lastState.Position;
+                                if (lastState.LapTimeBestLeader == -1)
+                                {
+                                    position = lastState.NumCars;
+                                }
+                                ((LapCounter)eventsList["LapCounter"]).playFinishMessage(lastState.SessionType, position, lastState.NumCars);
+                            }
+                        }
+
+                        // how long has the game been running?
+                        double gameRunningTime = currentState.Player.GameSimulationTime;
+                        // if we've gone back in time, this means a new session has started so clear all the game state
+                        if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
+                            && !stateCleared)
+                        {
+                            Console.WriteLine("Clearing game state...");
+                            CommonData.clearState();
+                            foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
+                            {
+                                entry.Value.clearState();
+                            }
+                            faultingEvents.Clear();
+                            faultingEventsCount.Clear();
+                            stateCleared = true;
+                        }
+                        else if (gameRunningTime > _timeInterval.Seconds)
+                        {
+                            if (sessionData.Count > 0)
+                            {
+                                sessionData[sessionData.Count - 1].runningTime = gameRunningTime;
+                            }
+                            stateCleared = false;
+                            CommonData.setCommonStateData(lastState, currentState);
+                            foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
+                            {
+                                triggerEvent(entry.Key, entry.Value, lastState, currentState);
+                            }
+                            CommonData.isNew = false;
+                            if (spotterEnabled && !spotterIsRunning)
+                            {
+                                spotter.clearState();
+                                startSpotterThread();
+                            }
+                            else if (spotterIsRunning && !spotterEnabled)
+                            {
+                                runSpotterThread = false;
+                            }
+                        }
+                        lastGameStateTime = currentState.Player.GameSimulationTime;
+                    }
+                }
+                else
                 {
                     Thread.Sleep(threadSleepTime);
                     continue;
-                }
-                timeLast = timeNow;
-                if (Utilities.IsRrreRunning()) {
-                    if (!Mapped)
-                    {
-                        if (!displayedMappingMessage)
-                        {
-                            Console.WriteLine("Found RRRE.exe, mapping shared memory...");
-                            displayedMappingMessage = true;
-                        }
-
-                        if (Map())
-                        {
-                            Console.WriteLine("Memory mapped successfully");
-                            timeReset = DateTime.UtcNow;
-                        }
-                    }
-                }
-                else if (UserSettings.GetUserSettings().getBoolean("launch_raceroom") && !attemptedToRunRRRE)
-                {
-                    Utilities.runRrre();
-                    attemptedToRunRRRE = true;
-                }
-
-                if (Mapped)
-                {
-                    lastState = currentState;
-                    currentState = new Shared();
-                    _view.Read(0, out currentState);
-                    if (updateSessionData(currentState.SessionType, currentState.SessionPhase, currentState.SessionIteration))
-                    {
-                        // if the current session is race and the phase is terminated (i.e. finished), play the end message - note this might not trigger 
-                        // if it's already been played because of a 'proper' session finish event
-                        if ((currentState.SessionType == (int)Constant.Session.Race && currentState.SessionPhase == (int)Constant.SessionPhase.Terminated) ||
-                            hasNextSessionStarted() && hasParticipatedInPreviousSession())
-                        {
-                            int position = lastState.Position;
-                            if (lastState.LapTimeBestLeader == -1)
-                            {
-                                position = lastState.NumCars;
-                            }
-                            ((LapCounter)eventsList["LapCounter"]).playFinishMessage(lastState.SessionType, position, lastState.NumCars);
-                        }
-                    }
-
-                    // how long has the game been running?
-                    double gameRunningTime = currentState.Player.GameSimulationTime;
-                    // if we've gone back in time, this means a new session has started so clear all the game state
-                    if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
-                        && !stateCleared)
-                    {
-                        Console.WriteLine("Clearing game state...");
-                        CommonData.clearState();
-                        foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
-                        {
-                            entry.Value.clearState();
-                        }
-                        faultingEvents.Clear();
-                        faultingEventsCount.Clear();
-                        stateCleared = true;
-                    }
-                    else if (gameRunningTime > _timeInterval.Seconds)
-                    {
-                        if (sessionData.Count > 0)
-                        {
-                            sessionData[sessionData.Count - 1].runningTime = gameRunningTime;
-                        }
-                        stateCleared = false;
-                        CommonData.setCommonStateData(lastState, currentState);
-                        foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
-                        {
-                            triggerEvent(entry.Key, entry.Value, lastState, currentState);                            
-                        }
-                        CommonData.isNew = false;
-                        if (spotterEnabled && !spotterIsRunning)
-                        {
-                            spotter.clearState();
-                            startSpotterThread();
-                        }
-                        else if (spotterIsRunning && !spotterEnabled)
-                        {
-                            runSpotterThread = false;
-                        }
-                    }
-                    lastGameStateTime = currentState.Player.GameSimulationTime;
-                }
+                }                
             }
             CommonData.clearState();
             foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)

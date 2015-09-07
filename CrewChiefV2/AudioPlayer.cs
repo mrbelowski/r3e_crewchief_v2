@@ -330,7 +330,7 @@ namespace CrewChiefV2
         {
             Console.WriteLine("Monitor starting");
             initialiseBackgroundPlayer();
-            var timeLast = DateTime.UtcNow;
+            DateTime nextQueueCheck = DateTime.Now;
             while (monitorRunning)
             {                
                 if (requestChannelOpen)
@@ -374,26 +374,28 @@ namespace CrewChiefV2
                         requestChannelClose = false;
                         holdChannelOpen = false;
                     }
-                }
-                var timeNow = DateTime.UtcNow;
-                if (timeNow.Subtract(timeLast) < queueMonitorInterval)
+                }                
+                if (DateTime.Now > nextQueueCheck)
+                {
+                    nextQueueCheck = nextQueueCheck.Add(queueMonitorInterval);
+                    try
+                    {
+                        playQueueContents(queuedClips, false);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Exception processing queued clips: " + e.Message);
+                        lock (queuedClips)
+                        {
+                            queuedClips.Clear();
+                        }
+                    }
+                } 
+                else
                 {
                     Thread.Sleep(immediateMessagesMonitorInterval);
                     continue;
-                }
-                timeLast = timeNow;
-                try
-                {
-                    playQueueContents(queuedClips, false);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Exception processing queued clips: " + e.Message);
-                    lock (queuedClips)
-                    {
-                        queuedClips.Clear();
-                    }
-                }
+                }                
             }
             //writeMessagePlayedStats();
             playedMessagesCount.Clear();

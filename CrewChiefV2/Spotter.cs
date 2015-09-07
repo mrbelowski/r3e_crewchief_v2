@@ -46,10 +46,10 @@ namespace CrewChiefV2.Events
         private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(UserSettings.GetUserSettings().getInt("spotter_clear_delay"));
         private TimeSpan overlapMessageDelay = TimeSpan.FromMilliseconds(UserSettings.GetUserSettings().getInt("spotter_overlap_delay"));
 
-        private DateTime timeOfLastHoldMessage;
+        private DateTime timeOfNextHoldMessage;
 
-        private DateTime timeWhenWeThinkWeAreClear;
-        private DateTime timeWhenWeThinkWeAreOverlapping;
+        private DateTime timeWhenWeCanSayClear;
+        private DateTime timeWhenWeCanSayHold;
 
         private Boolean newlyClear = true;
         private Boolean newlyOverlapping = true;
@@ -58,20 +58,20 @@ namespace CrewChiefV2.Events
 
         private Boolean initialEnabledState;
 
-        private DateTime timeChannelCloseRequestMade = DateTime.MaxValue;
+        private DateTime timeWhenChannelShouldBeClosed;
 
         private TimeSpan timeToWaitBeforeClosingChannelLeftOpen = TimeSpan.FromMilliseconds(500);
 
         // this is -1 * the time taken to travel 1 car length at the minimum spotter speed
         private float biggestAllowedNegativeTimeDelta;
 
-        private Boolean makeEmergencyChannelCloseRequest = false;
+        private Boolean channelLeftOpenTimerStarted = false;
 
-        private DateTime shitDataStartTime;
+        private DateTime timeWhenWeveHadEnoughUnusableData;
 
-        private TimeSpan maxTimeToKeepChannelOpenWhileReceivingShitData = TimeSpan.FromSeconds(2);
+        private TimeSpan maxTimeToKeepChannelOpenWhileReceivingUnusableData = TimeSpan.FromSeconds(2);
 
-        private Boolean isReceivingShitData;
+        private Boolean lastSpotterDataIsUsable;
 
         public Spotter(AudioPlayer audioPlayer, Boolean initialEnabledState)
         {
@@ -84,14 +84,14 @@ namespace CrewChiefV2.Events
         public override void clearState()
         {
             isCurrentlyOverlapping = false;
-            timeOfLastHoldMessage = DateTime.Now;
-            shitDataStartTime = DateTime.Now;
+            timeOfNextHoldMessage = DateTime.Now;
+            timeWhenWeveHadEnoughUnusableData = DateTime.Now;
             newlyClear = true;
             newlyOverlapping = true;
             enabled = initialEnabledState;
-            timeChannelCloseRequestMade = DateTime.MaxValue;
-            makeEmergencyChannelCloseRequest = false;
-            isReceivingShitData = false;
+            timeWhenChannelShouldBeClosed = DateTime.Now;
+            channelLeftOpenTimerStarted = false;
+            lastSpotterDataIsUsable = false;
         }
 
         public override bool isClipStillValid(string eventSubType)
@@ -112,13 +112,15 @@ namespace CrewChiefV2.Events
 
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
+            DateTime now = DateTime.Now;
+
             float currentSpeed = currentState.CarSpeed;
             float previousSpeed = lastState.CarSpeed;
             if (enabled && CommonData.isRaceRunning &&
                 currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate &&
                 currentState.ControlType == (int)Constant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {
-                timeChannelCloseRequestMade = DateTime.MaxValue; 
+                channelLeftOpenTimerStarted = false;
                 float currentDeltaFront = currentState.TimeDeltaFront;
                 float currentDeltaBehind = currentState.TimeDeltaBehind;
                 float previousDeltaFront = lastState.TimeDeltaFront;
@@ -127,7 +129,7 @@ namespace CrewChiefV2.Events
                 if (checkDelta(currentDeltaFront, currentSpeed) && checkDelta(currentDeltaBehind, currentSpeed) && 
                     checkDelta(previousDeltaFront, previousSpeed) && checkDelta(previousDeltaBehind, previousSpeed))
                 {
-                    isReceivingShitData = false;
+                    lastSpotterDataIsUsable = true;
                     // if we think there's already a car along side, add a little to the car length so we're
                     // sure it's gone before calling clear
                     float carLengthToUse = carLength;
@@ -140,8 +142,6 @@ namespace CrewChiefV2.Events
                     Boolean carAlongSideInFront = carLengthToUse / currentSpeed > Math.Abs(currentDeltaFront);
                     Boolean carAlongSideBehind = carLengthToUse / currentSpeed > Math.Abs(currentDeltaBehind);
 
-                    DateTime now = DateTime.Now;
-
                     if (!carAlongSideInFront && !carAlongSideBehind)
                     {
                         // we're clear here, so when we next detect we're overlapping we know this must be
@@ -153,10 +153,10 @@ namespace CrewChiefV2.Events
                             {
                                 // start the timer...
                                 newlyClear = false;
-                                timeWhenWeThinkWeAreClear = now;
+                                timeWhenWeCanSayClear = now.Add(clearMessageDelay);
                             }
                             // only play "clear" if we've been clear for the specified time
-                            if (now > timeWhenWeThinkWeAreClear.Add(clearMessageDelay))
+                            if (now > timeWhenWeCanSayClear)
                             {
                                 // don't play this message if the channel's closed   
                                 isCurrentlyOverlapping = false;
@@ -183,19 +183,19 @@ namespace CrewChiefV2.Events
                         newlyClear = true;
                         if (newlyOverlapping)
                         {
-                            timeWhenWeThinkWeAreOverlapping = now;
+                            timeWhenWeCanSayHold = now.Add(overlapMessageDelay);
                             newlyOverlapping = false;
                         }
-                        if (now > timeWhenWeThinkWeAreOverlapping.Add(overlapMessageDelay))
+                        if (now > timeWhenWeCanSayHold)
                         {
                             if (isCurrentlyOverlapping)
                             {
                                 // play "still there" if we've not played one for a while
-                                if (now > timeOfLastHoldMessage.Add(repeatHoldFrequency))
+                                if (now > timeOfNextHoldMessage)
                                 {
                                     // channel's already open, still there
                                     Console.WriteLine("Still there - delta front = " + currentDeltaFront + " delta behind = " + currentDeltaBehind);
-                                    timeOfLastHoldMessage = now;
+                                    timeOfNextHoldMessage = now.Add(repeatHoldFrequency);
                                     QueuedMessage stillThereMessage = new QueuedMessage(0, this);
                                     stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
                                     audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
@@ -218,7 +218,7 @@ namespace CrewChiefV2.Events
                                         Console.WriteLine("New overlap");
                                         Console.WriteLine("delta front  = " + currentDeltaFront + " closing speed front  = " + closingSpeedInFront);
                                         Console.WriteLine("delta behind = " + currentDeltaBehind + " closing speed behind = " + closingSpeedBehind);
-                                        timeOfLastHoldMessage = now;
+                                        timeOfNextHoldMessage = now.Add(repeatHoldFrequency);
                                         isCurrentlyOverlapping = true;
                                         audioPlayer.holdOpenChannel(true);
                                         QueuedMessage holdMessage = new QueuedMessage(0, this);
@@ -232,14 +232,15 @@ namespace CrewChiefV2.Events
                 }
                 else if (isCurrentlyOverlapping)
                 {
-                    if (!isReceivingShitData)
+                    if (lastSpotterDataIsUsable)
                     {
-                        isReceivingShitData = true;
-                        shitDataStartTime = DateTime.Now;
+                        // this is the first chunk of unusable data
+                        lastSpotterDataIsUsable = false;
+                        timeWhenWeveHadEnoughUnusableData = now.Add(maxTimeToKeepChannelOpenWhileReceivingUnusableData);
                     }
-                    else if (shitDataStartTime.Add(maxTimeToKeepChannelOpenWhileReceivingShitData) < DateTime.Now)
+                    if (now > timeWhenWeveHadEnoughUnusableData)
                     {
-                        Console.WriteLine("Had " + maxTimeToKeepChannelOpenWhileReceivingShitData.Seconds + " seconds of unusable spotter data, closing channel");
+                        Console.WriteLine("Had " + maxTimeToKeepChannelOpenWhileReceivingUnusableData.Seconds + " seconds of unusable spotter data, closing channel");
                         isCurrentlyOverlapping = false;
                         audioPlayer.closeChannel();
                     }
@@ -247,19 +248,20 @@ namespace CrewChiefV2.Events
             }
             else if (isCurrentlyOverlapping)
             {
-                if (DateTime.Now.Subtract(timeToWaitBeforeClosingChannelLeftOpen) > timeChannelCloseRequestMade)
+                if (!channelLeftOpenTimerStarted)
+                {
+                    timeWhenChannelShouldBeClosed = now.Add(timeToWaitBeforeClosingChannelLeftOpen);
+                    channelLeftOpenTimerStarted = true;
+                }
+                if (now > timeWhenChannelShouldBeClosed)
                 {
                     Console.WriteLine("Closing channel left open in spotter");
-                    timeChannelCloseRequestMade = DateTime.MaxValue; 
+                    timeWhenChannelShouldBeClosed = DateTime.MaxValue; 
                     isCurrentlyOverlapping = false;
                     audioPlayer.closeChannel();
-                    makeEmergencyChannelCloseRequest = false;
-                }
-                else if (!makeEmergencyChannelCloseRequest)
-                {
-                    timeChannelCloseRequestMade = DateTime.Now;
-                    makeEmergencyChannelCloseRequest = true;
-                }        
+                    channelLeftOpenTimerStarted = false;
+                    isCurrentlyOverlapping = false;
+                }      
             }
         }
 
