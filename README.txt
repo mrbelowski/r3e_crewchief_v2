@@ -2,7 +2,7 @@ CrewChief version 2.
 
 Changelog
 ---------
-Version 2.5.4: Some internal changes to make the queue listener more efficient and its trigger time more predictable; added timer to spotter so it closes the channel if it's had more than 2 seconds of unusuable data; chopped of some of the lead-in in the spotter wav files; added a new shorter channel open bleep for spotter calls. This version requires a new sound pack.
+Version 2.6.0: Some internal changes to make the queue listener more efficient and its trigger time more predictable; added timer to spotter so it closes the channel if it's had more than 2 seconds of unusuable data; chopped of some of the lead-in in the spotter wav files; added a new shorter channel open bleep for spotter calls. This version requires a new sound pack.
 
 Version 2.5.3: Some CPU overhead fixes for low powered systems using the 'disable_immediate_messages' mode; reworked the spotter logic and moved spotter into a separate Thread - it's a lot more reliable now; some other tweaks and fixes. No new sound pack for this version
 
