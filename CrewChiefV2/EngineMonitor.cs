@@ -82,7 +82,7 @@ namespace CrewChiefV2.Events
         override protected void triggerInternal(Shared lastState, Shared currentState)
         {
             if (CommonData.isRaceRunning)
-            {
+            { 
                 if (engineData == null)
                 {
                     clearState();
