@@ -84,6 +84,7 @@
     <Compile Include="FloatPropertyControl.Designer.cs">
       <DependentUpon>FloatPropertyControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="GameStateData.cs" />
     <Compile Include="PropertiesForm.cs">
       <SubType>Form</SubType>
     </Compile>
