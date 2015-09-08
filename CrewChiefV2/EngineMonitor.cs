@@ -111,7 +111,7 @@ namespace CrewChiefV2.Events
                         if (currentEngineStatus != lastStatusMessage)
                         {
                             switch (currentEngineStatus)
-                            {Class1.cs
+                            {
                                 case EngineStatus.ALL_CLEAR:
                                     lastStatusMessage = currentEngineStatus;
                                     audioPlayer.queueClip(folderAllClear, 0, this);
