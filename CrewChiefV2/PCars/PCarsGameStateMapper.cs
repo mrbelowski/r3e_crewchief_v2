@@ -36,7 +36,20 @@ namespace CrewChiefV2.PCars
             previousGameState = currentGameState;
             currentGameState = new GameStateData();
             pCarsAPIStruct shared = (pCarsAPIStruct)memoryMappedFileStruct;
-
+            foreach (pCarsAPIParticipantStruct playerData in shared.mParticipantData)
+            {
+                if (playerData.mIsActive)
+                {
+                    // this is the current player?
+                    currentGameState.SessionData.Position = (int)playerData.mRacePosition;
+                    currentGameState.SessionData.CompletedLaps = (int)playerData.mLapsCompleted;
+                    currentGameState.SessionData.SectorNumber = (int)playerData.mCurrentSector;
+                    if (previousGameState == null || currentGameState.SessionData.SectorNumber != previousGameState.SessionData.SectorNumber)
+                    {
+                        currentGameState.SessionData.IsNewSector = true;
+                    }
+                }
+            }
         }
 
         public GameStateData getCurrentGameState()

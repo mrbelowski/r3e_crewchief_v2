@@ -77,7 +77,6 @@ namespace CrewChiefV2
             eventsList.Add("Timings", new Timings(audioPlayer));
             eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
             eventsList.Add("PushNow", new PushNow(audioPlayer));
-            spotter = new R3ESpotter(audioPlayer, spotterEnabled);
         }
 
         public void setGameDefinition(GameDefinition gameDefinition)
@@ -156,14 +155,24 @@ namespace CrewChiefV2
             {
                 Console.WriteLine("Unable to start spotter - immediate messages are disabled");
             }
-            spotterEnabled = true;
-            spotter.enableSpotter();
+            else if (spotter == null)
+            {
+                Console.WriteLine("No spotter configured for this game");
+            }
+            else
+            {
+                spotterEnabled = true;
+                spotter.enableSpotter();
+            }           
         }
 
         public void disableSpotter()
         {
-            spotterEnabled = false;
-            spotter.disableSpotter();
+            if (spotter != null)
+            {
+                spotterEnabled = false;
+                spotter.disableSpotter();
+            }            
         }
 
         public void youWot()
@@ -175,10 +184,13 @@ namespace CrewChiefV2
 
         private void startSpotterThread()
         {
-            ThreadStart work = spotterWork;
-            Thread thread = new Thread(work);
-            runSpotterThread = true;
-            thread.Start();
+            if (spotter != null)
+            {
+                ThreadStart work = spotterWork;
+                Thread thread = new Thread(work);
+                runSpotterThread = true;
+                thread.Start();
+            }            
         }
 
         private void spotterWork()
@@ -196,7 +208,10 @@ namespace CrewChiefV2
                     lastSpotterState = currentSpotterState;
                     currentSpotterState = sharedMemoryLoader.ReadSharedMemory();
                     currentSpotterState = new RaceRoomShared();
-                    spotter.trigger(lastSpotterState, currentSpotterState);
+                    if (spotter != null)
+                    {
+                        spotter.trigger(lastSpotterState, currentSpotterState);
+                    }
                     nextRunTime = nextRunTime.Add(spotterInterval);
                 }
                 Thread.Sleep(threadSleepTime);
@@ -206,8 +221,16 @@ namespace CrewChiefV2
 
         public Boolean Run()
         {
-            gameStateMapper = gameDefinition.getGameStateMapper();
-            sharedMemoryLoader = gameDefinition.getSharedMemoryLoader();
+            gameStateMapper = (GameStateMapper)Activator.CreateInstance(Type.GetType(gameDefinition.gameStateMapperName));
+            sharedMemoryLoader = (SharedMemoryLoader)Activator.CreateInstance(Type.GetType(gameDefinition.sharedMemoryLoaderName));
+            if (gameDefinition.spotterName != null)
+            {
+                spotter = (Spotter)Activator.CreateInstance(Type.GetType(gameDefinition.spotterName));
+            }
+            else
+            {
+                Console.WriteLine("No spotter defined for game " + gameDefinition.friendlyName);
+            }
             running = true;
             DateTime nextEventTrigger = DateTime.Now;
             if (!audioPlayer.initialised)
@@ -297,7 +320,10 @@ namespace CrewChiefV2
             {
                 entry.Value.clearState();
             }
-            spotter.clearState();
+            if (spotter != null)
+            {
+                spotter.clearState();
+            }
             stateCleared = true;
             audioPlayer.stopMonitor();
             return true;
