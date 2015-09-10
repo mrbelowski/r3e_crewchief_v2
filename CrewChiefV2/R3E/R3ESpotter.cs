@@ -120,6 +120,7 @@ namespace CrewChiefV2.RaceRoom
                 currentState.ControlType == (int)RaceRoomConstant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {
                 channelLeftOpenTimerStarted = false;
+                timeWhenChannelShouldBeClosed = now.Add(timeToWaitBeforeClosingChannelLeftOpen);
                 float currentDeltaFront = currentState.TimeDeltaFront;
                 float currentDeltaBehind = currentState.TimeDeltaBehind;
                 float previousDeltaFront = lastState.TimeDeltaFront;
