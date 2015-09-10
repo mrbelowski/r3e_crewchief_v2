@@ -512,7 +512,7 @@ namespace CrewChiefV2.RaceRoom
                 return -1;
             }
             // tyres in R3E only go down to 0.9
-            return (float) ((1 - Math.Max(wornOutTyreWearLevel, wearLevel) / (1 - wornOutTyreWearLevel)) * 100);
+            return (float) (((1 - Math.Max(wornOutTyreWearLevel, wearLevel)) / (1 - wornOutTyreWearLevel)) * 100);
 
         }
 

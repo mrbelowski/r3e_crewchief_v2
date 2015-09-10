@@ -186,6 +186,7 @@ namespace CrewChiefV2
         {
             if (spotter != null)
             {
+                spotterIsRunning = true;
                 ThreadStart work = spotterWork;
                 Thread thread = new Thread(work);
                 runSpotterThread = true;
@@ -204,11 +205,9 @@ namespace CrewChiefV2
                 DateTime now = DateTime.Now;
                 if (now > nextRunTime)
                 {
-                    spotterIsRunning = true;
                     lastSpotterState = currentSpotterState;
                     currentSpotterState = sharedMemoryLoader.ReadSharedMemory();
-                    currentSpotterState = new RaceRoomShared();
-                    if (spotter != null)
+                    if (spotter != null && lastSpotterState != null)
                     {
                         spotter.trigger(lastSpotterState, currentSpotterState);
                     }
@@ -225,7 +224,8 @@ namespace CrewChiefV2
             sharedMemoryLoader = (SharedMemoryLoader)Activator.CreateInstance(Type.GetType(gameDefinition.sharedMemoryLoaderName));
             if (gameDefinition.spotterName != null)
             {
-                spotter = (Spotter)Activator.CreateInstance(Type.GetType(gameDefinition.spotterName));
+                spotter = (Spotter)Activator.CreateInstance(Type.GetType(gameDefinition.spotterName), 
+                    audioPlayer, spotterEnabled);
             }
             else
             {
@@ -279,7 +279,8 @@ namespace CrewChiefV2
                             sessionConstants = null;
                             stateCleared = true;
                         }
-                        else if (previousGameState == null || currentGameState.SessionData.SessionRunningTime > previousGameState.SessionData.SessionRunningTime)
+                        else if (previousGameState == null ||
+                            currentGameState.SessionData.SessionRunningTime > previousGameState.SessionData.SessionRunningTime)
                         {                            
                             if (sessionConstants == null)
                             {
