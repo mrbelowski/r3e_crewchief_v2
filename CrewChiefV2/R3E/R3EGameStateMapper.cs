@@ -108,9 +108,10 @@ namespace CrewChiefV2.RaceRoom
             }
             currentGameState.SessionData.SessionPhase = mapToSessionPhase(lastSessionPhase, lastSessionRunningTime, 
                 currentGameState.SessionData.SessionRunningTime, shared.SessionPhase, currentGameState.ControlData.ControlType);
-            currentGameState.SessionData.IsNewLap = previousGameState == null ||
-                (shared.CompletedLaps > 0 && shared.CompletedLaps == previousGameState.SessionData.CompletedLaps + 1) ||
-                ((lastSessionPhase == SessionPhase.Countdown || lastSessionPhase == SessionPhase.Formation) && currentGameState.SessionData.SessionPhase == SessionPhase.Green);
+            currentGameState.SessionData.IsNewLap = previousGameState != null && previousGameState.SessionData.IsNewLap == false &&
+                (shared.CompletedLaps == previousGameState.SessionData.CompletedLaps + 1 ||
+                ((lastSessionPhase == SessionPhase.Countdown || lastSessionPhase == SessionPhase.Formation || lastSessionPhase == SessionPhase.Garage)
+                && currentGameState.SessionData.SessionPhase == SessionPhase.Green));
             if (currentGameState.SessionData.IsNewLap)
             {
                 Console.WriteLine("new lap");

@@ -17,24 +17,10 @@ namespace CrewChiefV2
 {
     class CrewChief : IDisposable
     {
-        private enum GameEnum
-        {
-            RACE_ROOM, PCARS
-        }
-        private GameEnum game = GameEnum.RACE_ROOM;
+        private GameDefinition gameDefinition = GameDefinition.pCars64Bit;
 
         private Boolean keepQuietEnabled = false;
         private Boolean spotterEnabled = UserSettings.GetUserSettings().getBoolean("enable_spotter");
-
-        private bool MappedRaceRoomData
-        {
-            get { return (_file != null && _view != null); }
-        }
-
-        private Boolean MappedPCarsData = false;
-
-        private MemoryMappedFile _file;
-        private MemoryMappedViewAccessor _view;
 
         public static TimeSpan _timeInterval = TimeSpan.FromMilliseconds(UserSettings.GetUserSettings().getInt("update_interval"));
 
@@ -44,8 +30,8 @@ namespace CrewChiefV2
 
         public AudioPlayer audioPlayer;
 
-        RaceRoomShared lastSpotterState;
-        RaceRoomShared currentSpotterState;
+        Object lastSpotterState;
+        Object currentSpotterState;
 
         Boolean stateCleared = false;
 
@@ -67,9 +53,13 @@ namespace CrewChiefV2
 
         private GameStateMapper gameStateMapper;
 
+        private SharedMemoryLoader sharedMemoryLoader;
+
         public GameStateData currentGameState;
 
         public SessionConstants sessionConstants = null;
+
+        private Boolean mapped = false;
 
         public CrewChief()
         {
@@ -88,25 +78,15 @@ namespace CrewChiefV2
             eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
             eventsList.Add("PushNow", new PushNow(audioPlayer));
             spotter = new R3ESpotter(audioPlayer, spotterEnabled);
-            if (game == GameEnum.RACE_ROOM)
-            {
-                gameStateMapper = new R3EGameStateMapper();
-            }
-            else if (game == GameEnum.PCARS)
-            {
-                gameStateMapper = new PCarsGameStateMapper();
-            }
+            gameStateMapper = gameDefinition.getGameStateMapper();
+            sharedMemoryLoader = gameDefinition.getSharedMemoryLoader();
         }
 
         public void Dispose()
         {
-            if (_view != null)
+            if (sharedMemoryLoader != null)
             {
-                _view.Dispose();
-            }
-            if (_file != null)
-            {
-                _file.Dispose();
+                sharedMemoryLoader.Dispose();
             }
             audioPlayer.stopMonitor();
         }
@@ -203,12 +183,9 @@ namespace CrewChiefV2
                 {
                     spotterIsRunning = true;
                     lastSpotterState = currentSpotterState;
+                    currentSpotterState = sharedMemoryLoader.ReadSharedMemory();
                     currentSpotterState = new RaceRoomShared();
-                    if (_view != null)
-                    {
-                        _view.Read(0, out currentSpotterState);
-                        spotter.trigger(lastSpotterState, currentSpotterState);
-                    }
+                    spotter.trigger(lastSpotterState, currentSpotterState);
                     nextRunTime = nextRunTime.Add(spotterInterval);
                 }
                 Thread.Sleep(threadSleepTime);
@@ -226,57 +203,19 @@ namespace CrewChiefV2
                 return false;
             }
             audioPlayer.startMonitor();
-            Boolean displayedMappingMessage = false;
             Boolean attemptedToRunGame = false;            
 
             int threadSleepTime = ((int)_timeInterval.Milliseconds / 10) + 1;
             Console.WriteLine("Polling for shared data every " + _timeInterval.Milliseconds + "ms, pausing " + threadSleepTime + "ms between invocations");
-
-            String gameProcessName = null;
-            if (game == GameEnum.PCARS)
-            {
-                gameProcessName = "pCARS64";
-            } else if (game == GameEnum.RACE_ROOM)
-            {
-                gameProcessName = "RRRE";
-            }
-
 
             while (running)
             {
                 if (DateTime.Now > nextEventTrigger)
                 {
                     nextEventTrigger = nextEventTrigger.Add(_timeInterval);
-                    if (Utilities.IsGameRunning(gameProcessName))
+                    if (Utilities.IsGameRunning(gameDefinition.processName))
                     {
-                        if (game == GameEnum.RACE_ROOM)
-                        {
-                            if (!MappedRaceRoomData)
-                            {
-                                if (!displayedMappingMessage)
-                                {
-                                    Console.WriteLine("Found " + gameProcessName + " exe, mapping shared memory...");
-                                    displayedMappingMessage = true;
-                                }
-                                if (MapRaceRoomSharedData())
-                                {
-                                        Console.WriteLine("Raceroom memory mapped successfully");
-                                }
-                            }
-                        }
-                        if (!MappedPCarsData)
-                        {
-                            if (!displayedMappingMessage)
-                            {
-                                Console.WriteLine("Found " + gameProcessName + " exe, mapping shared memory...");
-                                displayedMappingMessage = true;
-                            }
-                            if (PCarsStructReader.ReadSharedMemoryData().Item1)
-                            {
-                                Console.WriteLine("PCars memory mapped successfully");
-                                MappedPCarsData = true;
-                            }
-                        }
+                        mapped = sharedMemoryLoader.Initialise();
                     }
                     else if (UserSettings.GetUserSettings().getBoolean("launch_raceroom") && !attemptedToRunGame)
                     {
@@ -284,26 +223,10 @@ namespace CrewChiefV2
                         attemptedToRunGame = true;
                     }
 
-                    if (MappedPCarsData || MappedRaceRoomData)
+                    if (mapped)
                     {
-                        SessionConstants mappedSessionConstants = null;
-                        if (game == GameEnum.RACE_ROOM)
-                        {
-                            RaceRoomShared currentState = new RaceRoomShared();
-                            _view.Read(0, out currentState);
-                            gameStateMapper.mapToGameStateData(currentState);
-                            mappedSessionConstants = gameStateMapper.getSessionConstants(currentState);
-                        }
-                        else if (game == GameEnum.PCARS)
-                        {
-                            Tuple<bool, pCarsAPIStruct> data = PCarsStructReader.ReadSharedMemoryData();
-                            if (data.Item1)
-                            {
-                                pCarsAPIStruct currentState = data.Item2;
-                                gameStateMapper.mapToGameStateData(currentState);
-                                mappedSessionConstants = gameStateMapper.getSessionConstants(currentState);
-                            }
-                        }
+                        Object sharedMemoryData = sharedMemoryLoader.ReadSharedMemory();
+                        gameStateMapper.mapToGameStateData(sharedMemoryData);
                         
                         currentGameState = gameStateMapper.getCurrentGameState();
                         GameStateData previousGameState = gameStateMapper.getPreviousGameState();
@@ -323,7 +246,7 @@ namespace CrewChiefV2
                         {                            
                             if (sessionConstants == null)
                             {
-                                sessionConstants = mappedSessionConstants;
+                                sessionConstants = gameStateMapper.getSessionConstants(sharedMemoryData);
                             }
                             if (currentGameState.SessionData.IsNewLap)
                             {
@@ -401,31 +324,7 @@ namespace CrewChiefV2
         public void stop()
         {
             running = false;
-            runSpotterThread = false;
-            if (_view != null)
-            {
-                _view.Dispose();
-                _view = null;
-            }
-            if (_file != null)
-            {
-                _file.Dispose();
-                _file = null;
-            }    
-        }
-                
-        private bool MapRaceRoomSharedData()
-        {
-            try
-            {
-                _file = MemoryMappedFile.OpenExisting(RaceRoomConstant.SharedMemoryName);
-                _view = _file.CreateViewAccessor(0, Marshal.SizeOf(typeof(RaceRoomShared)));
-                return true;
-            }
-            catch (FileNotFoundException)
-            {
-                return false;
-            }
+            runSpotterThread = false;  
         }
     }
 }

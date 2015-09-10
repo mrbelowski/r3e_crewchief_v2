@@ -81,8 +81,10 @@
     <Compile Include="Events\Spotter.cs" />
     <Compile Include="GameDefinition.cs" />
     <Compile Include="GameState\SessionConstants.cs" />
+    <Compile Include="R3E\R3ESharedMemoryReader.cs" />
+    <Compile Include="SharedMemoryLoader.cs" />
     <Compile Include="PCars\PCarsStruct.cs" />
-    <Compile Include="PCars\PCarsStructReader.cs" />
+    <Compile Include="PCars\PCarsSharedMemoryReader.cs" />
     <Compile Include="PCars\PCarsGameStateMapper.cs" />
     <Compile Include="PCars\_eNums\eAPIStructLengths.cs" />
     <Compile Include="PCars\_eNums\eCarFlags.cs" />
@@ -101,6 +103,7 @@
     <Compile Include="PCars\_eNums\eTyres.cs" />
     <Compile Include="PCars\_eNums\eVector.cs" />
     <Compile Include="PCars\_eNums\_EnumGetDescription.cs" />
+    <Compile Include="SharedMemoryReadException.cs" />
     <Compile Include="UserInterface\FloatPropertyControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
