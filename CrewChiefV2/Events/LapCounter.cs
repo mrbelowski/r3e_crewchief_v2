@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CrewChiefV2.Data;
+using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
 {
@@ -45,6 +46,11 @@ namespace CrewChiefV2.Events
 
         private Boolean enableSessionEndMessages = UserSettings.GetUserSettings().getBoolean("enable_session_end_messages");
 
+        protected override List<SessionPhase> applicableSessionPhases
+        {
+            get { return new List<SessionPhase> { SessionPhase.Countdown, SessionPhase.Formation, SessionPhase.Green, SessionPhase.Checkered, SessionPhase.Finished }; }
+        }
+
         public LapCounter(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -57,102 +63,86 @@ namespace CrewChiefV2.Events
             playedFinished = false;
         }
 
-        public override bool isClipStillValid(string eventSubType)
+        public override bool isClipStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            return true;
+            return applicableSessionPhases.Contains(currentGameState.SessionData.SessionPhase);
         }
 
-        override protected void triggerInternal(Shared lastState, Shared currentState)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            if (!playedGetReady &&
-                (currentState.SessionPhase == (int)Constant.SessionPhase.Countdown))
+            if (!playedGetReady && sessionConstants.SessionType == SessionType.Race && currentGameState.SessionData.SessionPhase == SessionPhase.Countdown)
             {
                 audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(folderGetReady, new QueuedMessage(0, this));
                 playedGetReady = true;
                 audioPlayer.closeChannel();
             }
-            if (!playedGreenGreenGreen &&
-                (lastState.SessionPhase == (int)Constant.SessionPhase.Countdown && currentState.SessionPhase == (int)Constant.SessionPhase.Green) ||
-                (lastState.ControlType == (int)Constant.Control.AI && currentState.ControlType == (int)Constant.Control.Player &&
-                currentState.Player.GameSimulationTime < 20))
+            if (!playedGreenGreenGreen && sessionConstants.SessionType == SessionType.Race && currentGameState.SessionData.SessionPhase == SessionPhase.Green)
             {
                 audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(folderGreenGreenGreen, new QueuedMessage(0, this));
                 audioPlayer.closeChannel();
                 playedGreenGreenGreen = true;
-                CommonData.raceStartPosition = currentState.Position;
             }
-            if (!playedFinished && currentState.Player.GameSimulationTime > 60 && 
-                (currentState.SessionType == (int)Constant.Session.Race && CommonData.leaderHasFinishedRace && !CommonData.isRaceRunning) ||
-                (!CommonData.isSessionRunning && CommonData.isNewLap))
+            if (!playedFinished && currentGameState.SessionData.SessionRunningTime > 60 && sessionConstants.SessionType == SessionType.Race && 
+                currentGameState.SessionData.LeaderHasFinishedRace && currentGameState.SessionData.SessionPhase == SessionPhase.Finished)
             {
-                Console.WriteLine("Playing session finished message from LapCounter, session type = " + currentState.SessionType);
-                Console.WriteLine("Session phase = " + currentState.SessionPhase);
-                Console.WriteLine("Time remaining = " + currentState.SessionTimeRemaining);
-                Console.WriteLine("leaderHasFinishedRace = " + CommonData.leaderHasFinishedRace + ", isRaceRunning = " + CommonData.isRaceRunning);
-                Console.WriteLine("Newlap " + CommonData.isNewLap + "IsSessionRunning = " + CommonData.isSessionRunning);
-                playFinishMessage(currentState.SessionType, currentState.Position, currentState.NumCars);
+                playFinishMessage(sessionConstants.SessionType, currentGameState.SessionData.Position, currentGameState.SessionData.NumCars);
             }
-            if (CommonData.isRaceRunning && CommonData.isNewLap && currentState.NumberOfLaps > 0)
+            if (sessionConstants.SessionType == SessionType.Race && currentGameState.SessionData.IsNewLap && currentGameState.SessionData.CompletedLaps > 0)
             {
                 // a new lap has been started in race mode
-                int position = currentState.Position;
-                if (position < 1)
+                int position = currentGameState.SessionData.Position;
+                if (currentGameState.SessionData.CompletedLaps == sessionConstants.SessionNumberOfLaps - 1)
                 {
-                    Console.WriteLine("Position in current data block = " + position + " using position in previous data block " + lastState.Position);
-                    position = lastState.Position;
-                }
-                if (currentState.CompletedLaps == currentState.NumberOfLaps - 1)
-                {
-                    if (currentState.Position == 1)
+                    if (position == 1)
                     {
                         audioPlayer.queueClip(folderLastLapLeading, 0, this);
                     }
-                    else if (currentState.Position < 4)
+                    else if (position < 4)
                     {
                         audioPlayer.queueClip(folderLastLapTopThree, 0, this);
                     }
-                    else if (currentState.Position >= 4)
+                    else if (position >= 4)
                     {
                         audioPlayer.queueClip(folderLastLap, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, 0.5);
                     }
-                    else if (currentState.Position >= 10)
+                    else if (position >= 10)
                     {
                         audioPlayer.queueClip(folderLastLap, 0, this, PearlsOfWisdom.PearlType.BAD, 0.5);
                     }
                     else
                     {
-                        Console.WriteLine("1 lap left but position is 0");
+                        Console.WriteLine("1 lap left but position is < 1");
                     }
                 }
-                else if (currentState.CompletedLaps == currentState.NumberOfLaps - 2)
+                else if (currentGameState.SessionData.CompletedLaps == sessionConstants.SessionNumberOfLaps - 2)
                 {
-                    if (currentState.Position == 1)
+                    if (position == 1)
                     {
                         audioPlayer.queueClip(folderTwoLeftLeading, 0, this);
                     }
-                    else if (currentState.Position < 4)
+                    else if (position < 4)
                     {
                         audioPlayer.queueClip(folderTwoLeftTopThree, 0, this);
                     }
-                    else if (currentState.Position >= 4)
+                    else if (position >= 4)
                     {
                         audioPlayer.queueClip(folderTwoLeft, 0, this, PearlsOfWisdom.PearlType.NEUTRAL, 0.5);
                     }
-                    else if (currentState.Position >= 10)
+                    else if (position >= 10)
                     {
                         audioPlayer.queueClip(folderTwoLeft, 0, this, PearlsOfWisdom.PearlType.BAD, 0.5);
                     }
                     else
                     {
-                        Console.WriteLine("2 laps left but position is 0");
+                        Console.WriteLine("2 laps left but position is < 1");
                     }
                 }
             }
         }
 
-        public void playFinishMessage(int sessionType, int position, int numCars)
+        public void playFinishMessage(SessionType sessionType, int position, int numCars)
         {
             if (enableSessionEndMessages && !playedFinished && lastFinishMessageTime.Add(TimeSpan.FromSeconds(2)) < DateTime.Now)
             {
@@ -162,7 +152,7 @@ namespace CrewChiefV2.Events
                 {
                     Console.WriteLine("Session finished but position is < 1");
                 }
-                else if (sessionType == (int)Constant.Session.Race)
+                else if (sessionType == SessionType.Race)
                 {
                     Boolean isLast = position == numCars;
                     if (position == 1)
@@ -185,7 +175,7 @@ namespace CrewChiefV2.Events
                 }
                 else 
                 {
-                    if (sessionType == (int)Constant.Session.Qualify && position == 1)
+                    if (sessionType == SessionType.Qualify && position == 1)
                     {
                         audioPlayer.queueClip(folderEndOfSessionPole, 0, null);
                     }

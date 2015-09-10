@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace CrewChiefV2.Events
 {
-    class Spotter : AbstractEvent
+    class R3ESpotter : Spotter
     {
         // if the audio player is in the middle of another message, this 'immediate' message will have to wait.
         // If it's older than 1000 milliseconds by the time the player's got round to playing it, it's expired
@@ -73,7 +73,9 @@ namespace CrewChiefV2.Events
 
         private Boolean lastSpotterDataIsUsable;
 
-        public Spotter(AudioPlayer audioPlayer, Boolean initialEnabledState)
+        private AudioPlayer audioPlayer;
+
+        public R3ESpotter(AudioPlayer audioPlayer, Boolean initialEnabledState)
         {
             this.audioPlayer = audioPlayer;
             this.enabled = initialEnabledState;
@@ -81,7 +83,7 @@ namespace CrewChiefV2.Events
             this.biggestAllowedNegativeTimeDelta = -1 * carLength / minSpeedForSpotterToOperate;
         }
 
-        public override void clearState()
+        public void clearState()
         {
             isCurrentlyOverlapping = false;
             timeOfNextHoldMessage = DateTime.Now;
@@ -94,11 +96,6 @@ namespace CrewChiefV2.Events
             lastSpotterDataIsUsable = false;
         }
 
-        public override bool isClipStillValid(string eventSubType)
-        {
-            return true;
-        }
-        
         /**
          * The time delta should always be positive. It does briefly go negative at the end of the passing
          * phase (when the cars are exactly along side). Any negative value that we see which happens before
@@ -110,14 +107,15 @@ namespace CrewChiefV2.Events
                 (isCurrentlyOverlapping && rawDelta > (-1 * carLength / speed));
         }
 
-        override protected void triggerInternal(Shared lastState, Shared currentState)
+        public void trigger(Object lastStateObj, Object currentStateObj)
         {
+            Shared lastState = (Shared)lastStateObj;
+            Shared currentState = (Shared)currentStateObj;
             DateTime now = DateTime.Now;
 
             float currentSpeed = currentState.CarSpeed;
             float previousSpeed = lastState.CarSpeed;
-            if (enabled && CommonData.isRaceRunning &&
-                currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate &&
+            if (enabled && currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate &&
                 currentState.ControlType == (int)Constant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {
                 channelLeftOpenTimerStarted = false;
@@ -163,7 +161,7 @@ namespace CrewChiefV2.Events
                                 if (audioPlayer.isChannelOpen())
                                 {
                                     Console.WriteLine("Clear - delta front = " + currentDeltaFront + " delta behind = " + currentDeltaBehind);
-                                    QueuedMessage clearMessage = new QueuedMessage(0, this);
+                                    QueuedMessage clearMessage = new QueuedMessage(0, null);
                                     clearMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
                                     audioPlayer.removeImmediateClip(folderStillThere);
                                     audioPlayer.playClipImmediately(folderClear, clearMessage);
@@ -196,7 +194,7 @@ namespace CrewChiefV2.Events
                                     // channel's already open, still there
                                     Console.WriteLine("Still there - delta front = " + currentDeltaFront + " delta behind = " + currentDeltaBehind);
                                     timeOfNextHoldMessage = now.Add(repeatHoldFrequency);
-                                    QueuedMessage stillThereMessage = new QueuedMessage(0, this);
+                                    QueuedMessage stillThereMessage = new QueuedMessage(0, null);
                                     stillThereMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
                                     audioPlayer.playClipImmediately(folderStillThere, stillThereMessage);
                                 }
@@ -221,7 +219,7 @@ namespace CrewChiefV2.Events
                                         timeOfNextHoldMessage = now.Add(repeatHoldFrequency);
                                         isCurrentlyOverlapping = true;
                                         audioPlayer.holdOpenChannel(true);
-                                        QueuedMessage holdMessage = new QueuedMessage(0, this);
+                                        QueuedMessage holdMessage = new QueuedMessage(0, null);
                                         holdMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
                                         audioPlayer.playClipImmediately(folderHoldYourLine, holdMessage);                                        
                                     }

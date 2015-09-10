@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using CrewChiefV2.Data;
 using System.Threading;
+using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
 {
@@ -20,12 +21,12 @@ namespace CrewChiefV2.Events
         {
         }
 
-        public override bool isClipStillValid(string eventSubType)
+        public override bool isClipStillValid(string eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
         {
             return true;
         }
 
-        override protected void triggerInternal(Shared lastState, Shared currentState)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
             audioPlayer.queueClip(folderTest, 0, this);            
         }

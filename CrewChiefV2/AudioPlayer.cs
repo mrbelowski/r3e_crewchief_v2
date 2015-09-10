@@ -8,12 +8,15 @@ using System.Media;
 using CrewChiefV2.Events;
 using System.Windows.Media;
 using System.Collections.Specialized;
+using CrewChiefV2.GameState;
 
 namespace CrewChiefV2
 {
     class AudioPlayer
     {
         public static float minimumSoundPackVersion = 2.6f;
+
+        private CrewChief crewChief;
 
         public static String folderAcknowlegeOK = "acknowledge/OK";
         public static String folderAcknowlegeEnableKeepQuiet = "acknowledge/keepQuietEnabled";
@@ -93,6 +96,11 @@ namespace CrewChiefV2
         private Boolean backgroundPlayerInitialised = false;
 
         public Boolean initialised = false;
+
+        public AudioPlayer(CrewChief crewChief)
+        {
+            this.crewChief = crewChief;
+        }
 
         public void initialise()
         {
@@ -210,13 +218,13 @@ namespace CrewChiefV2
                                     Console.WriteLine("Event " + fullEventName + " has no sound files");
                                 }
                             }
-                            catch (DirectoryNotFoundException e)
+                            catch (DirectoryNotFoundException)
                             {
                                 Console.WriteLine("Event subfolder " + fullEventName + " not found");
                             }
                         }
                     }
-                    catch (DirectoryNotFoundException e)
+                    catch (DirectoryNotFoundException)
                     {
                         Console.WriteLine("Unable to find events folder");
                     }
@@ -224,7 +232,7 @@ namespace CrewChiefV2
                 Console.WriteLine("Cached " + soundsCount + " clips");
                 initialised = true;
             }
-            catch (DirectoryNotFoundException e)
+            catch (DirectoryNotFoundException)
             {
                 Console.WriteLine("Unable to find sounds directory - path: " + soundFolderName);
             }
@@ -254,7 +262,7 @@ namespace CrewChiefV2
                 Thread thread = new Thread(work);
                 thread.Start();
             }
-            new SmokeTest(this).trigger(new Data.Shared(), new Data.Shared());
+            new SmokeTest(this).trigger(new GameStateData(), new GameStateData(), new SessionConstants());
         }
 
         public void stopMonitor()
@@ -468,7 +476,7 @@ namespace CrewChiefV2
                     if (isImmediateMessages || queuedMessage.dueTime <= milliseconds)
                     {
                         if ((isImmediateMessages || !keepQuiet) && 
-                            (queuedMessage.abstractEvent == null || queuedMessage.abstractEvent.isClipStillValid(key)) &&
+                            (queuedMessage.abstractEvent == null || queuedMessage.abstractEvent.isClipStillValid(key, crewChief.currentGameState, crewChief.sessionConstants)) &&
                             !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || playGapFillerMessage(queueToPlay)) &&
                             (queuedMessage.expiryTime == 0 || queuedMessage.expiryTime > milliseconds))
                         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CrewChiefV2.Data;
+using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
 {
@@ -98,26 +99,26 @@ namespace CrewChiefV2.Events
             playedTimePenaltyMessage = false;
         }
 
-        public override bool isClipStillValid(string eventSubType)
+        public override bool isClipStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
         {
             // when a new penalty is given we queue a 'three laps left to serve' message for 20 seconds in the future.
             // If, 20 seconds later, the player has started a new lap, this message is no longer valid so shouldn't be played
             if (eventSubType == folderThreeLapsToServe)
             {
                 Console.WriteLine("checking penalty validity, pen lap = " + penaltyLap + ", completed =" + lapsCompleted);
-                return hasOutstandingPenalty && lapsCompleted == penaltyLap && CommonData.isSessionRunning;
+                return hasOutstandingPenalty && lapsCompleted == penaltyLap && currentGameState.SessionData.SessionPhase != SessionPhase.Finished;
             }
             else if (eventSubType == folderCutTrackInRace) 
             {
-                return !hasOutstandingPenalty && CommonData.isRaceRunning;
+                return !hasOutstandingPenalty && currentGameState.SessionData.SessionPhase != SessionPhase.Finished;
             }
             else if(eventSubType == folderCutTrackPracticeOrQual || eventSubType == folderLapDeleted)
             {
-                return CommonData.isSessionRunning;
+                return currentGameState.SessionData.SessionPhase != SessionPhase.Finished;
             }
             else
             {
-                return hasOutstandingPenalty && CommonData.isSessionRunning;
+                return hasOutstandingPenalty && currentGameState.SessionData.SessionPhase != SessionPhase.Finished;
             }
         }
 
@@ -146,13 +147,14 @@ namespace CrewChiefV2.Events
             return currentState.Penalties.TimeDeduction > 0;
         }
 
-        override protected void triggerInternal(Shared lastState, Shared currentState)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            if (CommonData.isRaceRunning && hasDriveThrough(currentState) || hasStopGo(currentState) || hasTimePenalty(currentState))
+            if (sessionConstants.SessionType == SessionType.Race &&
+                currentGameState.PenaltiesData.HasDriveThrough || currentGameState.PenaltiesData.HasStopAndGo || currentGameState.PenaltiesData.HasTimeDeduction)
             {
-                if (hasNewDriveThrough(lastState, currentState))
+                if (currentGameState.PenaltiesData.HasDriveThrough && !previousGameState.PenaltiesData.HasDriveThrough)
                 {
-                    lapsCompleted = currentState.CompletedLaps;
+                    lapsCompleted = currentGameState.SessionData.CompletedLaps;
                     // this is a new penalty
                     audioPlayer.queueClip(folderNewPenaltyDriveThrough, 0, this);
                     // queue a '3 laps to serve penalty' message - this might not get played
@@ -160,14 +162,14 @@ namespace CrewChiefV2.Events
                     // we don't already have a penalty
                     if (penaltyLap == -1 || !hasOutstandingPenalty)
                     {
-                        penaltyLap = currentState.CompletedLaps;
+                        penaltyLap = currentGameState.SessionData.CompletedLaps;
                     }
                     hasOutstandingPenalty = true;
                     hasHadAPenalty = true;
                 }
-                else if (hasNewStopGo(lastState, currentState))
+                else if (currentGameState.PenaltiesData.HasStopAndGo && !previousGameState.PenaltiesData.HasStopAndGo)
                 {
-                    lapsCompleted = currentState.CompletedLaps;
+                    lapsCompleted = currentGameState.SessionData.CompletedLaps;
                     // this is a new penalty
                     audioPlayer.queueClip(folderNewPenaltyStopGo, 0, this);
                     // queue a '3 laps to serve penalty' message - this might not get played
@@ -175,34 +177,31 @@ namespace CrewChiefV2.Events
                     // we don't already have a penalty
                     if (penaltyLap == -1 || !hasOutstandingPenalty)
                     {
-                        penaltyLap = currentState.CompletedLaps;
+                        penaltyLap = currentGameState.SessionData.CompletedLaps;
                     }
                     hasOutstandingPenalty = true;
                     hasHadAPenalty = true;
                 }
-                else if (lastState.ControlType == (int)Constant.Control.AI && currentState.ControlType == (int)Constant.Control.Player &&
-                     (hasDriveThrough(currentState) || hasStopGo(currentState)))
+                else if (currentGameState.PitData.InPitlane && currentGameState.PitData.OnOutLap && (currentGameState.PenaltiesData.HasStopAndGo || currentGameState.PenaltiesData.HasDriveThrough))
                 {
-                    // yuk - if we've just been handed control and the speed is quite low we assume we've just exited the pits
-                    // delay this so the valid check gets triggered
+                    // we've exited the pits but there's still an outstanding penalty
                     audioPlayer.queueClip(folderPenaltyNotServed, 3, this);
                 } 
-                else if (CommonData.isNewLap && (hasDriveThrough(currentState) || hasStopGo(currentState)))
+                else if (currentGameState.SessionData.IsNewLap && (currentGameState.PenaltiesData.HasStopAndGo || currentGameState.PenaltiesData.HasDriveThrough))
                 {
-                    lapsCompleted = currentState.CompletedLaps;
-                    // dodgy check here - if the player's car is being driven by the AI, assume we're pitting
-                    if (lapsCompleted - penaltyLap == 3 && currentState.ControlType != (int)Constant.Control.AI)
+                    // TODO: variable number of laps to serve penalty...
+
+                    lapsCompleted = currentGameState.SessionData.CompletedLaps;
+                    if (lapsCompleted - penaltyLap == 3 && !currentGameState.PitData.InPitlane)
                     {
-                        // what if the player is actually serving his penalty at the time?? This simply won't work reliably
-                        // Also, what if the player crosses the line while serving a slow-down penalty? A short delay (5 seconds)
-                        // might help a little...
+                        // run out of laps, an not in the pitlane
                         audioPlayer.queueClip(folderDisqualified, 5, this);
                     }
-                    else if (lapsCompleted - penaltyLap == 2 && hasDriveThrough(currentState))
+                    else if (lapsCompleted - penaltyLap == 2 && currentGameState.PenaltiesData.HasDriveThrough)
                     {
                         audioPlayer.queueClip(folderOneLapToServeDriveThrough, pitstopDelay, this);
                     }
-                    else if (lapsCompleted - penaltyLap == 2 && hasStopGo(currentState))
+                    else if (lapsCompleted - penaltyLap == 2 && currentGameState.PenaltiesData.HasStopAndGo)
                     {
                         audioPlayer.queueClip(folderOneLapToServeStopGo, pitstopDelay, this);
                     }
@@ -211,28 +210,29 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(folderTwoLapsToServe, pitstopDelay, this);
                     }
                 }
-                else if (!playedPitNow && CommonData.currentLapSector == 3 && hasStopGo(currentState) && lapsCompleted - penaltyLap == 2)
+                else if (!playedPitNow && currentGameState.SessionData.SectorNumber == 3 && currentGameState.PenaltiesData.HasStopAndGo && lapsCompleted - penaltyLap == 2)
                 {
                     playedPitNow = true;
                     audioPlayer.queueClip(folderPitNowStopGo, 6, this);
                 }
-                else if (!playedPitNow && CommonData.currentLapSector == 3 && hasDriveThrough(currentState) && lapsCompleted - penaltyLap == 2)
+                else if (!playedPitNow && currentGameState.SessionData.SectorNumber == 3 && currentGameState.PenaltiesData.HasDriveThrough && lapsCompleted - penaltyLap == 2)
                 {
                     playedPitNow = true;
                     audioPlayer.queueClip(folderPitNowDriveThrough, 6, this);
                 }
-                else if (!playedTimePenaltyMessage && hasTimePenalty(currentState))
+                else if (!playedTimePenaltyMessage && currentGameState.PenaltiesData.HasTimeDeduction)
                 {
                     playedTimePenaltyMessage = true;
                     audioPlayer.queueClip(folderTimePenalty, 0, this);
                 }
             }
-            else if (currentState.CarSpeed > 1 && playCutTrackWarnings && currentState.SessionType != (int)Constant.Session.Race &&
-              currentState.LapTimeCurrent == -1 && lastState.LapTimeCurrent != -1)
+            else if (currentGameState.PositionAndMotionData.CarSpeed > 1 && playCutTrackWarnings && sessionConstants.SessionType != SessionType.Race &&
+              !currentGameState.SessionData.CurrentLapIsValid && previousGameState.SessionData.CurrentLapIsValid)
             {
-                cutTrackWarningsCount = currentState.CutTrackWarnings;
+                cutTrackWarningsCount = currentGameState.PenaltiesData.CutTrackWarnings;
                 DateTime now = DateTime.Now;
-                if (currentState.ControlType != (int)Constant.Control.AI &&
+                // don't warn about cut track if the AI is driving
+                if (currentGameState.ControlData.ControlType != ControlType.AI &&
                     lastCutTrackWarningTime.Add(cutTrackWarningFrequency) < now)
                 {
                     lastCutTrackWarningTime = DateTime.Now;
@@ -240,16 +240,16 @@ namespace CrewChiefV2.Events
                     clearPenaltyState();
                 }
             }
-            else if (currentState.CarSpeed > 1 && playCutTrackWarnings && 
-                currentState.CutTrackWarnings > cutTrackWarningsCount)
+            else if (currentGameState.PositionAndMotionData.CarSpeed > 1 && playCutTrackWarnings &&
+                currentGameState.PenaltiesData.CutTrackWarnings > cutTrackWarningsCount)
             {
-                cutTrackWarningsCount = currentState.CutTrackWarnings;
+                cutTrackWarningsCount = currentGameState.PenaltiesData.CutTrackWarnings;
                 DateTime now = DateTime.Now;
-                if (currentState.ControlType != (int)Constant.Control.AI && 
+                if (currentGameState.ControlData.ControlType != ControlType.AI &&
                     lastCutTrackWarningTime.Add(cutTrackWarningFrequency) < now)
                 {
                     lastCutTrackWarningTime = now;
-                    if (currentState.SessionType == (int)Constant.Session.Race)
+                    if (sessionConstants.SessionType == SessionType.Race)
                     {
                         audioPlayer.queueClip(folderCutTrackInRace, 2, this);
                     }
@@ -264,9 +264,9 @@ namespace CrewChiefV2.Events
             {
                 clearPenaltyState();
             }
-            if (CommonData.isRaceRunning && 
-                (lastState.Penalties.DriveThrough > 0 && currentState.Penalties.DriveThrough < lastState.Penalties.DriveThrough) ||
-                (lastState.Penalties.StopAndGo > 0 && currentState.Penalties.StopAndGo < lastState.Penalties.StopAndGo))
+            if (sessionConstants.SessionType == SessionType.Race && 
+                ((previousGameState.PenaltiesData.HasStopAndGo && !currentGameState.PenaltiesData.HasStopAndGo) ||
+                (previousGameState.PenaltiesData.HasDriveThrough && !currentGameState.PenaltiesData.HasDriveThrough)))
             {
                 audioPlayer.queueClip(folderPenaltyServed, 0, null);
             }            

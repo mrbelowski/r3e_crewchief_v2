@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CrewChiefV2.Data;
+using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
 {
@@ -47,6 +48,12 @@ namespace CrewChiefV2.Events
         private float currentGapBehind;
 
         private Boolean enableGapMessages = UserSettings.GetUserSettings().getBoolean("enable_gap_messages");
+
+        private Boolean isLeading;
+
+        private Boolean isLast;
+
+        private Boolean isRace;
         
         public Timings(AudioPlayer audioPlayer)
         {
@@ -67,70 +74,44 @@ namespace CrewChiefV2.Events
             hasDRS = false;
             currentGapBehind = -1;
             currentGapInFront = -1;
+            isLast = false;
+            isLeading = false;
+            isRace = false;
         }
 
-        public override bool isClipStillValid(string eventSubType)
+        protected override void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            if (((LapCounter)CrewChief.getEvent("LapCounter")).playedFinished)
-            {
-                return false;
-            }
-            if (eventSubType == QueuedMessage.compoundMessageIdentifier + "Timings/gap_in_front")
-            {
-                return CommonData.isSessionRunning;
-            }
-            else if (eventSubType == QueuedMessage.compoundMessageIdentifier + "Timings/gap_behind")
-            {
-                return CommonData.isSessionRunning;
-            }
-            else if (eventSubType == folderBeingHeldUp)
-            {
-                return CommonData.isSessionRunning;
-            }
-            else if (eventSubType == folderBeingPressured)
-            {
-                return CommonData.isSessionRunning;
-            }
-            else
-            {
-                return CommonData.isSessionRunning;
-            }
-        }
+            isLeading = currentGameState.SessionData.Position == 1;
+            isLast = currentGameState.isLast();
+            isRace = sessionConstants.SessionType == SessionType.Race;
+            currentGapInFront = currentGameState.SessionData.TimeDeltaFront;
+            currentGapBehind = currentGameState.SessionData.TimeDeltaBehind;
 
-        protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
-        {
-            currentGapInFront = currentState.TimeDeltaFront;
-            currentGapBehind = currentState.TimeDeltaBehind;
-
-            if (!hasDRS && currentState.DrsAvailable == 1)
-            {
-                hasDRS = true;
-            }
             if (gapsInFront == null || gapsBehind == null)
             {
                 clearState();
             }
-            if (!CommonData.racingSameCarInFront)
+            if (!currentGameState.SessionData.IsRacingSameCarInFront)
             {
                 gapsInFront.Clear();
             }
-            if (!CommonData.racingSameCarBehind)
+            if (!currentGameState.SessionData.IsRacingSameCarBehind)
             {
                 gapsBehind.Clear();
             }
-            if (enableGapMessages && CommonData.isRaceRunning && CommonData.isNewSector && !CommonData.isPittingInRace)
+            if (enableGapMessages && currentGameState.SessionData.IsNewSector && !currentGameState.PitData.InPitlane)
             {
                 sectorsSinceLastReport++;                
                 GapStatus gapInFrontStatus = GapStatus.NONE;
                 GapStatus gapBehindStatus = GapStatus.NONE;
-                if (currentState.Position != 1)
+                if (currentGameState.SessionData.Position != 1)
                 {
-                    gapsInFront.Insert(0, currentState.TimeDeltaFront);
+                    gapsInFront.Insert(0, currentGameState.SessionData.TimeDeltaFront);
                     gapInFrontStatus = getGapStatus(gapsInFront, gapInFrontAtLastReport);
                 }
-                if (!CommonData.isLast)
+                if (isLast)
                 {
-                    gapsBehind.Insert(0, currentState.TimeDeltaBehind);
+                    gapsBehind.Insert(0, currentGameState.SessionData.TimeDeltaBehind);
                     gapBehindStatus = getGapStatus(gapsBehind, gapBehindAtLastReport);
                 }
 
@@ -248,7 +229,7 @@ namespace CrewChiefV2.Events
                 voiceMessage.Contains(SpeechRecogniser.GAP_AHEAD)) &&
                 currentGapInFront != -1)
             {
-                if (CommonData.isLeading && CommonData.isRaceRunning)
+                if (isLeading && isRace)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(Position.folderLeading, new QueuedMessage(0, this));
@@ -272,7 +253,7 @@ namespace CrewChiefV2.Events
             else if (voiceMessage.Contains(SpeechRecogniser.GAP_BEHIND) &&
                 currentGapBehind != -1)
             {
-                if (CommonData.isLast && CommonData.isRaceRunning)
+                if (isLast && isRace)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(Position.folderLast, new QueuedMessage(0, this));

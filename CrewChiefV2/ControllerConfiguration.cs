@@ -35,7 +35,7 @@ namespace CrewChiefV2
                         ba.joystick.Unacquire();
                         ba.joystick.Dispose();
                     }
-                    catch (Exception e) { }
+                    catch (Exception) { }
                 }
             }
             directInput.Dispose();
@@ -57,7 +57,7 @@ namespace CrewChiefV2
             {
                 productName = ": " + joystick.Properties.ProductName;
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
             controllers.Add(new ControllerData(productName, DeviceType.Joystick, guid));
@@ -233,7 +233,7 @@ namespace CrewChiefV2
                         {
                             productName = ": " + joystick.Properties.ProductName;
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
 
                         }

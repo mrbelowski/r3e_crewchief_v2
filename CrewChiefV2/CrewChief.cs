@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using CrewChiefV2.Data;
 using CrewChiefV2.Events;
 using System.Collections.Generic;
+using CrewChiefV2.GameState;
 
 
 namespace CrewChiefV2
@@ -31,10 +32,7 @@ namespace CrewChiefV2
         
         private static Dictionary<String, AbstractEvent> eventsList = new Dictionary<String, AbstractEvent>();
 
-        public AudioPlayer audioPlayer = new AudioPlayer();
-
-        Shared lastState;
-        Shared currentState;
+        public AudioPlayer audioPlayer;
 
         Shared lastSpotterState;
         Shared currentSpotterState;
@@ -60,7 +58,13 @@ namespace CrewChiefV2
         private Boolean runSpotterThread = false;
 
         private Boolean disableImmediateMessages = UserSettings.GetUserSettings().getBoolean("disable_immediate_messages");
-        
+
+        private GameStateMapper gameStateMapper;
+
+        public GameStateData currentGameState;
+
+        public SessionConstants sessionConstants = null;
+
         class SessionData {
             public int sessionType;
             public int sessionPhase;
@@ -85,6 +89,7 @@ namespace CrewChiefV2
 
         public CrewChief()
         {
+            audioPlayer = new AudioPlayer(this);
             audioPlayer.initialise();
             eventsList.Add("LapCounter", new LapCounter(audioPlayer));
             eventsList.Add("LapTimes", new LapTimes(audioPlayer));
@@ -98,7 +103,8 @@ namespace CrewChiefV2
             eventsList.Add("Timings", new Timings(audioPlayer));
             eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
             eventsList.Add("PushNow", new PushNow(audioPlayer));
-            spotter = new Spotter(audioPlayer, spotterEnabled);            
+            spotter = new R3ESpotter(audioPlayer, spotterEnabled);
+            gameStateMapper = new R3EGameStateMapper();
         }
 
         public void Dispose()
@@ -210,7 +216,7 @@ namespace CrewChiefV2
                     if (_view != null)
                     {
                         _view.Read(0, out currentSpotterState);
-                        triggerEvent("Spotter", spotter, lastSpotterState, currentSpotterState);
+                        spotter.trigger(lastSpotterState, currentSpotterState);
                     }
                     nextRunTime = nextRunTime.Add(spotterInterval);
                 }
@@ -234,7 +240,7 @@ namespace CrewChiefV2
 
             int threadSleepTime = ((int)_timeInterval.Milliseconds / 10) + 1;
             Console.WriteLine("Polling for shared data every " + _timeInterval.Milliseconds + "ms, pausing " + threadSleepTime + "ms between invocations");
-
+            
             while (running)
             {
                 if (DateTime.Now > nextEventTrigger)
@@ -264,54 +270,42 @@ namespace CrewChiefV2
 
                     if (Mapped)
                     {
-                        lastState = currentState;
-                        currentState = new Shared();
+                        Shared currentState = new Shared();
                         _view.Read(0, out currentState);
-                        if (updateSessionData(currentState.SessionType, currentState.SessionPhase, currentState.SessionIteration))
-                        {
-                            // if the current session is race and the phase is terminated (i.e. finished), play the end message - note this might not trigger 
-                            // if it's already been played because of a 'proper' session finish event
-                            if ((currentState.SessionType == (int)Constant.Session.Race && currentState.SessionPhase == (int)Constant.SessionPhase.Terminated) ||
-                                hasNextSessionStarted() && hasParticipatedInPreviousSession())
-                            {
-                                int position = lastState.Position;
-                                if (lastState.LapTimeBestLeader == -1)
-                                {
-                                    position = lastState.NumCars;
-                                }
-                                ((LapCounter)eventsList["LapCounter"]).playFinishMessage(lastState.SessionType, position, lastState.NumCars);
-                            }
-                        }
-
-                        // how long has the game been running?
-                        double gameRunningTime = currentState.Player.GameSimulationTime;
-                        // if we've gone back in time, this means a new session has started so clear all the game state
-                        if ((gameRunningTime <= _timeInterval.Seconds || gameRunningTime < lastGameStateTime || currentState.SessionType != lastState.SessionType)
-                            && !stateCleared)
+                        gameStateMapper.mapToGameStateData(currentState);
+                        currentGameState = gameStateMapper.getCurrentGameState();
+                        GameStateData previousGameState = gameStateMapper.getPreviousGameState();
+                        if (currentGameState.SessionData.IsNewSession && !stateCleared)
                         {
                             Console.WriteLine("Clearing game state...");
-                            CommonData.clearState();
                             foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
                             {
                                 entry.Value.clearState();
                             }
                             faultingEvents.Clear();
                             faultingEventsCount.Clear();
+                            sessionConstants = null;
                             stateCleared = true;
                         }
-                        else if (gameRunningTime > _timeInterval.Seconds)
-                        {
-                            if (sessionData.Count > 0)
+                        else if (previousGameState == null || currentGameState.SessionData.SessionRunningTime > previousGameState.SessionData.SessionRunningTime)
+                        {                            
+                            if (sessionConstants == null)
                             {
-                                sessionData[sessionData.Count - 1].runningTime = gameRunningTime;
+                                sessionConstants = gameStateMapper.getSessionConstants(currentState);
+                            }
+                            if (currentGameState.SessionData.IsNewLap)
+                            {
+                                sessionConstants.display();
+                                currentGameState.display();
                             }
                             stateCleared = false;
-                            CommonData.setCommonStateData(lastState, currentState);
                             foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
                             {
-                                triggerEvent(entry.Key, entry.Value, lastState, currentState);
+                                if (entry.Value.isApplicableForCurrentSessionAndPhase(sessionConstants.SessionType, currentGameState.SessionData.SessionPhase))
+                                {
+                                    triggerEvent(entry.Key, entry.Value, previousGameState, currentGameState, sessionConstants);
+                                }
                             }
-                            CommonData.isNew = false;
                             if (spotterEnabled && !spotterIsRunning)
                             {
                                 spotter.clearState();
@@ -322,7 +316,6 @@ namespace CrewChiefV2
                                 runSpotterThread = false;
                             }
                         }
-                        lastGameStateTime = currentState.Player.GameSimulationTime;
                     }
                 }
                 else
@@ -331,7 +324,6 @@ namespace CrewChiefV2
                     continue;
                 }                
             }
-            CommonData.clearState();
             foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
             {
                 entry.Value.clearState();
@@ -342,11 +334,11 @@ namespace CrewChiefV2
             return true;
         }
 
-        private void triggerEvent(String eventName, AbstractEvent abstractEvent, Shared lastState, Shared currentState)
+        private void triggerEvent(String eventName, AbstractEvent abstractEvent, GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
             try
             {
-                abstractEvent.trigger(lastState, currentState);
+                abstractEvent.trigger(previousGameState, currentGameState, sessionConstants);
             }
             catch (Exception e)
             {

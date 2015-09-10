@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CrewChiefV2.Data;
+using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
 {
@@ -64,21 +65,6 @@ namespace CrewChiefV2.Events
         // -1 means we only check at the end of the lap
         private int checkAtSector = -1;
 
-        // tyre wear - 0 is new, 1 or more is knackered
-        public float leftFrontWear;
-        public float rightFrontWear;
-        public float leftRearWear;
-        public float rightRearWear;
-        private float newTyreWearValue = 1f;
-
-        // This will change when S3 sort out tyre wear...
-        // this is the % damage the tyre can have before it's knackered - in the 
-        // current game, damage level <90% means the tyre is effectly dead
-        private float maxTyreWearBeforeKnackered = 0.1f;
-
-        private float knackeredTyreThreshold = 1f;
-        private float warningTyreThreshold = 0.5f;
-
         private TyreWearStatus lastReportedKnackeredTyreStatus;
         private TyreWearStatus lastReportedWornTyreStatus;
 
@@ -86,6 +72,21 @@ namespace CrewChiefV2.Events
 
         private Boolean reportedEstimatedTimeLeft;
 
+        private TyreCondition leftFrontCondition;
+        private TyreCondition rightFrontCondition;
+        private TyreCondition leftRearCondition;
+        private TyreCondition rightRearCondition;
+
+        private float leftFrontWearPercent;
+        private float rightFrontWearPercent;
+        private float leftRearWearPercent;
+        private float rightRearWearPercent;
+
+        private int completedLaps;
+        private int lapsInSession;
+        private float timeInSession;
+        private float timeElapsed;
+        
         public TyreMonitor(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -99,20 +100,23 @@ namespace CrewChiefV2.Events
             lastReportedKnackeredTyreStatus = TyreWearStatus.NOT_TRIGGERED;
             lastReportedWornTyreStatus = TyreWearStatus.NOT_TRIGGERED;
             checkedTempsAtSector3 = false;
-            leftFrontWear = 0;
-            rightFrontWear = 0;
-            leftRearWear = 0;
-            rightRearWear = 0;
+            leftFrontCondition = TyreCondition.UNKNOWN;
+            rightFrontCondition = TyreCondition.UNKNOWN;
+            leftRearCondition = TyreCondition.UNKNOWN;
+            rightRearCondition = TyreCondition.UNKNOWN;
             reportedTyreWearForCurrentPitEntry = false;
             reportedEstimatedTimeLeft = false;
+            leftFrontWearPercent = 0;
+            leftRearWearPercent = 0;
+            rightFrontWearPercent = 0;
+            rightRearWearPercent = 0;
+            completedLaps = 0;
+            lapsInSession = 0;
+            timeInSession = 0;
+            timeElapsed = 0;
         }
 
-        public override bool isClipStillValid(string eventSubType)
-        {
-            return CommonData.isSessionRunning && !CommonData.leaderHasFinishedRace &&
-                !((LapCounter)CrewChief.getEvent("LapCounter")).playedFinished;
-        }
-
+        
         private void checkTemps(TyreTemps tyreTempsToCheck)
         {
             // only give a message if we've completed more than the minimum laps here
@@ -137,89 +141,96 @@ namespace CrewChiefV2.Events
             }
         }
 
-        override protected void triggerInternal(Shared lastState, Shared currentState)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            if (CommonData.isSessionRunning)
+            if (currentGameState.TyreData.TireWearActive)
             {
-                if (currentState.TireWearActive == 1)
-                {
-                    leftFrontWear = (newTyreWearValue - currentState.CarDamage.TireFrontLeft) / maxTyreWearBeforeKnackered;
-                    rightFrontWear = (newTyreWearValue - currentState.CarDamage.TireFrontRight) / maxTyreWearBeforeKnackered;
-                    leftRearWear = (newTyreWearValue - currentState.CarDamage.TireRearLeft) / maxTyreWearBeforeKnackered;
-                    rightRearWear = (newTyreWearValue - currentState.CarDamage.TireRearRight) / maxTyreWearBeforeKnackered;
+                leftFrontCondition = currentGameState.TyreData.FrontLeftCondition;
+                rightFrontCondition = currentGameState.TyreData.FrontRightCondition;
+                leftRearCondition = currentGameState.TyreData.RearLeftCondition;
+                rightRearCondition = currentGameState.TyreData.RearRightCondition;
+
+                leftFrontWearPercent = currentGameState.TyreData.FrontLeftPercentWear;
+                leftRearWearPercent = currentGameState.TyreData.RearLeftPercentWear;
+                rightFrontWearPercent = currentGameState.TyreData.FrontRightPercentWear;
+                rightRearWearPercent = currentGameState.TyreData.RearRightPercentWear;
+
+                completedLaps = currentGameState.SessionData.CompletedLaps;
+                lapsInSession = sessionConstants.SessionNumberOfLaps;
+                timeInSession = sessionConstants.SessionRunTime;
+                timeElapsed = currentGameState.SessionData.SessionRunningTime;
                     
-                    if (CommonData.isPittingInRace && !CommonData.leaderHasFinishedRace)
-                    {
-                        if (enableTyreWearWarnings && !reportedTyreWearForCurrentPitEntry)
-                        {
-                            playTyreWearMessages(true, true);
-                            reportedTyreWearForCurrentPitEntry = true;
-                        }
-                    }
-                    else
-                    {
-                        reportedTyreWearForCurrentPitEntry = false;
-                    }
-                    if (CommonData.isNewLap && !CommonData.isPittingInRace && enableTyreWearWarnings && !CommonData.leaderHasFinishedRace)
-                    {
-                        playTyreWearMessages(true, false);
-                    }
-                    if (!CommonData.isPittingInRace && !reportedEstimatedTimeLeft && enableTyreWearWarnings && !CommonData.leaderHasFinishedRace)
-                    {
-                        reportEstimatedTyreLife(currentState);
-                    }
-                    // if the tyre wear has actually decreased, reset the 'reportdEstimatedTyreWear flag - assume this means the tyres have been changed
-                    if (currentState.CarDamage.TireFrontLeft > lastState.CarDamage.TireFrontLeft ||
-                        currentState.CarDamage.TireFrontRight > lastState.CarDamage.TireFrontRight ||
-                        currentState.CarDamage.TireRearLeft > lastState.CarDamage.TireRearLeft ||
-                        currentState.CarDamage.TireRearRight > lastState.CarDamage.TireRearRight)
-                    {
-                        reportedEstimatedTimeLeft = true;
-                    }
-                }
-                if (CommonData.isNewLap)
+                if (currentGameState.PitData.InPitlane && !currentGameState.SessionData.LeaderHasFinishedRace)
                 {
-                    lastLapTyreTemps = thisLapTyreTemps;    // this might still be null
-                    thisLapTyreTemps = new TyreTemps();
-                    updateTyreTemps(currentState, thisLapTyreTemps);
-                    if (!CommonData.isPittingInRace && enableTyreTempWarnings && !checkedTempsAtSector3 &&
-                        currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage && !CommonData.leaderHasFinishedRace)
+                    if (enableTyreWearWarnings && !reportedTyreWearForCurrentPitEntry)
                     {
-                        checkTemps(lastLapTyreTemps);
+                        playTyreWearMessages(true, true);
+                        reportedTyreWearForCurrentPitEntry = true;
                     }
-                    checkedTempsAtSector3 = false;                                                       
                 }
                 else
                 {
-                    if (thisLapTyreTemps == null)
+                    reportedTyreWearForCurrentPitEntry = false;
+                }
+                if (currentGameState.SessionData.IsNewLap && !currentGameState.PitData.InPitlane && enableTyreWearWarnings && !currentGameState.SessionData.LeaderHasFinishedRace)
+                {
+                    playTyreWearMessages(true, false);
+                }
+                if (!currentGameState.PitData.InPitlane && !reportedEstimatedTimeLeft && enableTyreWearWarnings && !currentGameState.SessionData.LeaderHasFinishedRace)
+                {
+                    reportEstimatedTyreLife();
+                }
+                // if the tyre wear has actually decreased, reset the 'reportdEstimatedTyreWear flag - assume this means the tyres have been changed
+                if (currentGameState.TyreData.FrontLeftPercentWear < previousGameState.TyreData.FrontLeftPercentWear ||
+                    currentGameState.TyreData.FrontRightPercentWear < previousGameState.TyreData.FrontRightPercentWear ||
+                    currentGameState.TyreData.RearRightPercentWear < previousGameState.TyreData.RearRightPercentWear ||
+                    currentGameState.TyreData.RearLeftPercentWear < previousGameState.TyreData.RearLeftPercentWear)
+                {
+                    reportedEstimatedTimeLeft = true;
+                }
+            }
+            if (currentGameState.SessionData.IsNewLap)
+            {
+                lastLapTyreTemps = thisLapTyreTemps;    // this might still be null
+                thisLapTyreTemps = new TyreTemps();
+                updateTyreTemps(currentGameState.TyreData, thisLapTyreTemps);
+                if (!currentGameState.PitData.InPitlane && enableTyreTempWarnings && !checkedTempsAtSector3 &&
+                    currentGameState.SessionData.CompletedLaps >= lapsIntoSessionBeforeTempMessage && !currentGameState.SessionData.LeaderHasFinishedRace)
+                {
+                    checkTemps(lastLapTyreTemps);
+                }
+                checkedTempsAtSector3 = false;                                                       
+            }
+            else
+            {
+                if (thisLapTyreTemps == null)
+                {
+                    thisLapTyreTemps = new TyreTemps();
+                }
+                updateTyreTemps(currentGameState.TyreData, thisLapTyreTemps);
+                if (enableTyreTempWarnings && checkAtSector > 0 && currentGameState.SessionData.IsNewSector && currentGameState.SessionData.SectorNumber == checkAtSector)
+                {
+                    checkedTempsAtSector3 = true;
+                    if (!currentGameState.PitData.InPitlane && currentGameState.SessionData.CompletedLaps >= lapsIntoSessionBeforeTempMessage && !currentGameState.SessionData.LeaderHasFinishedRace)
                     {
-                        thisLapTyreTemps = new TyreTemps();
-                    }
-                    updateTyreTemps(currentState, thisLapTyreTemps);
-                    if (enableTyreTempWarnings && checkAtSector > 0 && CommonData.isNewSector && CommonData.currentLapSector == checkAtSector)
-                    {
-                        checkedTempsAtSector3 = true;
-                        if (!CommonData.isPittingInRace && currentState.CompletedLaps >= lapsIntoSessionBeforeTempMessage && !CommonData.leaderHasFinishedRace)
-                        {
-                            checkTemps(thisLapTyreTemps);
-                        }
+                        checkTemps(thisLapTyreTemps);
                     }
                 }
             }
         }
 
-        private void reportEstimatedTyreLife(Data.Shared currentState)
+        private void reportEstimatedTyreLife()
         {
-            float maxWear = Math.Max(leftFrontWear, Math.Max(rightFrontWear, Math.Max(rightRearWear, leftRearWear)));
-            if (maxWear >= knackeredTyreThreshold / 3)
+            float maxWearPercent = Math.Max(leftFrontWearPercent, Math.Max(rightFrontWearPercent, Math.Max(leftRearWearPercent, rightRearWearPercent)));
+            if (maxWearPercent >= 33)
             {
                 // 1/3 through the tyre's life
                 reportedEstimatedTimeLeft = true;
-                if (currentState.NumberOfLaps > 0)
+                if (lapsInSession > 0)
                 {
-                    int lapsRemainingOnTheseTyres = (currentState.CompletedLaps * 3) - 1;
+                    int lapsRemainingOnTheseTyres = (int)(completedLaps / (maxWearPercent / 100)) - completedLaps - 1;
                     if (lapsRemainingOnTheseTyres < 59 && lapsRemainingOnTheseTyres > 1 &&
-                        lapsRemainingOnTheseTyres <= currentState.NumberOfLaps - currentState.CompletedLaps)
+                        lapsRemainingOnTheseTyres <= lapsInSession - completedLaps)
                     {
                         List<String> messages = new List<String>();
                         messages.Add(folderLapsOnCurrentTyresIntro);
@@ -231,9 +242,9 @@ namespace CrewChiefV2.Events
                 }
                 else
                 {
-                    int minutesRemainingOnTheseTyres = ((int)Math.Round((currentState.Player.GameSimulationTime / 60d) * 3d)) - 1;
+                    int minutesRemainingOnTheseTyres = (int)Math.Round((timeElapsed / (maxWearPercent / 100)) - timeElapsed - 1);
                     if (minutesRemainingOnTheseTyres < 59 && minutesRemainingOnTheseTyres > 1 &&
-                        minutesRemainingOnTheseTyres <= currentState.SessionTimeRemaining / 60)
+                        minutesRemainingOnTheseTyres <= (timeInSession - timeElapsed) / 60)
                     {
                         List<String> messages = new List<String>();
                         messages.Add(folderMinutesOnCurrentTyresIntro);
@@ -309,48 +320,48 @@ namespace CrewChiefV2.Events
 
         private TyreWearStatus getKnackeredTyreWearStatus()
         {
-            if (leftFrontWear >= knackeredTyreThreshold && rightFrontWear >= knackeredTyreThreshold &&
-                    leftRearWear >= knackeredTyreThreshold && rightRearWear >= knackeredTyreThreshold)
+            if (leftFrontCondition == TyreCondition.WORN_OUT && leftRearCondition == TyreCondition.WORN_OUT &&
+                rightFrontCondition == TyreCondition.WORN_OUT && rightRearCondition == TyreCondition.WORN_OUT)
             {
                 // all knackered
                 return TyreWearStatus.KNACKERED_ALL_ROUND;
             }
-            else if (leftFrontWear >= knackeredTyreThreshold && rightFrontWear >= knackeredTyreThreshold)
+            else if (leftFrontCondition == TyreCondition.WORN_OUT && rightFrontCondition == TyreCondition.WORN_OUT)
             {
                 // knackered fronts
                 return TyreWearStatus.KNACKERED_FRONTS;
             }
-            else if (leftRearWear >= knackeredTyreThreshold && rightRearWear >= knackeredTyreThreshold)
+            else if (leftRearCondition == TyreCondition.WORN_OUT && rightRearCondition == TyreCondition.WORN_OUT)
             {
                 // knackered rears
                 return TyreWearStatus.KNACKERED_REARS;
             }
-            else if (leftFrontWear >= knackeredTyreThreshold && leftRearWear >= knackeredTyreThreshold)
+            else if (leftFrontCondition == TyreCondition.WORN_OUT && leftRearCondition == TyreCondition.WORN_OUT)
             {
                 // knackered lefts
                 return TyreWearStatus.KNACKERED_LEFTS;
             }
-            else if (rightFrontWear >= knackeredTyreThreshold && rightRearWear >= knackeredTyreThreshold)
+            else if (rightFrontCondition == TyreCondition.WORN_OUT && rightRearCondition == TyreCondition.WORN_OUT)
             {
                 // knackered rights
                 return TyreWearStatus.KNACKERED_RIGHTS;
             }
-            else if (leftFrontWear >= knackeredTyreThreshold)
+            else if (leftFrontCondition == TyreCondition.WORN_OUT)
             {
                 // knackered left front
                 return TyreWearStatus.KNACKERED_LEFT_FRONT;
             }
-            else if (leftRearWear >= knackeredTyreThreshold)
+            else if (leftRearCondition == TyreCondition.WORN_OUT)
             {
                 // knackered left rear
                 return TyreWearStatus.KNACKERED_LEFT_REAR;
             }
-            else if (rightFrontWear >= knackeredTyreThreshold)
+            else if (rightFrontCondition == TyreCondition.WORN_OUT)
             {
                 // knackered right front
                 return TyreWearStatus.KNACKERED_RIGHT_FRONT;
             }
-            else if (rightRearWear >= knackeredTyreThreshold)
+            else if (rightRearCondition == TyreCondition.WORN_OUT)
             {
                 // knackered right rear
                 return TyreWearStatus.KNACKERED_RIGHT_REAR;
@@ -363,54 +374,48 @@ namespace CrewChiefV2.Events
 
         private TyreWearStatus getWornTyreWearStatus()
         {
-            if (leftFrontWear >= warningTyreThreshold && leftFrontWear < knackeredTyreThreshold &&
-                rightFrontWear >= warningTyreThreshold && rightFrontWear < knackeredTyreThreshold &&
-                leftRearWear >= warningTyreThreshold && leftRearWear < knackeredTyreThreshold &&
-                rightRearWear >= warningTyreThreshold && rightRearWear < knackeredTyreThreshold)
+            if (leftFrontCondition == TyreCondition.MAJOR_WEAR && leftRearCondition == TyreCondition.MAJOR_WEAR &&
+                rightFrontCondition == TyreCondition.MAJOR_WEAR && rightRearCondition == TyreCondition.MAJOR_WEAR)
             {
                 // all worn
                 return TyreWearStatus.WORN_ALL_ROUND;
             }
-            else if (leftFrontWear >= warningTyreThreshold && leftFrontWear < knackeredTyreThreshold &&
-                rightFrontWear >= warningTyreThreshold && rightFrontWear < knackeredTyreThreshold)
+            else if (leftFrontCondition == TyreCondition.MAJOR_WEAR && rightFrontCondition == TyreCondition.MAJOR_WEAR)
             {
                 // worn fronts
                 return TyreWearStatus.WORN_FRONTS;
             }
-            else if (leftRearWear >= warningTyreThreshold && leftRearWear < knackeredTyreThreshold &&
-                rightRearWear >= warningTyreThreshold && rightRearWear < knackeredTyreThreshold)
+            else if (leftRearCondition == TyreCondition.MAJOR_WEAR && rightRearCondition == TyreCondition.MAJOR_WEAR)
             {
                 // worn rears
                 return TyreWearStatus.WORN_REARS;
             }
-            else if (leftFrontWear >= warningTyreThreshold && leftFrontWear < knackeredTyreThreshold &&
-                leftRearWear >= warningTyreThreshold && leftRearWear < knackeredTyreThreshold)
+            else if (leftFrontCondition == TyreCondition.MAJOR_WEAR && leftRearCondition == TyreCondition.MAJOR_WEAR)
             {
                 // worn lefts
                 return TyreWearStatus.WORN_LEFTS;
             }
-            else if (rightFrontWear >= warningTyreThreshold && rightFrontWear < knackeredTyreThreshold &&
-                rightRearWear >= warningTyreThreshold && rightRearWear < knackeredTyreThreshold)
+            else if (rightFrontCondition == TyreCondition.MAJOR_WEAR && rightRearCondition == TyreCondition.MAJOR_WEAR)
             {
                 // worn rights
                 return TyreWearStatus.WORN_RIGHTS;
             }
-            else if (leftFrontWear >= warningTyreThreshold && leftFrontWear < knackeredTyreThreshold)
+            else if (leftFrontCondition == TyreCondition.MAJOR_WEAR)
             {
                 // worn left front
                 return TyreWearStatus.WORN_LEFT_FRONT;
             }
-            else if (leftRearWear >= warningTyreThreshold && leftRearWear < knackeredTyreThreshold)
+            else if (leftRearCondition == TyreCondition.MAJOR_WEAR)
             {
                 // worn left rear
                 return TyreWearStatus.WORN_LEFT_REAR;
             }
-            else if (rightFrontWear >= warningTyreThreshold && rightFrontWear < knackeredTyreThreshold)
+            else if (rightFrontCondition == TyreCondition.MAJOR_WEAR)
             {
                 // worn right front
                 return TyreWearStatus.WORN_RIGHT_FRONT;
             }
-            else if (rightRearWear >= warningTyreThreshold && rightRearWear < knackeredTyreThreshold)
+            else if (rightRearCondition == TyreCondition.MAJOR_WEAR)
             {
                 // worn right rear
                 return TyreWearStatus.WORN_RIGHT_REAR;
@@ -523,12 +528,12 @@ namespace CrewChiefV2.Events
             return null;
         }
 
-        private void updateTyreTemps(Shared data, TyreTemps tyreTemps)
+        private void updateTyreTemps(TyreData tyreData, TyreTemps tyreTemps)
         {
-            tyreTemps.addSample((data.TireTemp.FrontLeft_Left + data.TireTemp.FrontLeft_Center + data.TireTemp.FrontLeft_Right) / 3,
-                (data.TireTemp.FrontRight_Left + data.TireTemp.FrontRight_Center + data.TireTemp.FrontRight_Right) / 3,
-                (data.TireTemp.RearLeft_Left + data.TireTemp.RearLeft_Center + data.TireTemp.RearLeft_Right) / 3,
-                (data.TireTemp.RearRight_Left + data.TireTemp.RearRight_Center + data.TireTemp.RearRight_Right) / 3);
+            tyreTemps.addSample((tyreData.FrontLeft_LeftTemp + tyreData.FrontLeft_CenterTemp + tyreData.FrontLeft_RightTemp) / 3,
+                (tyreData.FrontRight_LeftTemp + tyreData.FrontRight_CenterTemp + tyreData.FrontRight_RightTemp) / 3,
+                (tyreData.RearLeft_LeftTemp + tyreData.RearLeft_CenterTemp + tyreData.RearLeft_RightTemp) / 3,
+                (tyreData.RearRight_LeftTemp + tyreData.RearRight_CenterTemp + tyreData.RearRight_RightTemp) / 3);
         }
 
         private class TyreTemps

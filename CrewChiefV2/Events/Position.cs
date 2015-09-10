@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CrewChiefV2.Data;
+using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
 {
@@ -37,6 +38,8 @@ namespace CrewChiefV2.Events
 
         private int startMessageTime;
 
+        private Boolean isLast;
+
         public Position(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -49,34 +52,35 @@ namespace CrewChiefV2.Events
             numberOfLapsInLastPlace = 0;
             playedRaceStartMessage = false;
             startMessageTime = new Random().Next(30, 50);
+            isLast = false;
         }
 
-        public override bool isClipStillValid(string eventSubType)
+        public override bool isClipStillValid(string eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            return CommonData.isSessionRunning && !CommonData.isPittingInRace &&
-                !((LapCounter)CrewChief.getEvent("LapCounter")).playedFinished;
+            return isApplicableForCurrentSessionAndPhase(sessionConstants.SessionType, currentGameState.SessionData.SessionPhase) && !currentGameState.PitData.InPitlane;
         }
 
-        protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
+        protected override void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            currentPosition = currentState.Position;
-            if (previousPosition == 0 && currentState.Position > 0)
+            currentPosition = currentGameState.SessionData.Position;
+            isLast = currentGameState.isLast();
+            if (previousPosition == 0)
             {
-                previousPosition = currentState.Position;
+                previousPosition = currentPosition;
             }
-            if (CommonData.isRaceRunning && enableRaceStartMessages && !playedRaceStartMessage && 
-                currentState.Player.GameSimulationTime > startMessageTime)
+            if (sessionConstants.SessionType == SessionType.Race && enableRaceStartMessages && !playedRaceStartMessage && 
+                currentGameState.SessionData.SessionRunningTime > startMessageTime)
             {
                 playedRaceStartMessage = true;
-                if (CommonData.isLast || CommonData.raceStartPosition + 1 < currentState.Position)
+                if (isLast || sessionConstants.SessionStartPosition + 1 < currentGameState.SessionData.Position)
                 {
                     audioPlayer.queueClip(folderBadStart, 0, this);
                 }
-                else if (currentState.Position == 1 || CommonData.raceStartPosition >= currentState.Position)
+                else if (currentGameState.SessionData.Position == 1 || sessionConstants.SessionStartPosition >= currentGameState.SessionData.Position)
                 {
                     audioPlayer.queueClip(folderGoodStart, 0, this);
                 }
-                else if (CommonData.raceStartPosition + 5 < currentState.Position)
+                else if (sessionConstants.SessionStartPosition + 5 < currentGameState.SessionData.Position)
                 {
                     audioPlayer.queueClip(folderTerribleStart, 0, this);
                 }                
@@ -86,10 +90,10 @@ namespace CrewChiefV2.Events
                     audioPlayer.queueClip(folderOKStart, 0, this);
                 }
             }
-            if (enablePositionMessages && CommonData.isNewLap && CommonData.isSessionRunning)
+            if (enablePositionMessages && currentGameState.SessionData.IsNewLap)
             {
                 playedRaceStartMessage = true;
-                if (CommonData.isLast)
+                if (isLast)
                 {
                     numberOfLapsInLastPlace++;
                 }
@@ -97,54 +101,54 @@ namespace CrewChiefV2.Events
                 {
                     numberOfLapsInLastPlace = 0;
                 }
-                if (previousPosition == 0 && currentState.Position > 0)
+                if (previousPosition == 0 && currentGameState.SessionData.Position > 0)
                 {
-                    previousPosition = currentState.Position;
+                    previousPosition = currentGameState.SessionData.Position;
                 }
                 else
                 {
-                    if (currentState.NumberOfLaps > lapNumberAtLastMessage + 3
-                            || previousPosition != currentState.Position)
+                    if (currentGameState.SessionData.CompletedLaps > lapNumberAtLastMessage + 3
+                            || previousPosition != currentGameState.SessionData.Position)
                     {
                         PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.NONE;
                         float pearlLikelihood = 0.2f;
-                        if (CommonData.isRaceRunning)
+                        if (sessionConstants.SessionType == SessionType.Race)
                         {
-                            if (!CommonData.isLast && (previousPosition > currentState.Position + 5 ||
-                                (previousPosition > currentState.Position && currentState.Position <= 5)))
+                            if (!isLast && (previousPosition > currentGameState.SessionData.Position + 5 ||
+                                (previousPosition > currentGameState.SessionData.Position && currentGameState.SessionData.Position <= 5)))
                             {
                                 pearlType = PearlsOfWisdom.PearlType.GOOD;
                                 pearlLikelihood = 0.8f;
                             }
-                            else if (!CommonData.isLast && previousPosition < currentState.Position && currentState.Position > 5)
+                            else if (!isLast && previousPosition < currentGameState.SessionData.Position && currentGameState.SessionData.Position > 5)
                             {
                                 // note that we don't play a pearl for being last - there's a special set of 
                                 // insults reserved for this
                                 pearlType = PearlsOfWisdom.PearlType.BAD;
                                 pearlLikelihood = 0.5f;
                             }
-                            else if (!CommonData.isLast)
+                            else if (!isLast)
                             {
                                 pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
                             }
                         }
-                        if (currentState.Position == 1)
+                        if (currentGameState.SessionData.Position == 1)
                         {
-                            if (currentState.SessionType == (int)Constant.Session.Race)
+                            if (sessionConstants.SessionType == SessionType.Race)
                             {
                                 audioPlayer.queueClip(folderLeading, 0, this, pearlType, pearlLikelihood);
                             }
-                            else if (currentState.SessionType == (int)Constant.Session.Practice)
+                            else if (sessionConstants.SessionType == SessionType.Practice)
                             {
                                 audioPlayer.queueClip(folderStub + 1, 0, this, pearlType, pearlLikelihood);
                             }
                             // no p1 for pole - this is in the laptime tracker (yuk)
                         }
-                        else if (!CommonData.isLast)
+                        else if (!isLast)
                         {
-                            audioPlayer.queueClip(folderStub + currentState.Position, 0, this, pearlType, pearlLikelihood);
+                            audioPlayer.queueClip(folderStub + currentGameState.SessionData.Position, 0, this, pearlType, pearlLikelihood);
                         }
-                        else if (CommonData.isLast)
+                        else if (isLast)
                         {
                             if (numberOfLapsInLastPlace > 3)
                             {
@@ -155,23 +159,24 @@ namespace CrewChiefV2.Events
                                 audioPlayer.queueClip(folderLast, 0, this, PearlsOfWisdom.PearlType.NONE, 0);
                             }
                         }
-                        previousPosition = currentState.Position;
-                        lapNumberAtLastMessage = currentState.NumberOfLaps;
+                        previousPosition = currentGameState.SessionData.Position;
+                        lapNumberAtLastMessage = currentGameState.SessionData.CompletedLaps;
                     }
                 }
             }
         }
+
         public override void respond(String voiceMessage)
         {
-            if (CommonData.isSessionRunning && voiceMessage.Contains(SpeechRecogniser.POSITION))
+            if (voiceMessage.Contains(SpeechRecogniser.POSITION))
             {
-                if (CommonData.isLast)
+                if (isLast)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderLast, new QueuedMessage(0, this));
                     audioPlayer.closeChannel();
                 }
-                else if (CommonData.isRaceRunning && currentPosition == 1)
+                else if (currentPosition == 1)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderLeading, new QueuedMessage(0, this));

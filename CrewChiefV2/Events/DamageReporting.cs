@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CrewChiefV2.Data;
+using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
 {
@@ -46,9 +47,9 @@ namespace CrewChiefV2.Events
         float bustedTransmissionThreshold = 0.0f;
         float bustedEngineThreshold = 0.0f;
 
-        float engineDamage = 1f;
-        float trannyDamage = 1f;
-        float aeroDamage = 1f;
+        DamageLevel engineDamage;
+        DamageLevel trannyDamage;
+        DamageLevel aeroDamage;
 
         Boolean damageEnabled;
 
@@ -62,39 +63,19 @@ namespace CrewChiefV2.Events
         {
             playedMinorTransmissionDamage = false; playedMinorEngineDamage = false; playedMinorAeroDamage = false; playedSevereAeroDamage = false;
             playedSevereTransmissionDamage = false; playedSevereEngineDamage = false; playedBustedTransmission = false; playedBustedEngine = false;
-            engineDamage = 1;
-            trannyDamage = 1;
-            aeroDamage = 1;
+            engineDamage = DamageLevel.UNKNOWN;
+            trannyDamage = DamageLevel.UNKNOWN;
+            aeroDamage = DamageLevel.UNKNOWN;
         }
 
-        public override bool isClipStillValid(string eventSubType)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            return CommonData.isSessionRunning && 
-                !((LapCounter)CrewChief.getEvent("LapCounter")).playedFinished;
-        }
-
-        override protected void triggerInternal(Shared lastState, Shared currentState)
-        {
-            if (!damageEnabled && currentState.CarDamage.Aerodynamics == 1 &&
-                currentState.CarDamage.Transmission == 1 && currentState.CarDamage.Engine == 1)
-            {
-                Console.WriteLine("Damage is enabled...");
-                damageEnabled = true;
-            }
-            // sanity check...
-            if (damageEnabled && currentState.CarDamage.Aerodynamics == -1 &&
-                currentState.CarDamage.Transmission == -1 && currentState.CarDamage.Engine == -1)
-            {
-                Console.WriteLine("Actually, damage is disabled...");
-                damageEnabled = false;
-                return;
-            }
             if (damageEnabled)
             {
-                aeroDamage = currentState.CarDamage.Aerodynamics;
-                trannyDamage = currentState.CarDamage.Transmission;
-                engineDamage = currentState.CarDamage.Engine;
-                if (!playedBustedEngine && currentState.CarDamage.Engine <= bustedEngineThreshold)
+                aeroDamage = currentGameState.CarDamageData.OverallAeroDamage;
+                trannyDamage = currentGameState.CarDamageData.OverallTransmissionDamage;
+                engineDamage = currentGameState.CarDamageData.OverallEngineDamage;
+                if (!playedBustedEngine && engineDamage == DamageLevel.DESTROYED)
                 {
                     playedBustedEngine = true;
                     playedSevereEngineDamage = true;
@@ -108,20 +89,20 @@ namespace CrewChiefV2.Events
                     audioPlayer.queueClip(folderBustedEngine, 0, this);
                     audioPlayer.removeQueuedClip(folderSevereEngineDamage);
                 }
-                else if (!playedSevereEngineDamage && currentState.CarDamage.Engine <= severeEngineDamageThreshold)
+                else if (!playedSevereEngineDamage && engineDamage == DamageLevel.MAJOR)
                 {
                     playedSevereEngineDamage = true;
                     playedMinorEngineDamage = true;
                     audioPlayer.queueClip(folderSevereEngineDamage, 5, this);
                     audioPlayer.removeQueuedClip(folderMinorEngineDamage);
                 }
-                else if (!playedMinorEngineDamage && currentState.CarDamage.Engine <= minorEngineDamageThreshold)
+                else if (!playedMinorEngineDamage && engineDamage == DamageLevel.MINOR)
                 {
                     playedMinorEngineDamage = true;
                     audioPlayer.queueClip(folderMinorEngineDamage, 5, this);
                 }
 
-                if (!playedBustedTransmission && currentState.CarDamage.Transmission <= bustedTransmissionThreshold)
+                if (!playedBustedTransmission && trannyDamage == DamageLevel.DESTROYED)
                 {
                     playedBustedTransmission = true;
                     playedSevereTransmissionDamage = true;
@@ -132,27 +113,27 @@ namespace CrewChiefV2.Events
                     audioPlayer.queueClip(folderBustedTransmission, 5, this);
                     audioPlayer.removeQueuedClip(folderSevereTransmissionDamage);
                 }
-                else if (!playedSevereTransmissionDamage && currentState.CarDamage.Transmission <= severeTransmissionDamageThreshold)
+                else if (!playedSevereTransmissionDamage && trannyDamage == DamageLevel.MAJOR)
                 {
                     playedSevereTransmissionDamage = true;
                     playedMinorTransmissionDamage = true;
                     audioPlayer.queueClip(folderSevereTransmissionDamage, 5, this);
                     audioPlayer.removeQueuedClip(folderMinorTransmissionDamage);
                 }
-                else if (!playedMinorTransmissionDamage && currentState.CarDamage.Transmission <= minorTransmissionDamageThreshold)
+                else if (!playedMinorTransmissionDamage && trannyDamage == DamageLevel.MINOR)
                 {
                     playedMinorTransmissionDamage = true;
                     audioPlayer.queueClip(folderMinorTransmissionDamage, 5, this);
                 }
 
-                if (!playedSevereAeroDamage && currentState.CarDamage.Aerodynamics <= severeAeroDamageThreshold)
+                if (!playedSevereAeroDamage && aeroDamage == DamageLevel.MAJOR)
                 {
                     playedSevereAeroDamage = true;
                     playedMinorAeroDamage = true;
                     audioPlayer.queueClip(folderSevereAeroDamage, 5, this);
                     audioPlayer.removeQueuedClip(folderSevereAeroDamage);
                 }
-                else if (!playedMinorAeroDamage && currentState.CarDamage.Aerodynamics <= minorAeroDamageThreshold)
+                else if (!playedMinorAeroDamage && aeroDamage == DamageLevel.MINOR)
                 {
                     playedMinorAeroDamage = true;
                     audioPlayer.queueClip(folderMinorAeroDamage, 5, this);
@@ -165,24 +146,24 @@ namespace CrewChiefV2.Events
             if (voiceMessage.Contains(SpeechRecogniser.AERO) || voiceMessage.Contains(SpeechRecogniser.BODY_WORK))
             {
                 Console.WriteLine("Aero damage = " + aeroDamage);
-                if (aeroDamage == 1 || aeroDamage == -1)
+                if (aeroDamage == DamageLevel.NONE)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderNoAeroDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
-                else if (aeroDamage <= severeAeroDamageThreshold)
+                else if (aeroDamage == DamageLevel.MAJOR)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderSevereAeroDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
-                else if (aeroDamage <= minorAeroDamageThreshold)
+                else if (aeroDamage == DamageLevel.MINOR)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderMinorAeroDamage, new QueuedMessage(0, null));
                 }
-                else if (aeroDamage <= trivialAeroDamageThreshold)
+                else if (aeroDamage == DamageLevel.TRIVIAL)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderJustAScratch, new QueuedMessage(0, null));
@@ -191,25 +172,25 @@ namespace CrewChiefV2.Events
             }
             if (voiceMessage.Contains(SpeechRecogniser.TRANSMISSION))
             {
-                if (trannyDamage == 1 || trannyDamage == -1)
+                if (trannyDamage == DamageLevel.NONE)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderNoTransmissionDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
-                else if (trannyDamage <= bustedTransmissionThreshold)
+                else if (trannyDamage == DamageLevel.DESTROYED)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderBustedTransmission, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
-                else if (trannyDamage <= severeTransmissionDamageThreshold)
+                else if (trannyDamage == DamageLevel.MAJOR)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderSevereTransmissionDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
-                else if (trannyDamage <= minorTransmissionDamageThreshold)
+                else if (trannyDamage == DamageLevel.MINOR)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderMinorTransmissionDamage, new QueuedMessage(0, null));
@@ -218,25 +199,25 @@ namespace CrewChiefV2.Events
             }
             if (voiceMessage.Contains(SpeechRecogniser.ENGINE))
             {
-                if (engineDamage == 1 || engineDamage == -1)
+                if (engineDamage == DamageLevel.NONE)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderNoEngineDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
-                else if (engineDamage <= bustedEngineThreshold)
+                else if (engineDamage == DamageLevel.DESTROYED)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderBustedEngine, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
-                else if (engineDamage <= severeEngineDamageThreshold)
+                else if (engineDamage == DamageLevel.MAJOR)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderSevereEngineDamage, new QueuedMessage(0, null));
                     audioPlayer.closeChannel();
                 }
-                else if (engineDamage <= minorEngineDamageThreshold)
+                else if (engineDamage == DamageLevel.MINOR)
                 {
                     audioPlayer.openChannel();
                     audioPlayer.playClipImmediately(folderMinorEngineDamage, new QueuedMessage(0, null));

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CrewChiefV2.GameState;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -80,6 +81,8 @@ namespace CrewChiefV2.Events
 
         private Boolean enableLapTimeMessages = UserSettings.GetUserSettings().getBoolean("enable_laptime_messages");
 
+        private SessionType sessionType;
+
         public LapTimes(AudioPlayer audioPlayer)
         {
             this.audioPlayer = audioPlayer;
@@ -99,76 +102,71 @@ namespace CrewChiefV2.Events
             currentPosition = -1;
         }
 
-        public override bool isClipStillValid(string eventSubType)
+        protected override void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            return CommonData.isSessionRunning &&
-                !((LapCounter)CrewChief.getEvent("LapCounter")).playedFinished;
-        }
-
-        protected override void triggerInternal(Data.Shared lastState, Data.Shared currentState)
-        {
-            if (currentState.LapTimeBest > 0)
+            sessionType = sessionConstants.SessionType;
+            if (currentGameState.SessionData.LapTimeBest > 0)
             {
-                sessionBestLapTimeDeltaToLeader = TimeSpan.FromSeconds(currentState.LapTimeBest - getLapTimeBestForClassLeader(currentState));
+                sessionBestLapTimeDeltaToLeader = TimeSpan.FromSeconds(currentGameState.SessionData.LapTimeBest - getLapTimeBestForClassLeader(currentGameState));
             }
             else
             {
                 sessionBestLapTimeDeltaToLeader = TimeSpan.MaxValue;
             }
-            if (currentState.LapTimePrevious > 0)
+            if (currentGameState.SessionData.LapTimePrevious > 0)
             {
-                currentLapTimeDeltaToLeadersBest = TimeSpan.FromSeconds(currentState.LapTimePrevious - getLapTimeBestForClassLeader(currentState));
+                currentLapTimeDeltaToLeadersBest = TimeSpan.FromSeconds(currentGameState.SessionData.LapTimePrevious - getLapTimeBestForClassLeader(currentGameState));
             }
             else
             {
                 // the last lap was invalid so the delta is undefined
                 currentLapTimeDeltaToLeadersBest = TimeSpan.MaxValue;
             }
-            currentPosition = currentState.Position;
-            // in race sessions (race only) the LapTimePrevious isn't set to -1 if that lap was invalid, so 
-            // we need to record that it's invalid while we're actually on the lap
-            if (CommonData.isSessionRunning && lapIsValid && currentState.CompletedLaps > 0 &&
-                !CommonData.isNewLap && currentState.LapTimeCurrent == -1)
+            currentPosition = currentGameState.SessionData.Position;
+
+            // check the current lap is still valid
+            if (lapIsValid && currentGameState.SessionData.CompletedLaps > 0 &&
+                !currentGameState.SessionData.IsNewLap && !currentGameState.SessionData.CurrentLapIsValid)
             {
                 lapIsValid = false;
             }
-            if (CommonData.isSessionRunning && CommonData.isNewLap)
+            if (currentGameState.SessionData.IsNewLap)
             {
-                lastLapTime = currentState.LapTimePrevious;
+                lastLapTime = currentGameState.SessionData.LapTimePrevious;
             }
-            if (CommonData.isSessionRunning && CommonData.isNewLap && !CommonData.isInLap && !CommonData.isOutLap &&
-                ((CommonData.isHotLapping && currentState.CompletedLaps > 0) || currentState.CompletedLaps > 1))
+            if (currentGameState.SessionData.IsNewLap && !currentGameState.PitData.OnInLap && !currentGameState.PitData.OnOutLap &&
+                ((sessionConstants.SessionType == SessionType.HotLap && currentGameState.SessionData.CompletedLaps > 0) || currentGameState.SessionData.CompletedLaps > 1))
             {
                 if (lapTimesWindow == null)
                 {
                     lapTimesWindow = new List<float>(lapTimesWindowSize);
                 }
                 // this might be NO_DATA
-                lastLapRating = getLastLapRating(currentState);
+                lastLapRating = getLastLapRating(currentGameState);
                 
-                if (currentState.LapTimePrevious > 0)
+                if (currentGameState.SessionData.previousLapWasValid)
                 {
-                    lapTimesWindow.Insert(0, currentState.LapTimePrevious);
+                    lapTimesWindow.Insert(0, currentGameState.SessionData.LapTimePrevious);
                     if (lapIsValid)
                     {
                         // queue the actual laptime as a 'gap filler' - this is only played if the
                         // queue would otherwise be empty
-
-                        if (enableLapTimeMessages && readLapTimes && !CommonData.isHotLapping)
+                        if (enableLapTimeMessages && readLapTimes && sessionConstants.SessionType != SessionType.HotLap)
                         {
                             QueuedMessage gapFillerLapTime = new QueuedMessage(folderLapTimeIntro, null,
-                            TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this);
+                            TimeSpan.FromSeconds(currentGameState.SessionData.LapTimePrevious), 0, this);
                             gapFillerLapTime.gapFiller = true;
                             audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laptime", gapFillerLapTime);
                         }
 
-                        if (enableLapTimeMessages && currentState.SessionType == (int)Constant.Session.Qualify || currentState.SessionType == (int)Constant.Session.Practice)
+                        if (enableLapTimeMessages &&
+                            (sessionConstants.SessionType == SessionType.Qualify || sessionConstants.SessionType == SessionType.Practice || sessionConstants.SessionType == SessionType.HotLap))
                         {
-                            if (CommonData.isHotLapping)
+                            if (sessionConstants.SessionType == SessionType.HotLap)
                             {
                                 // special case for hot lapping - read best lap message and the laptime
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laptime", new QueuedMessage(folderLapTimeIntro, null,
-                                    TimeSpan.FromSeconds(currentState.LapTimePrevious), 0, this));
+                                    TimeSpan.FromSeconds(currentGameState.SessionData.LapTimePrevious), 0, this));
                                 if (lastLapRating == LastLapRating.BEST_IN_CLASS || currentLapTimeDeltaToLeadersBest <= TimeSpan.Zero)
                                 {
                                     audioPlayer.queueClip(folderPersonalBest, 0, this);
@@ -201,13 +199,13 @@ namespace CrewChiefV2.Events
                             }
                             else if (lastLapRating == LastLapRating.BEST_OVERALL)
                             {
-                                if (currentState.SessionType == (int)Constant.Session.Qualify)
+                                if (sessionConstants.SessionType == SessionType.Qualify)
                                 {
                                     audioPlayer.queueClip(Position.folderPole, 0, this);
                                 }
-                                else if (currentState.SessionType == (int)Constant.Session.Practice)
+                                else if (sessionConstants.SessionType == SessionType.Practice)
                                 {
-                                    audioPlayer.queueClip(Position.folderStub + currentState.Position, 0, this);
+                                    audioPlayer.queueClip(Position.folderStub + currentGameState.SessionData.Position, 0, this);
                                 }
                                 if (sessionBestLapTimeDeltaToLeader < TimeSpan.Zero)
                                 {
@@ -229,7 +227,7 @@ namespace CrewChiefV2.Events
                                 {
                                     audioPlayer.queueClip(folderPersonalBest, 0, this);
                                 }
-                                if (getLapTimeBestForClassLeader(currentState) > 0)
+                                if (getLapTimeBestForClassLeader(currentGameState) > 0)
                                 {
                                     // don't read this message if the rounded time gap is 0.0 seconds or it's more than 59 seconds
                                     if ((sessionBestLapTimeDeltaToLeader.Seconds > 0 || sessionBestLapTimeDeltaToLeader.Milliseconds > 50) &&
@@ -243,7 +241,7 @@ namespace CrewChiefV2.Events
                                 }
                             }
                         }
-                        else if (enableLapTimeMessages && CommonData.isRaceRunning)
+                        else if (enableLapTimeMessages && sessionConstants.SessionType == SessionType.Race)
                         {
                             Boolean playedLapMessage = false;
                             float pearlLikelihood = 0.8f;
@@ -281,23 +279,23 @@ namespace CrewChiefV2.Events
                             // play the consistency message if we've not played the good lap message, or sometimes
                             // play them both
                             Boolean playConsistencyMessage = !playedLapMessage || random.NextDouble() < 0.25;
-                            if (playConsistencyMessage && currentState.CompletedLaps >= lastConsistencyUpdate + lapTimesWindowSize && 
+                            if (playConsistencyMessage && currentGameState.SessionData.CompletedLaps >= lastConsistencyUpdate + lapTimesWindowSize && 
                                 lapTimesWindow.Count >= lapTimesWindowSize)
                             {
                                 ConsistencyResult consistency = checkAgainstPreviousLaps();
                                 if (consistency == ConsistencyResult.CONSISTENT)
                                 {
-                                    lastConsistencyUpdate = currentState.CompletedLaps;
+                                    lastConsistencyUpdate = currentGameState.SessionData.CompletedLaps;
                                     audioPlayer.queueClip(folderConsistentTimes, 0, this);
                                 }
                                 else if (consistency == ConsistencyResult.IMPROVING)
                                 {
-                                    lastConsistencyUpdate = currentState.CompletedLaps;
+                                    lastConsistencyUpdate = currentGameState.SessionData.CompletedLaps;
                                     audioPlayer.queueClip(folderImprovingTimes, 0, this);
                                 }
                                 if (consistency == ConsistencyResult.WORSENING)
                                 {
-                                    lastConsistencyUpdate = currentState.CompletedLaps;
+                                    lastConsistencyUpdate = currentGameState.SessionData.CompletedLaps;
                                     audioPlayer.queueClip(folderWorseningTimes, 0, this);
                                 }
                             }
@@ -308,19 +306,19 @@ namespace CrewChiefV2.Events
             }
         }
                
-        private float getLapTimeBestForClassLeader(Data.Shared currentState)
+        private float getLapTimeBestForClassLeader(GameStateData currentGameState)
         {
-            if (currentState.LapTimeBestLeaderClass > 0)
+            if (currentGameState.SessionData.LapTimeBestLeaderClass > 0)
             {
-                if (currentState.LapTimeBestLeaderClass > currentState.LapTimeBestLeader)
+                if (currentGameState.SessionData.LapTimeBestLeaderClass > currentGameState.SessionData.LapTimeBestLeader)
                 {
                     isInSlowerClass = true;
                 }
-                return currentState.LapTimeBestLeaderClass;
+                return currentGameState.SessionData.LapTimeBestLeaderClass;
             }
             else
             {
-                return currentState.LapTimeBestLeader;
+                return currentGameState.SessionData.LapTimeBestLeader;
             }
         }
 
@@ -413,26 +411,26 @@ namespace CrewChiefV2.Events
             NOT_APPLICABLE, CONSISTENT, IMPROVING, WORSENING
         }
 
-        private LastLapRating getLastLapRating(Data.Shared currentState)
+        private LastLapRating getLastLapRating(GameStateData currentGameState)
         {
-            if (currentState.LapTimePrevious != -1)
+            if (currentGameState.SessionData.previousLapWasValid)
             {
-                float closeThreshold = currentState.LapTimePrevious * goodLapPercent / 100;
-                if (currentState.LapTimeBestLeader >= currentState.LapTimePrevious)
+                float closeThreshold = currentGameState.SessionData.LapTimePrevious * goodLapPercent / 100;
+                if (currentGameState.SessionData.LapTimeBestLeader >= currentGameState.SessionData.LapTimePrevious)
                 {
                     return LastLapRating.BEST_OVERALL;
                 }
-                else if (currentState.LapTimeBestLeaderClass >= currentState.LapTimePrevious)
+                else if (currentGameState.SessionData.LapTimeBestLeaderClass >= currentGameState.SessionData.LapTimePrevious)
                 {
                     return LastLapRating.BEST_IN_CLASS;
                 }
-                else if (currentState.LapTimePrevious <= currentState.LapTimeBest)
+                else if (currentGameState.SessionData.LapTimePrevious <= currentGameState.SessionData.LapTimeBest)
                 {
-                    if (currentState.LapTimeBestLeader > currentState.LapTimeBest - closeThreshold)
+                    if (currentGameState.SessionData.LapTimeBestLeader > currentGameState.SessionData.LapTimeBest - closeThreshold)
                     {
                         return LastLapRating.PERSONAL_BEST_CLOSE_TO_OVERALL_LEADER;
                     }
-                    else if (currentState.LapTimeBestLeaderClass > currentState.LapTimeBest - closeThreshold)
+                    else if (currentGameState.SessionData.LapTimeBestLeaderClass > currentGameState.SessionData.LapTimeBest - closeThreshold)
                     {
                         return LastLapRating.PERSONAL_BEST_CLOSE_TO_CLASS_LEADER;
                     }
@@ -441,15 +439,15 @@ namespace CrewChiefV2.Events
                         return LastLapRating.PERSONAL_BEST_STILL_SLOW;
                     }
                 }
-                else if (currentState.LapTimeBestLeader >= currentState.LapTimePrevious - closeThreshold)
+                else if (currentGameState.SessionData.LapTimeBestLeader >= currentGameState.SessionData.LapTimePrevious - closeThreshold)
                 {
                     return LastLapRating.CLOSE_TO_OVERALL_LEADER;
                 }
-                else if (currentState.LapTimeBestLeaderClass >= currentState.LapTimePrevious - closeThreshold)
+                else if (currentGameState.SessionData.LapTimeBestLeaderClass >= currentGameState.SessionData.LapTimePrevious - closeThreshold)
                 {
                     return LastLapRating.CLOSE_TO_CLASS_LEADER;
                 }
-                else if (currentState.LapTimeBest >= currentState.LapTimePrevious - closeThreshold)
+                else if (currentGameState.SessionData.LapTimeBest >= currentGameState.SessionData.LapTimePrevious - closeThreshold)
                 {
                     return LastLapRating.CLOSE_TO_PERSONAL_BEST;
                 }
@@ -483,7 +481,7 @@ namespace CrewChiefV2.Events
             }
             else if (voiceMessage.Contains(SpeechRecogniser.PACE))
             {
-                if (CommonData.isRaceRunning)
+                if (sessionType == SessionType.Race)
                 {
                     if (lastLapRating != LastLapRating.NO_DATA && currentLapTimeDeltaToLeadersBest != TimeSpan.MaxValue)
                     {
@@ -570,14 +568,14 @@ namespace CrewChiefV2.Events
                         audioPlayer.closeChannel();
                     }
                 }
-                else if (CommonData.isSessionRunning) {
+                else {
                     if (sessionBestLapTimeDeltaToLeader != TimeSpan.MaxValue)
                     {
                         if (sessionBestLapTimeDeltaToLeader <= TimeSpan.Zero)
                         {
                             if (isInSlowerClass)
                             {
-                                if (CommonData.isQualifyRunning && currentPosition == 1)
+                                if (sessionType == SessionType.Qualify && currentPosition == 1)
                                 {
                                     audioPlayer.openChannel();
                                     audioPlayer.playClipImmediately(Position.folderPole, new QueuedMessage(0, null));
@@ -602,7 +600,7 @@ namespace CrewChiefV2.Events
                             }
                             else
                             {
-                                if (CommonData.isQualifyRunning && currentPosition == 1)
+                                if (sessionType == SessionType.Qualify && currentPosition == 1)
                                 {
                                     audioPlayer.openChannel();
                                     audioPlayer.playClipImmediately(Position.folderPole, new QueuedMessage(0, null));

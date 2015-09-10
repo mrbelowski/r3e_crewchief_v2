@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CrewChiefV2.Data;
+using CrewChiefV2.GameState;
 
 // Oil temps are typically 1 or 2 units (I'm assuming celcius) higher than water temps. Typical temps while racing tend to be
 // mid - high 50s, with some in-traffic running this creeps up to the mid 60s. To get it into the 
@@ -33,7 +34,6 @@ namespace CrewChiefV2.Events
 
         private static float maxSafeWaterTempOverBaseline = UserSettings.GetUserSettings().getFloat("max_safe_water_temp_over_baseline");
         private static float maxSafeOilTempOverBaseline = UserSettings.GetUserSettings().getFloat("max_safe_oil_temp_over_baseline");
-        private static Boolean logTemps = UserSettings.GetUserSettings().getBoolean("log_temps");
 
         EngineStatus lastStatusMessage;
 
@@ -73,80 +73,68 @@ namespace CrewChiefV2.Events
             baselineWaterTemp = 0;
         }
 
-        public override bool isClipStillValid(string eventSubType)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            return CommonData.isSessionRunning &&
-                !((LapCounter)CrewChief.getEvent("LapCounter")).playedFinished;
-        }
-
-        override protected void triggerInternal(Shared lastState, Shared currentState)
-        {
-            if (CommonData.isRaceRunning)
-            { 
-                if (engineData == null)
+            if (engineData == null)
+            {
+                clearState();
+            }
+            if (!gotBaseline)
+            {
+                if (currentGameState.SessionData.SessionRunningTime > baselineStartSeconds && currentGameState.SessionData.SessionRunningTime < baselineFinishSeconds)
                 {
-                    clearState();
+                    baselineSamples++;
+                    baselineWaterTemp += currentGameState.EngineData.EngineWaterTemp;
+                    baselineOilTemp += currentGameState.EngineData.EngineOilTemp;
                 }
-                if (!gotBaseline)
+                else if (currentGameState.SessionData.SessionRunningTime >= baselineFinishSeconds && baselineSamples > 0)
                 {
-                    if (currentState.Player.GameSimulationTime > baselineStartSeconds && currentState.Player.GameSimulationTime < baselineFinishSeconds)
-                    {
-                        baselineSamples++;
-                        baselineWaterTemp += currentState.EngineWaterTemp;
-                        baselineOilTemp += currentState.EngineOilTemp;
-                    }
-                    else if (currentState.Player.GameSimulationTime >= baselineFinishSeconds && baselineSamples > 0)
-                    {
-                        gotBaseline = true;
-                        baselineOilTemp = baselineOilTemp / baselineSamples;
-                        baselineWaterTemp = baselineWaterTemp / baselineSamples;
-                        Console.WriteLine("Got baseline engine temps, water = " + baselineWaterTemp + ", oil = " + baselineOilTemp);
-                    }
+                    gotBaseline = true;
+                    baselineOilTemp = baselineOilTemp / baselineSamples;
+                    baselineWaterTemp = baselineWaterTemp / baselineSamples;
+                    Console.WriteLine("Got baseline engine temps, water = " + baselineWaterTemp + ", oil = " + baselineOilTemp);
                 }
-                else
+            }
+            else
+            {
+                if (currentGameState.SessionData.SessionRunningTime > gameTimeAtLastStatusCheck + statusMonitorWindowLength)
                 {
-                    if (currentState.Player.GameSimulationTime > gameTimeAtLastStatusCheck + statusMonitorWindowLength)
+                    EngineStatus currentEngineStatus = engineData.getEngineStatus(baselineOilTemp, baselineWaterTemp);
+                    if (currentEngineStatus != lastStatusMessage)
                     {
-                        EngineStatus currentEngineStatus = engineData.getEngineStatus(baselineOilTemp, baselineWaterTemp);
-                        if (currentEngineStatus != lastStatusMessage)
+                        switch (currentEngineStatus)
                         {
-                            switch (currentEngineStatus)
-                            {
-                                case EngineStatus.ALL_CLEAR:
+                            case EngineStatus.ALL_CLEAR:
+                                lastStatusMessage = currentEngineStatus;
+                                audioPlayer.queueClip(folderAllClear, 0, this);
+                                break;
+                            case EngineStatus.HOT_OIL:
+                                // don't play this if the last message was about hot oil *and* water - wait for 'all clear'
+                                if (lastStatusMessage != EngineStatus.HOT_OIL_AND_WATER)
+                                {
                                     lastStatusMessage = currentEngineStatus;
-                                    audioPlayer.queueClip(folderAllClear, 0, this);
-                                    break;
-                                case EngineStatus.HOT_OIL:
-                                    // don't play this if the last message was about hot oil *and* water - wait for 'all clear'
-                                    if (lastStatusMessage != EngineStatus.HOT_OIL_AND_WATER)
-                                    {
-                                        lastStatusMessage = currentEngineStatus;
-                                        audioPlayer.queueClip(folderHotOil, 0, this);
-                                    }
-                                    break;
-                                case EngineStatus.HOT_WATER:
-                                    // don't play this if the last message was about hot oil *and* water - wait for 'all clear'
-                                    if (lastStatusMessage != EngineStatus.HOT_OIL_AND_WATER)
-                                    {
-                                        lastStatusMessage = currentEngineStatus;
-                                        audioPlayer.queueClip(folderHotWater, 0, this);
-                                    }
-                                    break;
-                                case EngineStatus.HOT_OIL_AND_WATER:
+                                    audioPlayer.queueClip(folderHotOil, 0, this);
+                                }
+                                break;
+                            case EngineStatus.HOT_WATER:
+                                // don't play this if the last message was about hot oil *and* water - wait for 'all clear'
+                                if (lastStatusMessage != EngineStatus.HOT_OIL_AND_WATER)
+                                {
                                     lastStatusMessage = currentEngineStatus;
-                                    audioPlayer.queueClip(folderHotOilAndWater, 0, this);
-                                    break;
-                            }
+                                    audioPlayer.queueClip(folderHotWater, 0, this);
+                                }
+                                break;
+                            case EngineStatus.HOT_OIL_AND_WATER:
+                                lastStatusMessage = currentEngineStatus;
+                                audioPlayer.queueClip(folderHotOilAndWater, 0, this);
+                                break;
                         }
-                        gameTimeAtLastStatusCheck = currentState.Player.GameSimulationTime;
-                        engineData = new EngineData();
                     }
-                    engineData.addSample(currentState);
-                    if (logTemps)
-                    {
-                        Console.WriteLine(currentState.EngineWaterTemp + ", " + currentState.EngineOilTemp + ", " + currentState.EngineOilPressure);
-                    }
+                    gameTimeAtLastStatusCheck = currentGameState.SessionData.SessionRunningTime;
+                    engineData = new EngineData();
                 }
+                engineData.addSample(currentGameState.EngineData.EngineOilTemp, currentGameState.EngineData.EngineWaterTemp, currentGameState.EngineData.EngineOilPressure);
+                
             }
         }
 
@@ -163,12 +151,12 @@ namespace CrewChiefV2.Events
                 this.oilTemp = 0;
                 this.waterTemp = 0;
             }
-            public void addSample(Shared currentData)
+            public void addSample(float engineOilTemp, float engineWaterTemp, float engineOilPressure)
             {
                 this.samples++;
-                this.oilTemp += currentData.EngineOilTemp;
-                this.waterTemp += currentData.EngineWaterTemp;
-                this.oilPressure += currentData.EngineOilPressure;
+                this.oilTemp += engineOilTemp;
+                this.waterTemp += engineWaterTemp;
+                this.oilPressure +=engineOilPressure;
             }
             public EngineStatus getEngineStatus(float baselineOilTemp, float baselineWaterTemp)
             {
