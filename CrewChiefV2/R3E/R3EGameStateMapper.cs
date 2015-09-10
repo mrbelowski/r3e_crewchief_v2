@@ -67,7 +67,7 @@ namespace CrewChiefV2.RaceRoom
             return sessionConstants;
         }
 
-        public void mapToGameStateData(Object memoryMappedFileStruct)
+        public void mapToGameStateData(Object memoryMappedFileStruct, SessionConstants sessionConstants)
         {
             previousGameState = currentGameState;
             currentGameState = new GameStateData();

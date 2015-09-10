@@ -50,14 +50,14 @@ namespace CrewChiefV2.Events
         {
             playedMinorTransmissionDamage = false; playedMinorEngineDamage = false; playedMinorAeroDamage = false; playedSevereAeroDamage = false;
             playedSevereTransmissionDamage = false; playedSevereEngineDamage = false; playedBustedTransmission = false; playedBustedEngine = false;
-            engineDamage = DamageLevel.UNKNOWN;
-            trannyDamage = DamageLevel.UNKNOWN;
-            aeroDamage = DamageLevel.UNKNOWN;
+            engineDamage = DamageLevel.NONE;
+            trannyDamage = DamageLevel.NONE;
+            aeroDamage = DamageLevel.NONE;
         }
 
         override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            if (damageEnabled)
+            if (currentGameState.CarDamageData.DamageEnabled)
             {
                 aeroDamage = currentGameState.CarDamageData.OverallAeroDamage;
                 trannyDamage = currentGameState.CarDamageData.OverallTransmissionDamage;

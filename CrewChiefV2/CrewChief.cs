@@ -230,6 +230,7 @@ namespace CrewChiefV2
             else
             {
                 Console.WriteLine("No spotter defined for game " + gameDefinition.friendlyName);
+                spotter = null;
             }
             running = true;
             DateTime nextEventTrigger = DateTime.Now;
@@ -263,7 +264,7 @@ namespace CrewChiefV2
                     if (mapped)
                     {
                         Object sharedMemoryData = sharedMemoryLoader.ReadSharedMemory();
-                        gameStateMapper.mapToGameStateData(sharedMemoryData);
+                        gameStateMapper.mapToGameStateData(sharedMemoryData, sessionConstants);
                         
                         currentGameState = gameStateMapper.getCurrentGameState();
                         GameStateData previousGameState = gameStateMapper.getPreviousGameState();
@@ -299,7 +300,7 @@ namespace CrewChiefV2
                                     triggerEvent(entry.Key, entry.Value, previousGameState, currentGameState, sessionConstants);
                                 }
                             }
-                            if (spotterEnabled && !spotterIsRunning)
+                            if (spotter != null && spotterEnabled && !spotterIsRunning)
                             {
                                 spotter.clearState();
                                 startSpotterThread();

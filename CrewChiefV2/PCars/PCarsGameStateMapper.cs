@@ -27,11 +27,11 @@ namespace CrewChiefV2.PCars
             pCarsAPIStruct shared = (pCarsAPIStruct)memoryMappedFileStruct;
             SessionConstants sessionConstants = new SessionConstants();
             // zero indexed in our local data but 1 indexed in R3E
-            
+            sessionConstants.SessionType = mapToSessionType(shared.mSessionState);
             return sessionConstants;
         }
 
-        public void mapToGameStateData(Object memoryMappedFileStruct)
+        public void mapToGameStateData(Object memoryMappedFileStruct, SessionConstants sessionConstants)
         {
             previousGameState = currentGameState;
             currentGameState = new GameStateData();
@@ -49,6 +49,45 @@ namespace CrewChiefV2.PCars
                         currentGameState.SessionData.IsNewSector = true;
                     }
                 }
+            }
+            currentGameState.SessionData.SessionPhase = mapToSessionPhase(shared.mSessionState, shared.mRaceState);
+            if (sessionConstants != null)
+            {
+                currentGameState.SessionData.SessionRunningTime = (float)(DateTime.Now - sessionConstants.SessionStartTime).TotalSeconds;
+            }
+        }
+
+        private SessionType mapToSessionType(uint sessionState)
+        {
+            if (sessionState == (uint)eSessionState.SESSION_RACE)
+            {
+                return SessionType.Race;
+            }
+            else
+            {
+                return SessionType.Unavailable;
+            }
+        }
+
+        private SessionPhase mapToSessionPhase(uint sessionState, uint raceState)
+        {
+            if (raceState == (uint)eRaceState.RACESTATE_NOT_STARTED)
+            {
+                if (sessionState == (uint)eSessionState.SESSION_FORMATIONLAP)
+                {
+                    return SessionPhase.Formation;
+                } else 
+                {
+                    return SessionPhase.Countdown;
+                }
+            }
+            else if (raceState == (uint)eRaceState.RACESTATE_RACING)
+            {
+                return SessionPhase.Green;
+            }
+            else
+            {
+                return SessionPhase.Unavailable;
             }
         }
 

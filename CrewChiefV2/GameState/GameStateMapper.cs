@@ -7,7 +7,7 @@ namespace CrewChiefV2.GameState
 {
     interface GameStateMapper
     {
-        void mapToGameStateData(Object memoryMappedFileStruct);
+        void mapToGameStateData(Object memoryMappedFileStruct, SessionConstants sessionConstants);
 
         SessionConstants getSessionConstants(Object memoryMappedFileStruct);
 
