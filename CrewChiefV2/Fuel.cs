@@ -187,12 +187,13 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(folderOneLapEstimate, 0, this);
                     }
                 }
-                else if (initialised && currentState.NumberOfLaps < 0 && !playedHalfTimeFuelEstimate && currentState.SessionTimeRemaining <= halfTime &&
+                else if(enableFuelMessages && initialised && currentState.NumberOfLaps < 0 && !playedHalfTimeFuelEstimate &&
+                    currentState.SessionTimeRemaining <= halfTime && currentState.SessionTimeRemaining > halfTime - 30 &&
                     averageUsagePerMinute > 0)
                 {
                     Console.WriteLine("Half race distance. Fuel in tank = " + currentState.FuelLeft + ", average usage per minute = " + averageUsagePerMinute);
                     playedHalfTimeFuelEstimate = true;
-                    if (enableFuelMessages && averageUsagePerMinute * halfTime / 60 > currentState.FuelLeft
+                    if (averageUsagePerMinute * halfTime / 60 > currentState.FuelLeft
                         && currentState.FuelLeft / fuelAfter15Seconds < 0.6)
                     {
                         audioPlayer.queueClip(folderHalfDistanceLowFuel, 0, this);

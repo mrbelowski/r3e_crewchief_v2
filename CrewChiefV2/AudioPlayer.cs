@@ -932,6 +932,7 @@ namespace CrewChiefV2
             Boolean isValid = true;
             if (queuedClips != null && queuedClips.Count > 0)
             {
+                // TODO: this call doesn't nuke the pearls list if we add a NONE type - it should 
                 List<String> pearlsToPurge = new List<string>();
                 foreach (String eventName in queuedClips.Keys)
                 {

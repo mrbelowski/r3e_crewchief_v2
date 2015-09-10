@@ -146,7 +146,7 @@ namespace CrewChiefV2.Events
                         }
                         else if (CommonData.isLast)
                         {
-                            if (numberOfLapsInLastPlace > 3)
+                            if (numberOfLapsInLastPlace > 4 && currentPosition > 10)
                             {
                                 audioPlayer.queueClip(folderConsistentlyLast, 0, this, PearlsOfWisdom.PearlType.NONE, 0);
                             }

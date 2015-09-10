@@ -121,6 +121,7 @@ namespace CrewChiefV2.Events
                 currentState.ControlType == (int)Constant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {
                 channelLeftOpenTimerStarted = false;
+                timeWhenChannelShouldBeClosed = Add(timeToWaitBeforeClosingChannelLeftOpen);
                 float currentDeltaFront = currentState.TimeDeltaFront;
                 float currentDeltaBehind = currentState.TimeDeltaBehind;
                 float previousDeltaFront = lastState.TimeDeltaFront;

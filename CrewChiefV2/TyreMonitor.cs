@@ -217,7 +217,7 @@ namespace CrewChiefV2.Events
                 reportedEstimatedTimeLeft = true;
                 if (currentState.NumberOfLaps > 0)
                 {
-                    int lapsRemainingOnTheseTyres = (currentState.CompletedLaps * 3) - 1;
+                    int lapsRemainingOnTheseTyres = (int)(currentState.CompletedLaps / maxWear) - currentState.CompletedLaps - 1;
                     if (lapsRemainingOnTheseTyres < 59 && lapsRemainingOnTheseTyres > 1 &&
                         lapsRemainingOnTheseTyres <= currentState.NumberOfLaps - currentState.CompletedLaps)
                     {
@@ -231,7 +231,8 @@ namespace CrewChiefV2.Events
                 }
                 else
                 {
-                    int minutesRemainingOnTheseTyres = ((int)Math.Round((currentState.Player.GameSimulationTime / 60d) * 3d)) - 1;
+                    int minutesOnTheseTyres = (int)Math.Round(currentState.Player.GameSimulationTime / 60d);
+                    int minutesRemainingOnTheseTyres = (int)(minutesOnTheseTyres / maxWear) - minutesOnTheseTyres - 1;
                     if (minutesRemainingOnTheseTyres < 59 && minutesRemainingOnTheseTyres > 1 &&
                         minutesRemainingOnTheseTyres <= currentState.SessionTimeRemaining / 60)
                     {
