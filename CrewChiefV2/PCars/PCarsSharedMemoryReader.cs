@@ -71,10 +71,6 @@ namespace CrewChiefV2.PCars
             {
                 memoryMappedFile.Dispose();
             }
-            if (handle != null)
-            {
-                handle.Free();
-            }
         }
     }
 }
