@@ -631,5 +631,65 @@ namespace CrewChiefV2.Properties {
                 this["spotter_update_interval"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("c:/games/steam/steamapps/common/pCars/pCARS.exe")]
+        public string pcars64_launch_exe {
+            get {
+                return ((string)(this["pcars64_launch_exe"]));
+            }
+            set {
+                this["pcars64_launch_exe"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("c:/games/steam/steamapps/common/pCars/pCARS.exe")]
+        public string pcars32_launch_exe {
+            get {
+                return ((string)(this["pcars32_launch_exe"]));
+            }
+            set {
+                this["pcars32_launch_exe"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string pcars64_launch_params {
+            get {
+                return ((string)(this["pcars64_launch_params"]));
+            }
+            set {
+                this["pcars64_launch_params"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-x86")]
+        public string pcars32_launch_params {
+            get {
+                return ((string)(this["pcars32_launch_params"]));
+            }
+            set {
+                this["pcars32_launch_params"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool launch_pcars {
+            get {
+                return ((bool)(this["launch_pcars"]));
+            }
+            set {
+                this["launch_pcars"] = value;
+            }
+        }
     }
 }

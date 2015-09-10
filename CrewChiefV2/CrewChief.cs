@@ -78,8 +78,19 @@ namespace CrewChiefV2
             eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
             eventsList.Add("PushNow", new PushNow(audioPlayer));
             spotter = new R3ESpotter(audioPlayer, spotterEnabled);
-            gameStateMapper = gameDefinition.getGameStateMapper();
-            sharedMemoryLoader = gameDefinition.getSharedMemoryLoader();
+        }
+
+        public void setGameDefinition(GameDefinition gameDefinition)
+        {
+            if (gameDefinition == null)
+            {
+                Console.WriteLine("No game definition selected");
+            }
+            else
+            {
+                Console.WriteLine("Using game definition " + gameDefinition.friendlyName);
+                this.gameDefinition = gameDefinition;
+            }
         }
 
         public void Dispose()
@@ -195,6 +206,8 @@ namespace CrewChiefV2
 
         public Boolean Run()
         {
+            gameStateMapper = gameDefinition.getGameStateMapper();
+            sharedMemoryLoader = gameDefinition.getSharedMemoryLoader();
             running = true;
             DateTime nextEventTrigger = DateTime.Now;
             if (!audioPlayer.initialised)
@@ -217,9 +230,10 @@ namespace CrewChiefV2
                     {
                         mapped = sharedMemoryLoader.Initialise();
                     }
-                    else if (UserSettings.GetUserSettings().getBoolean("launch_raceroom") && !attemptedToRunGame)
+                    else if (UserSettings.GetUserSettings().getBoolean(gameDefinition.gameStartEnabledProperty) && !attemptedToRunGame)
                     {
-                        Utilities.runGame(UserSettings.GetUserSettings().getString("r3e_launch_exe"), UserSettings.GetUserSettings().getString("r3e_launch_params"));
+                        Utilities.runGame(UserSettings.GetUserSettings().getString(gameDefinition.gameStartCommandProperty),
+                            UserSettings.GetUserSettings().getString(gameDefinition.gameStartCommandOptionsProperty));
                         attemptedToRunGame = true;
                     }
 

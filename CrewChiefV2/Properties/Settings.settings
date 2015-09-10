@@ -155,5 +155,20 @@
     <Setting Name="spotter_update_interval" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">50</Value>
     </Setting>
+    <Setting Name="pcars64_launch_exe" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:/games/steam/steamapps/common/pCars/pCARS.exe</Value>
+    </Setting>
+    <Setting Name="pcars32_launch_exe" Type="System.String" Scope="User">
+      <Value Profile="(Default)">c:/games/steam/steamapps/common/pCars/pCARS.exe</Value>
+    </Setting>
+    <Setting Name="pcars64_launch_params" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="pcars32_launch_params" Type="System.String" Scope="User">
+      <Value Profile="(Default)">-x86</Value>
+    </Setting>
+    <Setting Name="launch_pcars" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

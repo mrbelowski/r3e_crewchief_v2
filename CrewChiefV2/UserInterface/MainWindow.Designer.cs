@@ -62,6 +62,8 @@
             this.label3 = new System.Windows.Forms.Label();
             this.backgroundVolumeSlider = new System.Windows.Forms.TrackBar();
             this.label4 = new System.Windows.Forms.Label();
+            this.gameDefinitionList = new System.Windows.Forms.ListBox();
+            this.label5 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.messagesVolumeSlider)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.backgroundVolumeSlider)).BeginInit();
@@ -262,11 +264,33 @@
             this.label4.TabIndex = 20;
             this.label4.Text = "Background volume";
             // 
+            // listBox2
+            // 
+            this.gameDefinitionList.AllowDrop = true;
+            this.gameDefinitionList.FormattingEnabled = true;
+            this.gameDefinitionList.Items.AddRange(GameDefinition.getGameDefinitionFriendlyNames());
+            this.gameDefinitionList.Text = GameDefinition.raceRoom.friendlyName;
+            this.gameDefinitionList.Location = new System.Drawing.Point(782, 26);
+            this.gameDefinitionList.Name = "listBox2";
+            this.gameDefinitionList.Size = new System.Drawing.Size(203, 43);
+            this.gameDefinitionList.TabIndex = 21;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(779, 9);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(35, 13);
+            this.label5.TabIndex = 22;
+            this.label5.Text = "Game";
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1146, 692);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.gameDefinitionList);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.backgroundVolumeSlider);
             this.Controls.Add(this.label3);
@@ -315,6 +339,9 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TrackBar backgroundVolumeSlider;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.ListBox listBox1;
+        private System.Windows.Forms.ListBox gameDefinitionList;
+        private System.Windows.Forms.Label label5;
 
     }
 }

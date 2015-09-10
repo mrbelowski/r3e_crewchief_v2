@@ -280,6 +280,7 @@ namespace CrewChiefV2
 
         private void runApp()
         {
+            crewChief.setGameDefinition(GameDefinition.getGameDefinitionForFriendlyName(gameDefinitionList.Text));
             if (!crewChief.Run())
             {
                 this.deleteAssigmentButton.Enabled = this.buttonActionSelect.SelectedIndex > -1 &&
