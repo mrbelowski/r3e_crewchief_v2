@@ -79,7 +79,11 @@
     <Compile Include="AudioPlayer.cs" />
     <Compile Include="ControllerConfiguration.cs" />
     <Compile Include="Events\Spotter.cs" />
+    <Compile Include="GameDefinition.cs" />
     <Compile Include="GameState\SessionConstants.cs" />
+    <Compile Include="PCars\PCarsStruct.cs" />
+    <Compile Include="PCars\PCarsStructReader.cs" />
+    <Compile Include="PCars\PCarsGameStateMapper.cs" />
     <Compile Include="UserInterface\FloatPropertyControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -97,7 +101,7 @@
     <Compile Include="Events\LapCounter.cs" />
     <Compile Include="Events\Fuel.cs" />
     <Compile Include="Events\EngineMonitor.cs" />
-    <Compile Include="R3E\Data.cs" />
+    <Compile Include="R3E\RaceRoomData.cs" />
     <Compile Include="Events\DamageReporting.cs" />
     <Compile Include="CrewChief.cs" />
     <Compile Include="Events\LapTimes.cs" />

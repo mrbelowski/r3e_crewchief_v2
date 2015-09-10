@@ -48,7 +48,7 @@ namespace CrewChiefV2
          */
         public SessionConstants getSessionConstants(Object memoryMappedFileStruct)
         {
-            Data.Shared shared = (Data.Shared)memoryMappedFileStruct;
+            RaceRoomData.RaceRoomShared shared = (RaceRoomData.RaceRoomShared)memoryMappedFileStruct;
             SessionConstants sessionConstants = new SessionConstants();
             // zero indexed in our local data but 1 indexed in R3E
             sessionConstants.EventIndex = shared.EventIndex - 1;
@@ -71,7 +71,7 @@ namespace CrewChiefV2
         {
             previousGameState = currentGameState;
             currentGameState = new GameStateData();
-            Data.Shared shared = (Data.Shared)memoryMappedFileStruct;
+            RaceRoomData.RaceRoomShared shared = (RaceRoomData.RaceRoomShared)memoryMappedFileStruct;
 
             //------------------------ Control data -----------------------
             currentGameState.ControlData.ControlType = mapToControlType(shared.ControlType);
@@ -123,7 +123,7 @@ namespace CrewChiefV2
                 Console.WriteLine("New session");
             }
 
-            if (shared.SessionType == (int)Constant.Session.Race && shared.SessionPhase == (int)Constant.SessionPhase.Checkered &&
+            if (shared.SessionType == (int)RaceRoomConstant.Session.Race && shared.SessionPhase == (int)RaceRoomConstant.SessionPhase.Checkered &&
                 previousGameState != null && previousGameState.SessionData.SessionPhase == SessionPhase.Green)
             {
                 currentGameState.SessionData.LeaderHasFinishedRace = true;
@@ -364,11 +364,11 @@ namespace CrewChiefV2
 
         private TyreType mapToTyreType(int r3eTyreType)
         {
-            if ((int)Constant.TireType.Option == r3eTyreType)
+            if ((int)RaceRoomConstant.TireType.Option == r3eTyreType)
             {
                 return TyreType.Option;
             } 
-            else if ((int)Constant.TireType.Prime == r3eTyreType)
+            else if ((int)RaceRoomConstant.TireType.Prime == r3eTyreType)
             {
                 return TyreType.Prime;
             }
@@ -380,23 +380,23 @@ namespace CrewChiefV2
 
         private PitWindow mapToPitWindow(int r3ePitWindow)
         {
-            if ((int)Constant.PitWindow.Closed == r3ePitWindow)
+            if ((int)RaceRoomConstant.PitWindow.Closed == r3ePitWindow)
             {
                 return PitWindow.Closed;
             }
-            if ((int)Constant.PitWindow.Completed == r3ePitWindow)
+            if ((int)RaceRoomConstant.PitWindow.Completed == r3ePitWindow)
             {
                 return PitWindow.Completed;
             }
-            else if ((int)Constant.PitWindow.Disabled == r3ePitWindow)
+            else if ((int)RaceRoomConstant.PitWindow.Disabled == r3ePitWindow)
             {
                 return PitWindow.Disabled;
             }
-            else if ((int)Constant.PitWindow.Open == r3ePitWindow)
+            else if ((int)RaceRoomConstant.PitWindow.Open == r3ePitWindow)
             {
                 return PitWindow.Open;
             }
-            else if ((int)Constant.PitWindow.StopInProgress == r3ePitWindow)
+            else if ((int)RaceRoomConstant.PitWindow.StopInProgress == r3ePitWindow)
             {
                 return PitWindow.StopInProgress;
             }
@@ -412,12 +412,12 @@ namespace CrewChiefV2
          */
         private SessionPhase mapToSessionPhase(SessionPhase lastSessionPhase, float lastSessionRunningTime, float thisSessionRunningTime, int r3eSessionPhase, ControlType controlType)
         {
-            if ((int)Constant.SessionPhase.Checkered == r3eSessionPhase && lastSessionPhase == SessionPhase.Green)
+            if ((int)RaceRoomConstant.SessionPhase.Checkered == r3eSessionPhase && lastSessionPhase == SessionPhase.Green)
             {
                 // only allow a transition to checkered if the last state was green
                 return SessionPhase.Checkered;
             }
-            else if ((int)Constant.SessionPhase.Countdown == r3eSessionPhase)
+            else if ((int)RaceRoomConstant.SessionPhase.Countdown == r3eSessionPhase)
             {
                 // don't allow a transition to Countdown if the game time has increased
                 if (lastSessionRunningTime < thisSessionRunningTime)
@@ -425,15 +425,15 @@ namespace CrewChiefV2
                     return SessionPhase.Countdown;
                 }
             }
-            else if ((int)Constant.SessionPhase.Formation == r3eSessionPhase)
+            else if ((int)RaceRoomConstant.SessionPhase.Formation == r3eSessionPhase)
             {
                 return SessionPhase.Formation;
             }
-            else if ((int)Constant.SessionPhase.Garage == r3eSessionPhase)
+            else if ((int)RaceRoomConstant.SessionPhase.Garage == r3eSessionPhase)
             {
                 return SessionPhase.Garage;
             }
-            else if ((int)Constant.SessionPhase.Green == r3eSessionPhase)
+            else if ((int)RaceRoomConstant.SessionPhase.Green == r3eSessionPhase)
             {
                 if (controlType == ControlType.AI && thisSessionRunningTime < 30)
                 {
@@ -444,11 +444,11 @@ namespace CrewChiefV2
                     return SessionPhase.Green;
                 }                
             }
-            else if ((int)Constant.SessionPhase.Gridwalk == r3eSessionPhase)
+            else if ((int)RaceRoomConstant.SessionPhase.Gridwalk == r3eSessionPhase)
             {
                 return SessionPhase.Gridwalk;
             }
-            else if ((int)Constant.SessionPhase.Terminated == r3eSessionPhase)
+            else if ((int)RaceRoomConstant.SessionPhase.Terminated == r3eSessionPhase)
             {
                 return SessionPhase.Finished;
             }
@@ -457,20 +457,20 @@ namespace CrewChiefV2
 
         private SessionType mapToSessionType(int r3eSessionType, int numCars)
         {
-            if ((int)Constant.Session.Practice == r3eSessionType)
+            if ((int)RaceRoomConstant.Session.Practice == r3eSessionType)
             {
                 return SessionType.Practice;
             }
-            else if ((int)Constant.Session.Qualify == r3eSessionType && (numCars == 1 || numCars == 2))
+            else if ((int)RaceRoomConstant.Session.Qualify == r3eSessionType && (numCars == 1 || numCars == 2))
             {
                 // hotlap sessions are not explicity declared in R3E - have to check if it's qual and there are 1 or 2 cars
                 return SessionType.HotLap;
             }
-            else if ((int)Constant.Session.Qualify == r3eSessionType)
+            else if ((int)RaceRoomConstant.Session.Qualify == r3eSessionType)
             {
                 return SessionType.Qualify;
             }
-            else if ((int)Constant.Session.Race == r3eSessionType)
+            else if ((int)RaceRoomConstant.Session.Race == r3eSessionType)
             {
                 return SessionType.Race;
             }
@@ -482,19 +482,19 @@ namespace CrewChiefV2
 
         private ControlType mapToControlType(int r3eControlType)
         {
-            if ((int)Constant.Control.AI == r3eControlType)
+            if ((int)RaceRoomConstant.Control.AI == r3eControlType)
             {
                 return ControlType.AI;
             }
-            else if ((int)Constant.Control.Player == r3eControlType)
+            else if ((int)RaceRoomConstant.Control.Player == r3eControlType)
             {
                 return ControlType.Player;
             }
-            else if ((int)Constant.Control.Remote == r3eControlType)
+            else if ((int)RaceRoomConstant.Control.Remote == r3eControlType)
             {
                 return ControlType.Remote;
             }
-            else if ((int)Constant.Control.Replay == r3eControlType)
+            else if ((int)RaceRoomConstant.Control.Replay == r3eControlType)
             {
                 return ControlType.Replay;
             }
@@ -511,7 +511,8 @@ namespace CrewChiefV2
                 return -1;
             }
             // tyres in R3E only go down to 0.9
-            return (float) (1 - Math.Max(0.9, wearLevel)) * 10 * 100;
+            return (float) ((1 - Math.Max(wornOutTyreWearLevel, wearLevel) / (1 - wornOutTyreWearLevel)) * 100);
+
         }
 
         private TyreCondition getTyreCondition(float percentWear)

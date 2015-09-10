@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CrewChiefV2.Data;
+using CrewChiefV2.RaceRoomData;
 using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
@@ -122,27 +122,27 @@ namespace CrewChiefV2.Events
             }
         }
 
-        private Boolean hasNewDriveThrough(Shared lastState, Shared currentState)
+        private Boolean hasNewDriveThrough(RaceRoomShared lastState, RaceRoomShared currentState)
         {
             return currentState.Penalties.DriveThrough > lastState.Penalties.DriveThrough;
         }
 
-        private Boolean hasNewStopGo(Shared lastState, Shared currentState)
+        private Boolean hasNewStopGo(RaceRoomShared lastState, RaceRoomShared currentState)
         {
             return currentState.Penalties.StopAndGo > lastState.Penalties.StopAndGo;
         }
 
-        private Boolean hasDriveThrough(Shared currentState)
+        private Boolean hasDriveThrough(RaceRoomShared currentState)
         {
             return currentState.Penalties.DriveThrough > 0;
         }
 
-        private Boolean hasStopGo(Shared currentState)
+        private Boolean hasStopGo(RaceRoomShared currentState)
         {
             return currentState.Penalties.StopAndGo > 0;
         }
 
-        private Boolean hasTimePenalty(Shared currentState)
+        private Boolean hasTimePenalty(RaceRoomShared currentState)
         {
             return currentState.Penalties.TimeDeduction > 0;
         }

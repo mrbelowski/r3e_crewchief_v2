@@ -15,14 +15,13 @@ namespace CrewChiefV2
             return mps * 3.6f;
         }
 
-        public static bool IsRrreRunning()
+        public static bool IsGameRunning(String processName)
         {
-            return Process.GetProcessesByName("RRRE").Length > 0;
+            return Process.GetProcessesByName(processName).Length > 0;
         }
 
-        public static void runRrre()
+        public static void runGame(String launchExe, String launchParams)
         {
-            String launchExe = UserSettings.GetUserSettings().getString("r3e_launch_exe");
             if (launchExe.Contains(" "))
             {
                 if (!launchExe.StartsWith("\""))
@@ -34,8 +33,7 @@ namespace CrewChiefV2
                     launchExe = launchExe + "\"";
                 }
             }
-            String launchParams = UserSettings.GetUserSettings().getString("r3e_launch_params");
-            Console.WriteLine("Attempting to run R3E using " + launchExe + " " + launchParams);
+            Console.WriteLine("Attempting to run game using " + launchExe + " " + launchParams);
             using (Process process = new Process())
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo(launchExe);
@@ -47,11 +45,11 @@ namespace CrewChiefV2
                 }
                 catch (InvalidOperationException e)
                 {
-                    Console.WriteLine("InvalidOperationException starting RRRE.exe: " + e.Message);
+                    Console.WriteLine("InvalidOperationException starting game: " + e.Message);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Exception starting RRRE.exe: " + e.Message);
+                    Console.WriteLine("Exception starting game: " + e.Message);
                 }
             }
         }

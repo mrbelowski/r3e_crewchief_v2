@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace CrewChiefV2
 {
-    class Constant
+    class RaceRoomConstant
     {
         public const string SharedMemoryName = "$Race$";
 
@@ -54,7 +54,7 @@ namespace CrewChiefV2
         }
     }
 
-    namespace Data
+    namespace RaceRoomData
     {
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         internal struct Vector3<T>
@@ -249,7 +249,7 @@ namespace CrewChiefV2
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct Shared
+        internal struct RaceRoomShared
         {
             [ObsoleteAttribute("Not set anymore", false)]
             public UserInput UserInput;

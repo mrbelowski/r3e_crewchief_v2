@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CrewChiefV2.Data;
+using CrewChiefV2.RaceRoomData;
 using System.Threading;
 
 namespace CrewChiefV2.Events
@@ -109,14 +109,14 @@ namespace CrewChiefV2.Events
 
         public void trigger(Object lastStateObj, Object currentStateObj)
         {
-            Shared lastState = (Shared)lastStateObj;
-            Shared currentState = (Shared)currentStateObj;
+            RaceRoomShared lastState = (RaceRoomShared)lastStateObj;
+            RaceRoomShared currentState = (RaceRoomShared)currentStateObj;
             DateTime now = DateTime.Now;
 
             float currentSpeed = currentState.CarSpeed;
             float previousSpeed = lastState.CarSpeed;
             if (enabled && currentState.Player.GameSimulationTime > timeAfterRaceStartToActivate &&
-                currentState.ControlType == (int)Constant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
+                currentState.ControlType == (int)RaceRoomConstant.Control.Player && currentSpeed > minSpeedForSpotterToOperate)
             {
                 channelLeftOpenTimerStarted = false;
                 float currentDeltaFront = currentState.TimeDeltaFront;
