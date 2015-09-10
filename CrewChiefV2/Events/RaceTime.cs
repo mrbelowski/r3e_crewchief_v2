@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CrewChiefV2.Events;
-using CrewChiefV2.RaceRoomData;
 using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events

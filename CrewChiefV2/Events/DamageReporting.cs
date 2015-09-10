@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CrewChiefV2.RaceRoomData;
 using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
@@ -34,19 +33,7 @@ namespace CrewChiefV2.Events
         Boolean playedSevereAeroDamage;
         Boolean playedBustedTransmission;
         Boolean playedBustedEngine;
-
-        float minorTransmissionDamageThreshold = 0.97f;
-        float minorEngineDamageThreshold = 0.97f;
-        float minorAeroDamageThreshold = 0.99f;
-        float trivialAeroDamageThreshold = 0.9999f;
-
-        float severeTransmissionDamageThreshold = 0.4f;
-        float severeEngineDamageThreshold = 0.4f;
-        float severeAeroDamageThreshold = 0.7f;
-
-        float bustedTransmissionThreshold = 0.0f;
-        float bustedEngineThreshold = 0.0f;
-
+        
         DamageLevel engineDamage;
         DamageLevel trannyDamage;
         DamageLevel aeroDamage;

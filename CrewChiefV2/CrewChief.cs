@@ -5,11 +5,12 @@ using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using CrewChiefV2.RaceRoomData;
+using CrewChiefV2.RaceRoom;
 using CrewChiefV2.Events;
 using System.Collections.Generic;
 using CrewChiefV2.GameState;
 using CrewChiefV2.PCars;
+using CrewChiefV2.RaceRoom.RaceRoomData;
 
 
 namespace CrewChiefV2
@@ -50,10 +51,6 @@ namespace CrewChiefV2
 
         public Boolean running = false;
 
-        double lastGameStateTime = 0;
-
-        private List<SessionData> sessionData = new List<SessionData>();
-
         private TimeSpan minimumSessionParticipationTime = TimeSpan.FromSeconds(6);
 
         private Dictionary<String, String> faultingEvents = new Dictionary<String, String>();
@@ -73,28 +70,6 @@ namespace CrewChiefV2
         public GameStateData currentGameState;
 
         public SessionConstants sessionConstants = null;
-
-        class SessionData {
-            public int sessionType;
-            public int sessionPhase;
-            public int sessionIteration;
-            public DateTime startPoint;
-            public double runningTime;
-
-            public SessionData(int sessionType, int sessionPhase, int sessionIteration)
-            {
-                this.sessionType = sessionType;
-                this.sessionPhase = sessionPhase;
-                this.sessionIteration = sessionIteration;
-                this.startPoint = DateTime.Now;
-            }
-
-            public void display()
-            {
-                Console.WriteLine("Session type = " + sessionType + ", session phase = " + sessionPhase +
-                    ", session iteration = " + sessionIteration + ", time = " + startPoint.ToString("HH:mm:ss.fff"));
-            }
-        }
 
         public CrewChief()
         {
@@ -422,102 +397,9 @@ namespace CrewChiefV2
                 }
             }
         }
-        /**
-         * returns whether the current session phase, type, or iteration is different from the previous one
-         */
-        private Boolean updateSessionData(int sessionType, int sessionPhase, int sessionIteration)
-        {
-            if (sessionType == (int)RaceRoomConstant.Session.Unavailable || sessionPhase == (int)RaceRoomConstant.SessionPhase.Unavailable || sessionIteration == -1)
-            {
-                // don't add 'unavailable' data
-                return false;
-            }
-            if (sessionData.Count != 0)
-            {
-                SessionData previousSessionData = sessionData[sessionData.Count - 1];
-                if (sessionType != previousSessionData.sessionType || sessionPhase != previousSessionData.sessionPhase || 
-                    sessionIteration != previousSessionData.sessionIteration)
-                {
-                    sessionData.Add(new SessionData(sessionType, sessionPhase, sessionIteration));
-                    return true;
-                }
-            }
-            else
-            {
-                sessionData.Add(new SessionData(sessionType, sessionPhase, sessionIteration));
-            }
-            return false;
-        }
-
-        /**
-         * This should return false if we restart the existing session or if the session that's being started
-         * isn't following on from the previous session (i.e. we've quit to the menu)
-         */
-        private Boolean hasNextSessionStarted()
-        {
-            if (sessionData.Count > 1)
-            {
-                SessionData currentSessionData = sessionData[sessionData.Count - 1];
-                SessionData previousSessionData = sessionData[sessionData.Count - 2];
-                Boolean sessionHasRecentlyFinished = 
-                    previousSessionData.startPoint.Add(TimeSpan.FromSeconds(10 + previousSessionData.runningTime)) > currentSessionData.startPoint;
-                
-                if (previousSessionData.sessionType == (int)RaceRoomConstant.Session.Practice &&
-                    (currentSessionData.sessionType == (int)RaceRoomConstant.Session.Qualify ||
-                    currentSessionData.sessionType == (int)RaceRoomConstant.Session.Race))
-                {
-                    return sessionHasRecentlyFinished;
-                }
-                if (previousSessionData.sessionType == (int)RaceRoomConstant.Session.Qualify &&
-                   currentSessionData.sessionType == (int)RaceRoomConstant.Session.Race)
-                {
-                    return sessionHasRecentlyFinished;
-                }
-                if (previousSessionData.sessionType == (int)RaceRoomConstant.Session.Practice &&
-                   currentSessionData.sessionType == (int)RaceRoomConstant.Session.Race)
-                {
-                    return sessionHasRecentlyFinished;
-                }
-                if (previousSessionData.sessionType == (int)RaceRoomConstant.Session.Qualify &&
-                   currentSessionData.sessionType == (int)RaceRoomConstant.Session.Qualify && 
-                    previousSessionData.sessionIteration + 1 == currentSessionData.sessionIteration)
-                {
-                    return sessionHasRecentlyFinished;
-                }
-                if (previousSessionData.sessionType == (int)RaceRoomConstant.Session.Race &&
-                   currentSessionData.sessionType == (int)RaceRoomConstant.Session.Race &&
-                    previousSessionData.sessionIteration + 1 == currentSessionData.sessionIteration)
-                {
-                    return sessionHasRecentlyFinished;
-                }
-            }
-            return false;
-        }
-
-        private Boolean hasParticipatedInPreviousSession()
-        {
-            if (sessionData.Count > 1)
-            {
-                SessionData previousSessionData = sessionData[sessionData.Count - 2];
-                if (previousSessionData.sessionPhase == (int)RaceRoomConstant.SessionPhase.Checkered ||
-                    previousSessionData.sessionPhase == (int)RaceRoomConstant.SessionPhase.Terminated)
-                {
-                    // the previous session ran till the end
-                    return true;
-                }
-                else if (previousSessionData.sessionPhase == (int)RaceRoomConstant.SessionPhase.Green)
-                {
-                    // the previous session ended when it was still green, see if it ran for more than a minute
-                    Console.WriteLine("has particpated = " + (DateTime.Now > previousSessionData.startPoint.Add(minimumSessionParticipationTime)));
-                    return DateTime.Now > previousSessionData.startPoint.Add(minimumSessionParticipationTime);
-                }
-            }
-            return false;
-        }
 
         public void stop()
         {
-            lastGameStateTime = 0;
             running = false;
             runSpotterThread = false;
             if (_view != null)

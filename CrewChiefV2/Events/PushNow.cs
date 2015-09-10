@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CrewChiefV2.RaceRoomData;
 using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
@@ -23,7 +22,6 @@ namespace CrewChiefV2.Events
         private Boolean playedNearEndTimePush;
         private int previousDataWindowSizeToCheck = 2;
         private Boolean playedNearEndLapsPush;
-        private Boolean drivingOutOfPits;
 
         private Boolean isLast;
 
@@ -38,7 +36,6 @@ namespace CrewChiefV2.Events
             pushDataBehind = new List<PushData>();
             playedNearEndTimePush = false;
             playedNearEndLapsPush = false;
-            drivingOutOfPits = false;
             isLast = false;
         }
         

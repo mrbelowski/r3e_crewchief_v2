@@ -7,7 +7,7 @@ using CrewChiefV2.GameState;
 /**
  * Maps memory mapped file to a local game-agnostic representation.
  */
-namespace CrewChiefV2
+namespace CrewChiefV2.PCars
 {
     class PCarsGameStateMapper : GameStateMapper
     {
@@ -36,6 +36,7 @@ namespace CrewChiefV2
             previousGameState = currentGameState;
             currentGameState = new GameStateData();
             pCarsAPIStruct shared = (pCarsAPIStruct)memoryMappedFileStruct;
+
         }
 
         public GameStateData getCurrentGameState()

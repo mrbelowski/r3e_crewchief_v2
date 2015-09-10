@@ -15,7 +15,6 @@ namespace CrewChiefV2.PCars
         private static GCHandle handle;
         private static int sharedmemorysize;
         private static byte[] sharedMemoryReadBuffer;
-        private static bool isSharedMemoryInitialised = false;
 
         private static bool InitialiseSharedMemory()
         {
@@ -24,11 +23,10 @@ namespace CrewChiefV2.PCars
                 memoryMappedFile = MemoryMappedFile.OpenExisting("$pcars$");
                 sharedmemorysize = Marshal.SizeOf(typeof(pCarsAPIStruct));
                 sharedMemoryReadBuffer = new byte[sharedmemorysize];
-                isSharedMemoryInitialised = true;
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -56,7 +54,7 @@ namespace CrewChiefV2.PCars
 
                 return new Tuple<bool, pCarsAPIStruct>(true, _pcarsapistruct);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //return false in the tuple as the read failed
                 return new Tuple<bool, pCarsAPIStruct>(false, _pcarsapistruct);

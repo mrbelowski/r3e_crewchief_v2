@@ -7,7 +7,7 @@ using CrewChiefV2.GameState;
 /**
  * Maps memory mapped file to a local game-agnostic representation.
  */
-namespace CrewChiefV2
+namespace CrewChiefV2.RaceRoom
 {
     class R3EGameStateMapper : GameStateMapper
     {

@@ -84,6 +84,23 @@
     <Compile Include="PCars\PCarsStruct.cs" />
     <Compile Include="PCars\PCarsStructReader.cs" />
     <Compile Include="PCars\PCarsGameStateMapper.cs" />
+    <Compile Include="PCars\_eNums\eAPIStructLengths.cs" />
+    <Compile Include="PCars\_eNums\eCarFlags.cs" />
+    <Compile Include="PCars\_eNums\eCrashDamageState.cs" />
+    <Compile Include="PCars\_eNums\eCurrentSector.cs" />
+    <Compile Include="PCars\_eNums\eFlagColors.cs" />
+    <Compile Include="PCars\_eNums\eFlagReason.cs" />
+    <Compile Include="PCars\_eNums\eGameState.cs" />
+    <Compile Include="PCars\_eNums\eHeaderVersion.cs" />
+    <Compile Include="PCars\_eNums\ePitMode.cs" />
+    <Compile Include="PCars\_eNums\ePitSchedule.cs" />
+    <Compile Include="PCars\_eNums\eRaceState.cs" />
+    <Compile Include="PCars\_eNums\eSessionState.cs" />
+    <Compile Include="PCars\_eNums\eTerrain.cs" />
+    <Compile Include="PCars\_eNums\eTyreFlags.cs" />
+    <Compile Include="PCars\_eNums\eTyres.cs" />
+    <Compile Include="PCars\_eNums\eVector.cs" />
+    <Compile Include="PCars\_eNums\_EnumGetDescription.cs" />
     <Compile Include="UserInterface\FloatPropertyControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

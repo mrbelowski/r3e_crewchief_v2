@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CrewChiefV2.RaceRoomData;
+using CrewChiefV2.RaceRoom.RaceRoomData;
 using System.Threading;
+using CrewChiefV2.Events;
 
-namespace CrewChiefV2.Events
+namespace CrewChiefV2.RaceRoom
 {
     class R3ESpotter : Spotter
     {

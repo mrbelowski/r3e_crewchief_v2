@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CrewChiefV2.RaceRoomData;
 using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
@@ -120,31 +119,6 @@ namespace CrewChiefV2.Events
             {
                 return hasOutstandingPenalty && currentGameState.SessionData.SessionPhase != SessionPhase.Finished;
             }
-        }
-
-        private Boolean hasNewDriveThrough(RaceRoomShared lastState, RaceRoomShared currentState)
-        {
-            return currentState.Penalties.DriveThrough > lastState.Penalties.DriveThrough;
-        }
-
-        private Boolean hasNewStopGo(RaceRoomShared lastState, RaceRoomShared currentState)
-        {
-            return currentState.Penalties.StopAndGo > lastState.Penalties.StopAndGo;
-        }
-
-        private Boolean hasDriveThrough(RaceRoomShared currentState)
-        {
-            return currentState.Penalties.DriveThrough > 0;
-        }
-
-        private Boolean hasStopGo(RaceRoomShared currentState)
-        {
-            return currentState.Penalties.StopAndGo > 0;
-        }
-
-        private Boolean hasTimePenalty(RaceRoomShared currentState)
-        {
-            return currentState.Penalties.TimeDeduction > 0;
         }
 
         override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)

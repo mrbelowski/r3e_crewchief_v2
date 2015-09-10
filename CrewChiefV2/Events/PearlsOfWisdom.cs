@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CrewChiefV2.RaceRoomData;
 
 namespace CrewChiefV2
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace CrewChiefV2
+namespace CrewChiefV2.RaceRoom
 {
     class RaceRoomConstant
     {

@@ -5,33 +5,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CrewChiefV2
+namespace CrewChiefV2.PCars
 {
-    public enum eVector
-    {
-        VEC_X = 0,
-        VEC_Y,
-        VEC_Z,
-        //-------------
-        VEC_MAX
-    }
-
-    public enum eTyres
-    {
-        TYRE_FRONT_LEFT = 0,
-        TYRE_FRONT_RIGHT,
-        TYRE_REAR_LEFT,
-        TYRE_REAR_RIGHT,
-        //--------------
-        TYRE_MAX
-    }
-
-    public enum eAPIStructLengths
-    {
-        STRING_LENGTH_MAX = 64,
-        NUM_PARTICIPANTS = 64
-    }
-
     public struct pCarsAPIParticipantStruct
     {
         [MarshalAs(UnmanagedType.I1)]

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CrewChiefV2.RaceRoomData;
+using CrewChiefV2.RaceRoom.RaceRoomData;
 using CrewChiefV2.GameState;
 
 namespace CrewChiefV2.Events
@@ -25,10 +25,6 @@ namespace CrewChiefV2.Events
 
         private List<float> gapsBehind;
 
-        private GapStatus lastGapInFrontReport;
-
-        private GapStatus lastGapBehindReport;
-
         private float gapBehindAtLastReport;
 
         private float gapInFrontAtLastReport;
@@ -39,9 +35,6 @@ namespace CrewChiefV2.Events
 
         private Random rand = new Random();
 
-        private int drsRange;
-
-        private Boolean hasDRS;
 
         private float currentGapInFront;
 
@@ -64,14 +57,10 @@ namespace CrewChiefV2.Events
         {
             gapsInFront = new List<float>();
             gapsBehind = new List<float>();
-            lastGapBehindReport = GapStatus.NONE;
-            lastGapInFrontReport = GapStatus.NONE;
             gapBehindAtLastReport = -1;
             gapInFrontAtLastReport = -1;
             sectorsSinceLastReport = 0;
             sectorsUntilNextReport = 0;
-            drsRange = 2;  // TODO: get the DRS range from somewhere
-            hasDRS = false;
             currentGapBehind = -1;
             currentGapInFront = -1;
             isLast = false;
@@ -136,7 +125,6 @@ namespace CrewChiefV2.Events
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gap_in_front", 
                                     new QueuedMessage(folderGapInFrontIncreasing, folderSeconds, gapInFront, 0, this));
                             }                            
-                            lastGapInFrontReport = GapStatus.INCREASING;
                             gapInFrontAtLastReport = gapsInFront[0];
                             break;
                         case GapStatus.DECREASING:
@@ -145,12 +133,10 @@ namespace CrewChiefV2.Events
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gap_in_front", 
                                     new QueuedMessage(folderGapInFrontDecreasing, folderSeconds, gapInFront, 0, this));
                             }
-                            lastGapInFrontReport = GapStatus.DECREASING;
                             gapInFrontAtLastReport = gapsInFront[0];
                             break;
                         case GapStatus.CLOSE:
                             audioPlayer.queueClip(folderBeingHeldUp, 0, this);
-                            lastGapInFrontReport = GapStatus.CLOSE;
                             gapInFrontAtLastReport = gapsInFront[0];
                             break;
                     }
@@ -169,7 +155,6 @@ namespace CrewChiefV2.Events
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gap_behind",
                                     new QueuedMessage(folderGapBehindIncreasing, folderSeconds, gapBehind, 0, this));
                             }
-                            lastGapBehindReport = GapStatus.INCREASING;
                             gapBehindAtLastReport = gapsBehind[0];
                             break;
                         case GapStatus.DECREASING:
@@ -178,12 +163,10 @@ namespace CrewChiefV2.Events
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "Timings/gap_behind",
                                     new QueuedMessage(folderGapBehindDecreasing, folderSeconds, gapBehind, 0, this));
                             }
-                            lastGapBehindReport = GapStatus.DECREASING;
                             gapBehindAtLastReport = gapsBehind[0];
                             break;
                         case GapStatus.CLOSE:
                             audioPlayer.queueClip(folderBeingPressured, 0, this);
-                            lastGapBehindReport = GapStatus.CLOSE;
                             gapBehindAtLastReport = gapsBehind[0];
                             break;
                     }
