@@ -105,7 +105,7 @@ namespace CrewChiefV2.PCars
                     }
                     else
                     {
-                        currentGameState.SessionData.SessionRunningTime = (float)(sessionConstants.SessionStartTime - DateTime.Now).TotalSeconds;
+                        currentGameState.SessionData.SessionRunningTime = (float)(DateTime.Now - sessionConstants.SessionStartTime).TotalSeconds;
                     }
                 }
                 currentGameState.SessionData.CompletedLaps = (int)viewedParticipant.mLapsCompleted;
