@@ -40,6 +40,11 @@ namespace CrewChiefV2.RaceRoom
         private float destroyedTransmissionThreshold = 0.0f;
         private float destroyedEngineThreshold = 0.0f;
         private float destroyedAeroThreshold = 0.0f;
+
+        public void versionCheck(Object memoryMappedFileStruct)
+        {
+            // no version number in r3e shared data so this is a no-op
+        }
         
         /**
          * Creates session data which are valid for the entire session (even if this session has multiple iterations).
@@ -88,7 +93,7 @@ namespace CrewChiefV2.RaceRoom
             currentGameState.SessionData.LapTimeDeltaLeaderClass = shared.LapTimeDeltaLeaderClass;
             currentGameState.SessionData.LapTimeDeltaSelf = shared.LapTimeDeltaSelf;
             currentGameState.SessionData.LapTimePrevious = shared.LapTimePrevious;
-            currentGameState.SessionData.previousLapWasValid = shared.LapTimePrevious != -1;
+            currentGameState.SessionData.PreviousLapWasValid = shared.LapTimePrevious != -1;
             currentGameState.SessionData.Sector1TimeDeltaSelf = shared.SectorTimeDeltaSelf.Sector1;
             currentGameState.SessionData.Sector2TimeDeltaSelf = shared.SectorTimeDeltaSelf.Sector2;
             currentGameState.SessionData.Sector3TimeDeltaSelf = shared.SectorTimeDeltaSelf.Sector3;

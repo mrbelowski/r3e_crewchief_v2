@@ -264,6 +264,7 @@ namespace CrewChiefV2
                     if (mapped)
                     {
                         Object sharedMemoryData = sharedMemoryLoader.ReadSharedMemory();
+                        gameStateMapper.versionCheck(sharedMemoryData);
                         gameStateMapper.mapToGameStateData(sharedMemoryData, sessionConstants);
                         
                         currentGameState = gameStateMapper.getCurrentGameState();

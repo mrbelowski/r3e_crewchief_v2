@@ -11,6 +11,8 @@ namespace CrewChiefV2.GameState
 
         SessionConstants getSessionConstants(Object memoryMappedFileStruct);
 
+        void versionCheck(Object memoryMappedFileStruct);
+
         GameStateData getCurrentGameState();
 
         GameStateData getPreviousGameState();

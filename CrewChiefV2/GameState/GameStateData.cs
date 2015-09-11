@@ -91,14 +91,23 @@ namespace CrewChiefV2.GameState
         public DamageLevel OverallEngineDamage = DamageLevel.UNKNOWN;
 
         public DamageLevel OverallAeroDamage = DamageLevel.UNKNOWN;
+        
+        public DamageLevel LeftFrontSuspensionDamage = DamageLevel.UNKNOWN;
+
+        public DamageLevel LeftRearSuspensionDamage = DamageLevel.UNKNOWN;
+
+        public DamageLevel RightFrontSuspensionDamage = DamageLevel.UNKNOWN;
+
+        public DamageLevel RightRearSuspensionDamage = DamageLevel.UNKNOWN;
+
     }
 
     public class SessionData
     {
         // as soon as the player leaves the racing surface this is set to false
-        public Boolean CurrentLapIsValid = false;
+        public Boolean CurrentLapIsValid = true;
 
-        public Boolean previousLapWasValid = false;
+        public Boolean PreviousLapWasValid = true;
 
         public Boolean IsNewSession = false;
 
@@ -185,15 +194,19 @@ namespace CrewChiefV2.GameState
 
     public class OpponentData
     {
-        public int ID = 0;
-
         public String DriverFirstName = null;
 
         public String DriverLastName = null;
 
         public int Position = 0;
 
-        public Single DistanceRoundTrack = 0; 
+        public Single DistanceRoundTrack = 0;
+
+        public int CompletedLaps = 0;
+
+        public int SectorNumber = 0;
+
+        public Boolean IsPitting = false;
     }
 
     public class ControlData
@@ -332,26 +345,64 @@ namespace CrewChiefV2.GameState
 
         public PositionAndMotionData PositionAndMotionData = new PositionAndMotionData();
 
-        public List<OpponentData> OpponentData = new List<OpponentData>();
+        public Dictionary<int, OpponentData> OpponentData = new Dictionary<int, OpponentData>();
 
         // some convenience methods
-        public OpponentData getOpponentAtPosition(int position)
-        {
-            OpponentData op = null;
-            foreach (OpponentData thisOp in OpponentData)
-            {
-                if (thisOp.Position == position)
-                {
-                    op = thisOp;
-                    break;
-                }
-            }
-            return op;
-        }
-
         public Boolean isLast()
         {
             return SessionData.Position == SessionData.NumCars;
+        }
+        
+        public OpponentData getOpponentAtPosition(int position) 
+        {
+            int opponentId = getOpponentIdAtPosition(position);
+            if (opponentId != -1 && OpponentData.ContainsKey(opponentId))
+            {
+                return OpponentData[opponentId];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public int getOpponentIdInFront()
+        {
+            if (SessionData.Position > 1)
+            {
+                 return getOpponentIdAtPosition(SessionData.Position - 1);
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        public int getOpponentIdBehind()
+        {
+            if (SessionData.Position < SessionData.NumCars)
+            {
+                return getOpponentIdAtPosition(SessionData.Position + 1);
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        public int getOpponentIdAtPosition(int position)
+        {
+            if (OpponentData.Count != 0)
+            {
+                foreach (KeyValuePair<int, OpponentData> entry in OpponentData)
+                {
+                    if (entry.Value.Position == position - 1)
+                    {
+                        return entry.Key;
+                    }
+                }
+            }
+            return -1;
         }
 
         public void display()

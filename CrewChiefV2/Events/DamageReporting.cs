@@ -118,7 +118,7 @@ namespace CrewChiefV2.Events
                     playedSevereAeroDamage = true;
                     playedMinorAeroDamage = true;
                     audioPlayer.queueClip(folderSevereAeroDamage, 5, this);
-                    audioPlayer.removeQueuedClip(folderSevereAeroDamage);
+                    audioPlayer.removeQueuedClip(folderMinorAeroDamage);
                 }
                 else if (!playedMinorAeroDamage && aeroDamage == DamageLevel.MINOR)
                 {

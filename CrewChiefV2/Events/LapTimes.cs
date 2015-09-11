@@ -144,7 +144,7 @@ namespace CrewChiefV2.Events
                 // this might be NO_DATA
                 lastLapRating = getLastLapRating(currentGameState);
                 
-                if (currentGameState.SessionData.previousLapWasValid)
+                if (currentGameState.SessionData.PreviousLapWasValid)
                 {
                     lapTimesWindow.Insert(0, currentGameState.SessionData.LapTimePrevious);
                     if (lapIsValid)
@@ -413,7 +413,7 @@ namespace CrewChiefV2.Events
 
         private LastLapRating getLastLapRating(GameStateData currentGameState)
         {
-            if (currentGameState.SessionData.previousLapWasValid)
+            if (currentGameState.SessionData.PreviousLapWasValid)
             {
                 float closeThreshold = currentGameState.SessionData.LapTimePrevious * goodLapPercent / 100;
                 if (currentGameState.SessionData.LapTimeBestLeader >= currentGameState.SessionData.LapTimePrevious)
