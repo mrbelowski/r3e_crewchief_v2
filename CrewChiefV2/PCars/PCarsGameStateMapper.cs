@@ -18,6 +18,11 @@ namespace CrewChiefV2.PCars
         private float severeDamageThreshold = 0.7f;
         private float destroyedDamageThreshold = 0.99f;
 
+        private float scrubbedTyreWearPercent = 5f;
+        private float minorTyreWearPercent = 30f;
+        private float majorTyreWearPercent = 50f;
+        private float wornOutTyreWearPercent = 90f;    
+
         private GameStateData currentGameState = null;
 
         private GameStateData previousGameState = null;
@@ -131,6 +136,8 @@ namespace CrewChiefV2.PCars
                 currentGameState.SessionData.LapTimeDeltaLeader = shared.mLastLapTime - shared.mSessionFastestLapTime; // is this appropriate?
                 currentGameState.SessionData.TimeDeltaBehind = shared.mSplitTimeBehind;
                 currentGameState.SessionData.TimeDeltaFront = shared.mSplitTimeAhead;
+                // is this right??
+                currentGameState.SessionData.LeaderHasFinishedRace = shared.mHighestFlagColour == (int) eFlagColors.FLAG_COLOUR_CHEQUERED;
 
                 //TODO...
                 currentGameState.SessionData.HasParticipatedInPreviousSession = false;
@@ -176,9 +183,8 @@ namespace CrewChiefV2.PCars
                     currentGameState.PitData.OnInLap = previousGameState.PitData.OnInLap;
                     currentGameState.PitData.OnOutLap = previousGameState.PitData.OnOutLap;
                 }
-
-
-                currentGameState.CarDamageData.DamageEnabled = true;
+                
+                currentGameState.CarDamageData.DamageEnabled = true;    // no way to tell if it's disabled from the shared memory
                 currentGameState.CarDamageData.OverallAeroDamage = mapToDamageLevel(shared.mAeroDamage);
                 currentGameState.CarDamageData.OverallEngineDamage = mapToDamageLevel(shared.mEngineDamage);
                 currentGameState.CarDamageData.OverallTransmissionDamage = DamageLevel.UNKNOWN;
@@ -186,6 +192,60 @@ namespace CrewChiefV2.PCars
                 currentGameState.CarDamageData.RightFrontSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[1]);
                 currentGameState.CarDamageData.LeftRearSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[2]);
                 currentGameState.CarDamageData.RightRearSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[3]);
+
+                currentGameState.EngineData.EngineOilPressure = shared.mOilPressureKPa; // todo: units
+                currentGameState.EngineData.EngineOilTemp = shared.mOilTempCelsius;
+                currentGameState.EngineData.EngineWaterTemp = shared.mWaterTempCelsius;
+                currentGameState.EngineData.EngineRpm = shared.mRPM;
+                currentGameState.EngineData.MaxEngineRpm = shared.mMaxRPM;
+
+                currentGameState.FuelData.FuelCapacity = shared.mFuelCapacity;
+                currentGameState.FuelData.FuelLeft = shared.mFuelLevel;
+                currentGameState.FuelData.FuelPressure = shared.mFuelPressureKPa;
+                currentGameState.FuelData.FuelUseActive = true;         // no way to tell if it's disabled
+
+                currentGameState.PenaltiesData.HasDriveThrough = shared.mPitSchedule == (int)ePitSchedule.PIT_SCHEDULE_DRIVE_THROUGH;
+                currentGameState.PenaltiesData.HasStopAndGo = shared.mPitSchedule == (int)ePitSchedule.PIT_SCHEDULE_STOP_GO;
+
+                currentGameState.PositionAndMotionData.CarSpeed = shared.mSpeed;
+                currentGameState.PositionAndMotionData.DistanceRoundTrack = viewedParticipant.mCurrentLapDistance;
+
+                //------------------------ Tyre data -----------------------          
+                currentGameState.TyreData.HasMatchedTyreTypes = true;
+                currentGameState.TyreData.TireWearActive = true;
+                TyreType tyreType = TyreType.Unknown;
+
+                currentGameState.TyreData.FrontLeft_CenterTemp = shared.mTyreTreadTemp[0] - 273;
+                currentGameState.TyreData.FrontLeft_LeftTemp = shared.mTyreTreadTemp[0] - 273;
+                currentGameState.TyreData.FrontLeft_RightTemp = shared.mTyreTreadTemp[0] - 273;
+                currentGameState.TyreData.FrontLeftTyreType = tyreType;
+                currentGameState.TyreData.FrontLeftPressure = -1; // not in the block
+                currentGameState.TyreData.FrontLeftPercentWear = shared.mTyreWear[0] * 100;
+                currentGameState.TyreData.FrontLeftCondition = getTyreCondition(currentGameState.TyreData.FrontLeftPercentWear);
+
+                currentGameState.TyreData.FrontRight_CenterTemp = shared.mTyreTreadTemp[1] - 273;
+                currentGameState.TyreData.FrontRight_LeftTemp = shared.mTyreTreadTemp[1] - 273;
+                currentGameState.TyreData.FrontRight_RightTemp = shared.mTyreTreadTemp[1] - 273;
+                currentGameState.TyreData.FrontRightTyreType = tyreType;
+                currentGameState.TyreData.FrontRightPressure = -1; // not in the block
+                currentGameState.TyreData.FrontRightPercentWear = shared.mTyreWear[1] * 100;
+                currentGameState.TyreData.FrontRightCondition = getTyreCondition(currentGameState.TyreData.FrontRightPercentWear);
+
+                currentGameState.TyreData.RearLeft_CenterTemp = shared.mTyreTreadTemp[2] - 273;
+                currentGameState.TyreData.RearLeft_LeftTemp = shared.mTyreTreadTemp[2] - 273;
+                currentGameState.TyreData.RearLeft_RightTemp = shared.mTyreTreadTemp[2] - 273;
+                currentGameState.TyreData.RearLeftTyreType = tyreType;
+                currentGameState.TyreData.RearLeftPressure = -1; // not in the block
+                currentGameState.TyreData.RearLeftPercentWear = shared.mTyreWear[2] * 100;
+                currentGameState.TyreData.RearLeftCondition = getTyreCondition(currentGameState.TyreData.RearLeftPercentWear);
+
+                currentGameState.TyreData.RearRight_CenterTemp = shared.mTyreTreadTemp[3] - 273;
+                currentGameState.TyreData.RearRight_LeftTemp = shared.mTyreTreadTemp[3] - 273;
+                currentGameState.TyreData.RearRight_RightTemp = shared.mTyreTreadTemp[3] - 273;
+                currentGameState.TyreData.RearRightTyreType = tyreType;
+                currentGameState.TyreData.RearRightPressure = -1; // not in the block
+                currentGameState.TyreData.RearRightPercentWear = shared.mTyreWear[3] * 100;
+                currentGameState.TyreData.RearRightCondition = getTyreCondition(currentGameState.TyreData.RearRightPercentWear);
             }
         }
 
@@ -302,6 +362,34 @@ namespace CrewChiefV2.PCars
         public GameStateData getPreviousGameState()
         {
             return previousGameState;
+        }
+
+        private TyreCondition getTyreCondition(float percentWear)
+        {
+            if (percentWear <= -1)
+            {
+                return TyreCondition.UNKNOWN;
+            }
+            if (percentWear >= wornOutTyreWearPercent)
+            {
+                return TyreCondition.WORN_OUT;
+            }
+            else if (percentWear >= majorTyreWearPercent)
+            {
+                return TyreCondition.MAJOR_WEAR;
+            }
+            if (percentWear >= minorTyreWearPercent)
+            {
+                return TyreCondition.MINOR_WEAR;
+            }
+            if (percentWear >= scrubbedTyreWearPercent)
+            {
+                return TyreCondition.SCRUBBED;
+            }
+            else
+            {
+                return TyreCondition.NEW;
+            }
         }
     }
 }

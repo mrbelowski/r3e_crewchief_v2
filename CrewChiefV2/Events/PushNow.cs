@@ -109,7 +109,7 @@ namespace CrewChiefV2.Events
                     audioPlayer.queueClip(folderPushExitingPits, 0, this);
                 }
                 else if (currentGameState.SessionData.TimeDeltaBehind > 0 && currentGameState.SessionData.TimeDeltaBehind <= 4 &&
-                    currentGameState.SessionData.TimeDeltaBehind < previousGameState.SessionData.TimeDeltaBehind)
+                    previousGameState != null && currentGameState.SessionData.TimeDeltaBehind < previousGameState.SessionData.TimeDeltaBehind)
                 {
                     // we've exited the pits but there's traffic behind
                     audioPlayer.queueClip(folderTrafficBehindExitingPits, 0, this);

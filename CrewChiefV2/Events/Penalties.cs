@@ -123,7 +123,7 @@ namespace CrewChiefV2.Events
 
         override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
         {
-            if (sessionConstants.SessionType == SessionType.Race &&
+            if (sessionConstants.SessionType == SessionType.Race && previousGameState != null && 
                 currentGameState.PenaltiesData.HasDriveThrough || currentGameState.PenaltiesData.HasStopAndGo || currentGameState.PenaltiesData.HasTimeDeduction)
             {
                 if (currentGameState.PenaltiesData.HasDriveThrough && !previousGameState.PenaltiesData.HasDriveThrough)
@@ -201,7 +201,7 @@ namespace CrewChiefV2.Events
                 }
             }
             else if (currentGameState.PositionAndMotionData.CarSpeed > 1 && playCutTrackWarnings && sessionConstants.SessionType != SessionType.Race &&
-              !currentGameState.SessionData.CurrentLapIsValid && previousGameState.SessionData.CurrentLapIsValid)
+              !currentGameState.SessionData.CurrentLapIsValid && previousGameState != null && previousGameState.SessionData.CurrentLapIsValid)
             {
                 cutTrackWarningsCount = currentGameState.PenaltiesData.CutTrackWarnings;
                 DateTime now = DateTime.Now;
@@ -238,7 +238,7 @@ namespace CrewChiefV2.Events
             {
                 clearPenaltyState();
             }
-            if (sessionConstants.SessionType == SessionType.Race && 
+            if (sessionConstants.SessionType == SessionType.Race && previousGameState != null && 
                 ((previousGameState.PenaltiesData.HasStopAndGo && !currentGameState.PenaltiesData.HasStopAndGo) ||
                 (previousGameState.PenaltiesData.HasDriveThrough && !currentGameState.PenaltiesData.HasDriveThrough)))
             {

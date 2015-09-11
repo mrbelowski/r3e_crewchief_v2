@@ -76,7 +76,7 @@ namespace CrewChiefV2.Events
                 playedGetReady = true;
                 audioPlayer.closeChannel();
             }
-            if (!playedGreenGreenGreen && sessionConstants.SessionType == SessionType.Race && 
+            if (!playedGreenGreenGreen && previousGameState != null && sessionConstants.SessionType == SessionType.Race && 
                 (currentGameState.SessionData.SessionPhase == SessionPhase.Green && 
                     (previousGameState.SessionData.SessionPhase == SessionPhase.Formation || 
                      previousGameState.SessionData.SessionPhase == SessionPhase.Countdown)))
