@@ -247,7 +247,7 @@ namespace CrewChiefV2.RaceRoom
                 }
             }
             else if (isCurrentlyOverlapping)
-            {
+            {                
                 if (!channelLeftOpenTimerStarted)
                 {
                     timeWhenChannelShouldBeClosed = now.Add(timeToWaitBeforeClosingChannelLeftOpen);

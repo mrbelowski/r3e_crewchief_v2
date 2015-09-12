@@ -140,17 +140,21 @@ namespace CrewChiefV2.RaceRoom
             {
                 currentGameState.SessionData.SectorNumber = 1;
                 currentGameState.SessionData.IsNewSector = true;
+                Console.WriteLine("Started sector 1");
             } else 
             {
-                if (currentGameState.SessionData.SectorNumber == 1 &&
+                currentGameState.SessionData.SectorNumber = previousGameState.SessionData.SectorNumber;
+                if (previousGameState.SessionData.SectorNumber == 1 &&
                     previousGameState.SessionData.Sector1TimeDeltaSelf != currentGameState.SessionData.Sector1TimeDeltaSelf)
                 {
                     currentGameState.SessionData.SectorNumber = 2;
+                    Console.WriteLine("Started sector 2");
                 }
-                else if (currentGameState.SessionData.SectorNumber == 2 &&
+                else if (previousGameState.SessionData.SectorNumber == 2 &&
                     previousGameState.SessionData.Sector2TimeDeltaSelf != currentGameState.SessionData.Sector2TimeDeltaSelf)
                 {
                     currentGameState.SessionData.SectorNumber = 3;
+                    Console.WriteLine("Started sector 3");
                 }
                 currentGameState.SessionData.IsNewSector = currentGameState.SessionData.SectorNumber != previousGameState.SessionData.SectorNumber;
             }

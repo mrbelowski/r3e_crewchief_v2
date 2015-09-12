@@ -267,6 +267,10 @@ namespace CrewChiefV2
                     {
                         Object sharedMemoryData = sharedMemoryLoader.ReadSharedMemory();
                         gameStateMapper.versionCheck(sharedMemoryData);
+                        if (sessionConstants == null)
+                        {
+                            sessionConstants = gameStateMapper.getSessionConstants(sharedMemoryData);
+                        }
                         gameStateMapper.mapToGameStateData(sharedMemoryData, sessionConstants);
                         
                         currentGameState = gameStateMapper.getCurrentGameState();
@@ -281,16 +285,20 @@ namespace CrewChiefV2
                             faultingEvents.Clear();
                             faultingEventsCount.Clear();
                             sessionConstants = null;
+                            previousGameState = null;
                             stateCleared = true;
-                            speechRecogniser.addNames(currentGameState.getOpponentLastNames());
+                            if (speechRecogniser != null && speechRecogniser.initialised)
+                            {
+                                List<String> opponentNames = currentGameState.getOpponentLastNames();
+                                if (opponentNames.Count > 0)
+                                {
+                                    speechRecogniser.addNames(currentGameState.getOpponentLastNames());
+                                }
+                            }
                         }
                         else if (previousGameState == null ||
                             currentGameState.SessionData.SessionRunningTime > previousGameState.SessionData.SessionRunningTime)
                         {                            
-                            if (sessionConstants == null)
-                            {
-                                sessionConstants = gameStateMapper.getSessionConstants(sharedMemoryData);
-                            }
                             if (currentGameState.SessionData.IsNewLap)
                             {
                                 sessionConstants.display();

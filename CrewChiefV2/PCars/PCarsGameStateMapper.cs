@@ -58,16 +58,17 @@ namespace CrewChiefV2.PCars
         }
 
         public void mapToGameStateData(Object memoryMappedFileStruct, SessionConstants sessionConstants)
-        {
+        {            
             previousGameState = currentGameState;
             currentGameState = new GameStateData();
             pCarsAPIStruct shared = (pCarsAPIStruct)memoryMappedFileStruct;
+            
             if (shared.mViewedParticipantIndex > -1)
             {
                 pCarsAPIParticipantStruct viewedParticipant = shared.mParticipantData[shared.mViewedParticipantIndex];
-                currentGameState.SessionData.SessionPhase = mapToSessionPhase(shared.mSessionState, shared.mRaceState);
                 if (sessionConstants != null)
                 {
+                    currentGameState.SessionData.SessionPhase = mapToSessionPhase(sessionConstants.SessionType, shared.mSessionState, shared.mRaceState);
                     if (sessionConstants.SessionRunTime > 0)
                     {
                         currentGameState.SessionData.SessionRunningTime = sessionConstants.SessionRunTime - shared.mEventTimeRemaining;
@@ -77,6 +78,7 @@ namespace CrewChiefV2.PCars
                         currentGameState.SessionData.SessionRunningTime = (float)(DateTime.Now - sessionConstants.SessionStartTime).TotalSeconds;
                     }
                 }
+                
                 // session phase - if the phase has changed we'll need to update the session constants
                 SessionPhase lastSessionPhase = SessionPhase.Unavailable;
                 float lastSessionRunningTime = 0;
@@ -325,6 +327,15 @@ namespace CrewChiefV2.PCars
             return opponentData;
         }
 
+        /*
+         * Race state changes - start race, skip practice to end of session, then into race:
+         * 
+         * pre race practice initial - sessionState = SESSION_TEST, raceState = not started 
+         * pre race practice after pit exit - sessionState = SESSION_TEST, raceState = racing
+         * skip to end - sessionState = SESSION_TEST, raceState = not started 
+         * load race - sessionState = NO_SESSION, raceState = not started 
+         * grid walk - sessionState = SESSION_RACE, raceState = racing
+         * */
         private SessionType mapToSessionType(uint sessionState)
         {
             if (sessionState == (uint)eSessionState.SESSION_RACE || sessionState == (uint)eSessionState.SESSION_FORMATIONLAP)
@@ -349,26 +360,61 @@ namespace CrewChiefV2.PCars
             }
         }
 
-        private SessionPhase mapToSessionPhase(uint sessionState, uint raceState)
+        private SessionPhase mapToSessionPhase(SessionType sessionType, uint sessionState, uint raceState)
         {
-            if (raceState == (uint)eRaceState.RACESTATE_NOT_STARTED)
+            if (sessionType == SessionType.Race)
             {
-                if (sessionState == (uint)eSessionState.SESSION_FORMATIONLAP)
+                if (raceState == (uint)eRaceState.RACESTATE_NOT_STARTED)
                 {
-                    return SessionPhase.Formation;
-                } else 
+                    if (sessionState == (uint)eSessionState.SESSION_FORMATIONLAP)
+                    {
+                        return SessionPhase.Formation;
+                    }
+                    else
+                    {
+                        return SessionPhase.Countdown;
+                    }
+                }
+                else if (raceState == (uint)eRaceState.RACESTATE_RACING)
                 {
-                    return SessionPhase.Countdown;
+                    return SessionPhase.Green;
+                }
+                else if (raceState == (uint)eRaceState.RACESTATE_FINISHED ||
+                    raceState == (uint)eRaceState.RACESTATE_DNF ||
+                    raceState == (uint)eRaceState.RACESTATE_DISQUALIFIED ||
+                    raceState == (uint)eRaceState.RACESTATE_RETIRED)
+                {
+                    return SessionPhase.Checkered;
+                }
+                else if (raceState == (uint)eRaceState.RACESTATE_INVALID ||
+                   raceState == (uint)eRaceState.RACESTATE_MAX)
+                {
+                    return SessionPhase.Finished;
                 }
             }
-            else if (raceState == (uint)eRaceState.RACESTATE_RACING)
+            else if (sessionType == SessionType.Practice || sessionType == SessionType.Qualify)
             {
-                return SessionPhase.Green;
+                if (raceState == (uint)eRaceState.RACESTATE_NOT_STARTED)
+                {
+                    return SessionPhase.Garage;
+                } else if (raceState == (uint)eRaceState.RACESTATE_RACING)
+                {
+                    return SessionPhase.Green;
+                }
+                else if (raceState == (uint)eRaceState.RACESTATE_FINISHED ||
+                   raceState == (uint)eRaceState.RACESTATE_DNF ||
+                   raceState == (uint)eRaceState.RACESTATE_DISQUALIFIED ||
+                   raceState == (uint)eRaceState.RACESTATE_RETIRED)
+                {
+                    return SessionPhase.Checkered;
+                }
+                else if (raceState == (uint)eRaceState.RACESTATE_INVALID ||
+                   raceState == (uint)eRaceState.RACESTATE_MAX)
+                {
+                    return SessionPhase.Finished;
+                } 
             }
-            else
-            {
-                return SessionPhase.Unavailable;
-            }
+            return SessionPhase.Unavailable;
         }
 
         public GameStateData getCurrentGameState()

@@ -302,7 +302,7 @@ namespace CrewChiefV2.Events
                     if (playBoxNowMessage && currentGameState.SessionData.SectorNumber == 3)
                     {
                         playBoxNowMessage = false;
-                        audioPlayer.queueClip(folderMandatoryPitStopsPitNow, 6, this);
+                        audioPlayer.queueClip(folderMandatoryPitStopsPitNow, 3, this);
                     }
                 }
             }
