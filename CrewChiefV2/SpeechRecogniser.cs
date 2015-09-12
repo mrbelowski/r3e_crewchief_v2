@@ -66,6 +66,8 @@ namespace CrewChiefV2
 
         public MainWindow.VoiceOptionEnum voiceOptionEnum;
 
+        private Grammar namesGrammar = null;
+
         public void Dispose()
         {
             if (sre != null)
@@ -79,6 +81,7 @@ namespace CrewChiefV2
         public SpeechRecogniser(CrewChief crewChief)
         {
             this.crewChief = crewChief;
+            crewChief.speechRecogniser = this;
         }
 
         public void initialiseSpeechEngine()
@@ -204,6 +207,32 @@ namespace CrewChiefV2
                 return;
             }
             initialised = true;
+        }
+
+        public void addNames(List<String> names)
+        {
+            if (namesGrammar != null)
+            {
+                try
+                {
+                    sre.UnloadGrammar(namesGrammar);
+                    Console.WriteLine("Unloaded names");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+            
+            Choices nameChoices = new Choices();
+            nameChoices.Add(names.ToArray());
+            GrammarBuilder nameGB = new GrammarBuilder();
+            // TODO:
+            //nameGB.Culture = cultureInfo;
+            nameGB.Append(nameChoices);
+            namesGrammar = new Grammar(nameGB);
+            sre.LoadGrammar(namesGrammar);
+            Console.WriteLine("loaded names");
         }
 
         void sre_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)

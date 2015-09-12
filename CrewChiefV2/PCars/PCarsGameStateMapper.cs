@@ -159,7 +159,6 @@ namespace CrewChiefV2.PCars
 
                 //TODO...
                 currentGameState.SessionData.HasParticipatedInPreviousSession = false;
-                currentGameState.SessionData.IsNewSession = false;
 
 
                 currentGameState.PitData.InPitlane = shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_INTO_PITS ||

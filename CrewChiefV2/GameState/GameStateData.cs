@@ -360,6 +360,7 @@ namespace CrewChiefV2.GameState
             {
                 lastNames.Add(entry.Value.DriverLastName);
             }
+            lastNames.Sort();
             return lastNames;
         }
 

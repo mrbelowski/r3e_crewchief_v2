@@ -17,6 +17,8 @@ namespace CrewChiefV2
 {
     class CrewChief : IDisposable
     {
+        public SpeechRecogniser speechRecogniser;
+
         private GameDefinition gameDefinition = GameDefinition.pCars64Bit;
 
         private Boolean keepQuietEnabled = false;
@@ -280,6 +282,7 @@ namespace CrewChiefV2
                             faultingEventsCount.Clear();
                             sessionConstants = null;
                             stateCleared = true;
+                            speechRecogniser.addNames(currentGameState.getOpponentLastNames());
                         }
                         else if (previousGameState == null ||
                             currentGameState.SessionData.SessionRunningTime > previousGameState.SessionData.SessionRunningTime)
