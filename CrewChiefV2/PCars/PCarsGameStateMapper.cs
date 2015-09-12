@@ -65,37 +65,6 @@ namespace CrewChiefV2.PCars
             if (shared.mViewedParticipantIndex > -1)
             {
                 pCarsAPIParticipantStruct viewedParticipant = shared.mParticipantData[shared.mViewedParticipantIndex];
-                
-                // Opponent data
-                int opponentSlotId = 0;
-                foreach (pCarsAPIParticipantStruct participantStruct in shared.mParticipantData)
-                {
-                    if (participantStruct.mIsActive)
-                    {
-                        if (shared.mViewedParticipantIndex != opponentSlotId)
-                        {
-                            if (currentGameState.OpponentData.ContainsKey(opponentSlotId))
-                            {
-                                upateOpponentData(currentGameState.OpponentData[opponentSlotId], participantStruct.mRacePosition, participantStruct.mCurrentLap,
-                                    participantStruct.mCurrentSector, participantStruct.mCurrentLapDistance, false);
-                            }
-                            else
-                            {
-                                currentGameState.OpponentData.Add(opponentSlotId, createOpponentData(participantStruct));
-                            }
-                        }
-                        opponentSlotId++;
-                    }
-                }
-
-                //------------------- Session data ---------------------------
-                currentGameState.SessionData.Position = (int)viewedParticipant.mRacePosition;
-                currentGameState.SessionData.CompletedLaps = (int)viewedParticipant.mLapsCompleted;
-                currentGameState.SessionData.SectorNumber = (int)viewedParticipant.mCurrentSector;
-                if (previousGameState == null || currentGameState.SessionData.SectorNumber != previousGameState.SessionData.SectorNumber)
-                {
-                    currentGameState.SessionData.IsNewSector = true;
-                }
                 currentGameState.SessionData.SessionPhase = mapToSessionPhase(shared.mSessionState, shared.mRaceState);
                 if (sessionConstants != null)
                 {
@@ -108,6 +77,54 @@ namespace CrewChiefV2.PCars
                         currentGameState.SessionData.SessionRunningTime = (float)(DateTime.Now - sessionConstants.SessionStartTime).TotalSeconds;
                     }
                 }
+                // session phase - if the phase has changed we'll need to update the session constants
+                SessionPhase lastSessionPhase = SessionPhase.Unavailable;
+                float lastSessionRunningTime = 0;
+                if (previousGameState != null)
+                {
+                    lastSessionPhase = previousGameState.SessionData.SessionPhase;
+                    lastSessionRunningTime = previousGameState.SessionData.SessionRunningTime;
+                }
+                if ((lastSessionPhase != currentGameState.SessionData.SessionPhase && (lastSessionPhase == SessionPhase.Unavailable || lastSessionPhase == SessionPhase.Finished)) ||
+                    lastSessionRunningTime > currentGameState.SessionData.SessionRunningTime)
+                {
+                    Console.WriteLine("New session");
+                    currentGameState.SessionData.IsNewSession = true;        
+            
+                    // new session phase so collect up the opponent data
+                    // Opponent data
+                    int opponentSlotId = 0;
+                    foreach (pCarsAPIParticipantStruct participantStruct in shared.mParticipantData)
+                    {
+                        if (participantStruct.mIsActive)
+                        {
+                            if (shared.mViewedParticipantIndex != opponentSlotId)
+                            {
+                                if (currentGameState.OpponentData.ContainsKey(opponentSlotId))
+                                {
+                                    upateOpponentData(currentGameState.OpponentData[opponentSlotId], participantStruct.mRacePosition, participantStruct.mCurrentLap,
+                                        participantStruct.mCurrentSector, participantStruct.mCurrentLapDistance, false);
+                                }
+                                else
+                                {
+                                    currentGameState.OpponentData.Add(opponentSlotId, createOpponentData(participantStruct));
+                                }
+                            }
+                            opponentSlotId++;
+                        }
+                    }
+                    Console.WriteLine("Got driver names:");
+                    Console.WriteLine(String.Join("; ", currentGameState.getOpponentLastNames()));
+                }
+                
+                //------------------- Session data ---------------------------
+                currentGameState.SessionData.Position = (int)viewedParticipant.mRacePosition;
+                currentGameState.SessionData.CompletedLaps = (int)viewedParticipant.mLapsCompleted;
+                currentGameState.SessionData.SectorNumber = (int)viewedParticipant.mCurrentSector;
+                if (previousGameState == null || currentGameState.SessionData.SectorNumber != previousGameState.SessionData.SectorNumber)
+                {
+                    currentGameState.SessionData.IsNewSector = true;
+                }               
                 currentGameState.SessionData.CompletedLaps = (int)viewedParticipant.mLapsCompleted;
                 currentGameState.SessionData.Position = (int)viewedParticipant.mRacePosition;
                 currentGameState.SessionData.NumCars = shared.mNumParticipants;
@@ -138,6 +155,7 @@ namespace CrewChiefV2.PCars
                 currentGameState.SessionData.TimeDeltaFront = shared.mSplitTimeAhead;
                 // is this right??
                 currentGameState.SessionData.LeaderHasFinishedRace = shared.mHighestFlagColour == (int) eFlagColors.FLAG_COLOUR_CHEQUERED;
+                
 
                 //TODO...
                 currentGameState.SessionData.HasParticipatedInPreviousSession = false;

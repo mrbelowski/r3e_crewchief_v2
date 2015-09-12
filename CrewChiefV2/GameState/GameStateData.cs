@@ -352,7 +352,17 @@ namespace CrewChiefV2.GameState
         {
             return SessionData.Position == SessionData.NumCars;
         }
-        
+
+        public List<String> getOpponentLastNames()
+        {
+            List<String> lastNames = new List<String>();
+            foreach (KeyValuePair<int, OpponentData> entry in OpponentData)
+            {
+                lastNames.Add(entry.Value.DriverLastName);
+            }
+            return lastNames;
+        }
+
         public OpponentData getOpponentAtPosition(int position) 
         {
             int opponentId = getOpponentIdAtPosition(position);
