@@ -277,6 +277,8 @@ namespace CrewChiefV2.GameState
 
         // Total number of cut track warnings
         public int CutTrackWarnings = 0;
+
+        public Boolean isOffRacingSurface = false;
     }
 
     public class TyreData

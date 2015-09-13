@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CrewChiefV2.Events;
+using CrewChiefV2.GameState;
 
 namespace CrewChiefV2
 {
@@ -23,8 +24,10 @@ namespace CrewChiefV2
         private Boolean timeSpanSet = false;
         public List<String> messagesBeforeTimeSpan = new List<String>();
         public List<String> messagesAfterTimeSpan = new List<String>();
-        // todo: check they're valid in the constructors
-        public Boolean isValid = true;
+
+        // TODO: the queued message should contain some snapshot of pertentent data at the point of creation, 
+        // which can be validated before it actually gets played. Perhaps a Dictionary of property names and value - 
+        // e.g. {SessionData.Position = 1}
 
         public long expiryTime = 0;
 
@@ -85,6 +88,12 @@ namespace CrewChiefV2
             timeSpanSet = true;
             this.dueTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + (secondsDelay * 1000) + updateInterval;
             this.abstractEvent = abstractEvent;
+        }
+
+        public Boolean isMessageStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        {
+            return this.abstractEvent == null || 
+                this.abstractEvent.isMessageStillValid(eventSubType, currentGameState, sessionConstants);
         }
 
         public List<String> getMessageFolders()

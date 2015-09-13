@@ -62,7 +62,7 @@ namespace CrewChiefV2.Events
             playedFinished = false;
         }
 
-        public override bool isClipStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public override bool isMessageStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
         {
             return applicableSessionPhases.Contains(currentGameState.SessionData.SessionPhase);
         }

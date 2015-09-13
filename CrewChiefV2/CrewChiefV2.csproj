@@ -75,6 +75,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DriveNameHelper.cs" />
     <Compile Include="Events\AbstractEvent.cs" />
     <Compile Include="AudioPlayer.cs" />
     <Compile Include="ControllerConfiguration.cs" />

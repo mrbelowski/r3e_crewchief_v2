@@ -476,7 +476,7 @@ namespace CrewChiefV2
                     if (isImmediateMessages || queuedMessage.dueTime <= milliseconds)
                     {
                         if ((isImmediateMessages || !keepQuiet) && 
-                            (queuedMessage.abstractEvent == null || queuedMessage.abstractEvent.isClipStillValid(key, crewChief.currentGameState, crewChief.sessionConstants)) &&
+                            queuedMessage.isMessageStillValid(key, crewChief.currentGameState, crewChief.sessionConstants) &&
                             !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || playGapFillerMessage(queueToPlay)) &&
                             (queuedMessage.expiryTime == 0 || queuedMessage.expiryTime > milliseconds))
                         {
@@ -501,8 +501,8 @@ namespace CrewChiefV2
                     {
                         foreach (String eventName in keysToPlay)
                         {
-                            if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) &&
-                                ((QueuedMessage)queueToPlay[eventName]).isValid) || enabledSounds.Contains(eventName))
+                            if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier)
+                                || enabledSounds.Contains(eventName))
                             {
                                 oneOrMoreEventsEnabled = true;
                             }
@@ -600,7 +600,7 @@ namespace CrewChiefV2
                     if (thisQueue.Contains(eventName))
                     {
                         QueuedMessage thisMessage = (QueuedMessage)thisQueue[eventName];
-                        if ((eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) && thisMessage.isValid) ||
+                        if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) ||
                             enabledSounds.Contains(eventName))
                         {
                             if (clipIsPearlOfWisdom(eventName))

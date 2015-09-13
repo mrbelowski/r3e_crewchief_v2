@@ -288,15 +288,17 @@ namespace CrewChiefV2
                         GameStateData previousGameState = gameStateMapper.getPreviousGameState();
                         // if this is the first game state we have in this session, load the opponent names
                         if (previousGameState == null)
-                        {
-                            if (speechRecogniser != null && speechRecogniser.initialised)
+                        {                            
+                            List<String> opponentNames = currentGameState.getOpponentLastNames();
+                            if (opponentNames.Count > 0)
                             {
-                                List<String> opponentNames = currentGameState.getOpponentLastNames();
-                                if (opponentNames.Count > 0)
+                                DriveNameHelper.addNamesToPhoneticsFile(currentGameState.getOpponentLastNames());
+                                //DriveNameHelper.addPhoneticNamesFolders();
+                                if (speechRecogniser != null && speechRecogniser.initialised)
                                 {
-                                    speechRecogniser.addNames(currentGameState.getOpponentLastNames());
+                                    speechRecogniser.addNames(DriveNameHelper.getPhoneticDriverNames(currentGameState.getOpponentLastNames()));
                                 }
-                            }
+                            }                            
                         }
                         else
                         {

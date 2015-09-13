@@ -13,6 +13,12 @@ namespace CrewChiefV2.PCars
     {
         private static uint expectedVersion = 5;
 
+        private List<uint> racingSurfaces = new List<uint>() { (uint)eTerrain.TERRAIN_BUMPY_DIRT_ROAD, 
+            (uint)eTerrain.TERRAIN_BUMPY_ROAD1, (uint)eTerrain.TERRAIN_BUMPY_ROAD2, (uint)eTerrain.TERRAIN_BUMPY_ROAD3, 
+            (uint)eTerrain.TERRAIN_COBBLES, (uint)eTerrain.TERRAIN_DRAINS, (uint)eTerrain.TERRAIN_EXIT_RUMBLE_STRIPS,
+            (uint)eTerrain.TERRAIN_LOW_GRIP_ROAD, (uint)eTerrain.TERRAIN_MARBLES,(uint)eTerrain.TERRAIN_PAVEMENT,
+            (uint)eTerrain.TERRAIN_ROAD, (uint)eTerrain.TERRAIN_RUMBLE_STRIPS, (uint)eTerrain.TERRAIN_SAND_ROAD};
+
         private float trivialDamageThreshold = 0.1f;
         private float minorDamageThreshold = 0.3f;
         private float severeDamageThreshold = 0.7f;
@@ -265,6 +271,15 @@ namespace CrewChiefV2.PCars
                 currentGameState.TyreData.RearRightPressure = -1; // not in the block
                 currentGameState.TyreData.RearRightPercentWear = shared.mTyreWear[3] * 100;
                 currentGameState.TyreData.RearRightCondition = getTyreCondition(currentGameState.TyreData.RearRightPercentWear);
+
+                // improvised cut track warnings...
+                currentGameState.PenaltiesData.isOffRacingSurface = !racingSurfaces.Contains(shared.mTerrain[0]) &&
+                    !racingSurfaces.Contains(shared.mTerrain[1]) && !racingSurfaces.Contains(shared.mTerrain[2]) &&
+                    !racingSurfaces.Contains(shared.mTerrain[3]);
+                if (previousGameState != null && previousGameState.PenaltiesData.isOffRacingSurface && currentGameState.PenaltiesData.isOffRacingSurface) 
+                {
+                    currentGameState.PenaltiesData.CutTrackWarnings = previousGameState.PenaltiesData.CutTrackWarnings + 1;
+                }
             }
         }
 

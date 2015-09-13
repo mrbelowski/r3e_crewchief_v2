@@ -21,7 +21,7 @@ namespace CrewChiefV2.Events
         {
         }
 
-        public override bool isClipStillValid(string eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public override bool isMessageStillValid(string eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
         {
             return true;
         }

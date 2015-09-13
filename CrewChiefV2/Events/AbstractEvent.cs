@@ -32,7 +32,7 @@ namespace CrewChiefV2.Events
         // generally the event subclass can just return true for this, but when a clip is played with
         // a non-zero delay it may be necessary to re-check that the clip is still valid against the current
         // state
-        public virtual Boolean isClipStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public virtual Boolean isMessageStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
         {
             return isApplicableForCurrentSessionAndPhase(sessionConstants.SessionType, currentGameState.SessionData.SessionPhase);
         }

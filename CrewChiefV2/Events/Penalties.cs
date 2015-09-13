@@ -98,7 +98,7 @@ namespace CrewChiefV2.Events
             playedTimePenaltyMessage = false;
         }
 
-        public override bool isClipStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public override bool isMessageStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
         {
             // when a new penalty is given we queue a 'three laps left to serve' message for 20 seconds in the future.
             // If, 20 seconds later, the player has started a new lap, this message is no longer valid so shouldn't be played

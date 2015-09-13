@@ -54,7 +54,7 @@ namespace CrewChiefV2.Events
             isLast = false;
         }
 
-        public override bool isClipStillValid(string eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public override bool isMessageStillValid(string eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
         {
             return isApplicableForCurrentSessionAndPhase(sessionConstants.SessionType, currentGameState.SessionData.SessionPhase) && !currentGameState.PitData.InPitlane;
         }
