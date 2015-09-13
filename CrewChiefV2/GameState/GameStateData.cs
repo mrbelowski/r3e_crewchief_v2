@@ -358,7 +358,15 @@ namespace CrewChiefV2.GameState
             List<String> lastNames = new List<String>();
             foreach (KeyValuePair<int, OpponentData> entry in OpponentData)
             {
-                lastNames.Add(entry.Value.DriverLastName);
+                String driverLastName = entry.Value.DriverLastName;
+                if (driverLastName.Length > 0)
+                {
+                    lastNames.Add(entry.Value.DriverLastName);
+                }
+                else
+                {
+                    Console.WriteLine("Driver name invalid " + entry.Value.DriverFirstName + " " + entry.Value.DriverLastName);
+                }
             }
             lastNames.Sort();
             return lastNames;

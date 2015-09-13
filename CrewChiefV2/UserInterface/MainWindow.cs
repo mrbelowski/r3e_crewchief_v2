@@ -19,8 +19,6 @@ namespace CrewChiefV2
     {
         private ControllerConfiguration controllerConfiguration;
         
-        private SpeechRecogniser speechRecogniser;
-
         private CrewChief crewChief;
 
         private Boolean isAssigningButton = false;
@@ -122,7 +120,6 @@ namespace CrewChiefV2
             {
                 this.toggleButton.Checked = true;
             }
-            speechRecogniser = new SpeechRecogniser(crewChief);
             if (voiceOption != VoiceOptionEnum.DISABLED)
             {
                 initialiseSpeechEngine();
@@ -141,23 +138,23 @@ namespace CrewChiefV2
         private void listenForChannelOpen()
         {
             Boolean channelOpen = false;
-            if (speechRecogniser != null && speechRecogniser.initialised && voiceOption == VoiceOptionEnum.HOLD)
+            if (crewChief.speechRecogniser.initialised && voiceOption == VoiceOptionEnum.HOLD)
             {
                 Console.WriteLine("Running speech recognition in 'hold button' mode");
-                speechRecogniser.voiceOptionEnum = VoiceOptionEnum.HOLD;
+                crewChief.speechRecogniser.voiceOptionEnum = VoiceOptionEnum.HOLD;
                 while (runListenForChannelOpenThread)
                 {
                     Thread.Sleep(100);
                     if (!channelOpen && controllerConfiguration.isChannelOpen())
                     {
                         channelOpen = true;
-                        speechRecogniser.recognizeAsync();
+                        crewChief.speechRecogniser.recognizeAsync();
                         Console.WriteLine("Listening...");
                     }
                     else if (channelOpen && !controllerConfiguration.isChannelOpen())
                     {
                         Console.WriteLine("Stopping listening...");
-                        speechRecogniser.recognizeAsyncCancel();
+                        crewChief.speechRecogniser.recognizeAsyncCancel();
                         channelOpen = false;
                     }
                 }        
@@ -168,7 +165,7 @@ namespace CrewChiefV2
         {
             DateTime lastButtoncheck = DateTime.Now;
             Boolean channelOpen = false;
-            if (speechRecogniser.initialised && voiceOption == VoiceOptionEnum.TOGGLE) 
+            if (crewChief.speechRecogniser.initialised && voiceOption == VoiceOptionEnum.TOGGLE) 
             {
                 Console.WriteLine("Running speech recognition in 'toggle button' mode");
             }
@@ -193,21 +190,21 @@ namespace CrewChiefV2
                         crewChief.toggleSpotterMode();
                         nextPollWait = 1000;
                     }
-                    else if (speechRecogniser.initialised && voiceOption == VoiceOptionEnum.TOGGLE && 
+                    else if (crewChief.speechRecogniser.initialised && voiceOption == VoiceOptionEnum.TOGGLE && 
                         controllerConfiguration.hasOutstandingClick(ControllerConfiguration.CHANNEL_OPEN_FUNCTION))
                     {
-                        speechRecogniser.voiceOptionEnum = VoiceOptionEnum.TOGGLE;
+                        crewChief.speechRecogniser.voiceOptionEnum = VoiceOptionEnum.TOGGLE;
                         if (!channelOpen)
                         {
                             Console.WriteLine("Listening...");
                             channelOpen = true;
-                            speechRecogniser.recognizeAsync();
+                            crewChief.speechRecogniser.recognizeAsync();
                         }
                         else
                         {
                             Console.WriteLine("Finished listening...");
                             channelOpen = false;
-                            speechRecogniser.recognizeAsyncCancel();
+                            crewChief.speechRecogniser.recognizeAsyncCancel();
                         }
                         nextPollWait = 1000;
                     }
@@ -234,19 +231,19 @@ namespace CrewChiefV2
                 Thread crewChiefThread = new Thread(crewChiefWork);
                 crewChiefThread.Start();
                 runListenForChannelOpenThread = controllerConfiguration.listenForChannelOpen()
-                    && voiceOption == VoiceOptionEnum.HOLD && speechRecogniser.initialised;
-                if (runListenForChannelOpenThread && voiceOption == VoiceOptionEnum.HOLD && speechRecogniser.initialised)
+                    && voiceOption == VoiceOptionEnum.HOLD && crewChief.speechRecogniser.initialised;
+                if (runListenForChannelOpenThread && voiceOption == VoiceOptionEnum.HOLD && crewChief.speechRecogniser.initialised)
                 {
                     Console.WriteLine("Listening on default audio input device");
                     ThreadStart channelOpenButtonListenerWork = listenForChannelOpen;
                     Thread channelOpenButtonListenerThread = new Thread(channelOpenButtonListenerWork);
                     channelOpenButtonListenerThread.Start();
                 }
-                else if (voiceOption == VoiceOptionEnum.ALWAYS_ON && speechRecogniser.initialised)
+                else if (voiceOption == VoiceOptionEnum.ALWAYS_ON && crewChief.speechRecogniser.initialised)
                 {
                     Console.WriteLine("Running speech recognition in 'always on' mode");
-                    speechRecogniser.voiceOptionEnum = VoiceOptionEnum.ALWAYS_ON;
-                    speechRecogniser.recognizeAsync();
+                    crewChief.speechRecogniser.voiceOptionEnum = VoiceOptionEnum.ALWAYS_ON;
+                    crewChief.speechRecogniser.recognizeAsync();
                 }
                 if (runListenForButtonPressesThread)
                 {
@@ -261,7 +258,7 @@ namespace CrewChiefV2
                 if (voiceOption == VoiceOptionEnum.ALWAYS_ON)
                 {
                     Console.WriteLine("Stopping listening...");
-                    speechRecogniser.recognizeAsyncCancel();
+                    crewChief.speechRecogniser.recognizeAsyncCancel();
                 }
                 this.deleteAssigmentButton.Enabled = this.buttonActionSelect.SelectedIndex > -1 &&
                     this.controllerConfiguration.buttonAssignments[this.buttonActionSelect.SelectedIndex].joystick != null;
@@ -354,14 +351,10 @@ namespace CrewChiefV2
         {
             try
             {
-                if (speechRecogniser == null)
+                if (!crewChief.speechRecogniser.initialised)
                 {
-                    speechRecogniser = new SpeechRecogniser(crewChief);
-                }
-                if (!speechRecogniser.initialised)
-                {
-                    speechRecogniser.initialiseSpeechEngine();
-                    Console.WriteLine("Attempted to initialise speech engine - success = " + speechRecogniser.initialised);
+                    crewChief.speechRecogniser.initialiseSpeechEngine();
+                    Console.WriteLine("Attempted to initialise speech engine - success = " + crewChief.speechRecogniser.initialised);
                 }
             }
             catch (Exception e)
@@ -425,12 +418,8 @@ namespace CrewChiefV2
                 runListenForButtonPressesThread = controllerConfiguration.listenForButtons(false);
                 try
                 {
-                    if (speechRecogniser == null)
-                    {
-                        speechRecogniser = new SpeechRecogniser(crewChief);
-                    }
-                    speechRecogniser.initialiseSpeechEngine();
-                    speechRecogniser.voiceOptionEnum = VoiceOptionEnum.HOLD;
+                    initialiseSpeechEngine();
+                    crewChief.speechRecogniser.voiceOptionEnum = VoiceOptionEnum.HOLD;
                     voiceOption = VoiceOptionEnum.HOLD;
                     runListenForChannelOpenThread = true;
                     UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
@@ -450,12 +439,8 @@ namespace CrewChiefV2
                 runListenForChannelOpenThread = false;
                 try
                 {
-                    if (speechRecogniser == null)
-                    {
-                        speechRecogniser = new SpeechRecogniser(crewChief);
-                    }
-                    speechRecogniser.initialiseSpeechEngine();
-                    speechRecogniser.voiceOptionEnum = VoiceOptionEnum.TOGGLE;
+                    initialiseSpeechEngine();
+                    crewChief.speechRecogniser.voiceOptionEnum = VoiceOptionEnum.TOGGLE;
                     voiceOption = VoiceOptionEnum.TOGGLE;
                     UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
                     UserSettings.GetUserSettings().saveUserSettings();
@@ -474,12 +459,8 @@ namespace CrewChiefV2
                 runListenForButtonPressesThread = controllerConfiguration.listenForButtons(false);
                 try
                 {
-                    if (speechRecogniser == null)
-                    {
-                        speechRecogniser = new SpeechRecogniser(crewChief);
-                    }
-                    speechRecogniser.initialiseSpeechEngine();
-                    speechRecogniser.voiceOptionEnum = VoiceOptionEnum.ALWAYS_ON;
+                    initialiseSpeechEngine();
+                    crewChief.speechRecogniser.voiceOptionEnum = VoiceOptionEnum.ALWAYS_ON;
                     voiceOption = VoiceOptionEnum.ALWAYS_ON;
                     UserSettings.GetUserSettings().setProperty("VOICE_OPTION", getVoiceOptionString());
                     UserSettings.GetUserSettings().saveUserSettings();

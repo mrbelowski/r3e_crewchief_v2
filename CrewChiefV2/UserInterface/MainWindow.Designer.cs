@@ -20,10 +20,6 @@
                 crewChief.stop();
                 crewChief.Dispose();
             }
-            if (speechRecogniser != null)
-            {
-                speechRecogniser.Dispose();
-            }
             if (controllerConfiguration != null)
             {
                 controllerConfiguration.Dispose();

@@ -68,6 +68,10 @@ namespace CrewChiefV2
 
         private Grammar namesGrammar = null;
 
+        private List<String> loadedDriverNames;
+
+        private System.Globalization.CultureInfo cultureInfo;
+
         public void Dispose()
         {
             if (sre != null)
@@ -81,13 +85,11 @@ namespace CrewChiefV2
         public SpeechRecogniser(CrewChief crewChief)
         {
             this.crewChief = crewChief;
-            crewChief.speechRecogniser = this;
         }
 
         public void initialiseSpeechEngine()
         {
             initialised = false;
-            System.Globalization.CultureInfo cultureInfo = null;
             try
             {
                 cultureInfo = new System.Globalization.CultureInfo(location);
@@ -211,28 +213,28 @@ namespace CrewChiefV2
 
         public void addNames(List<String> names)
         {
-            if (namesGrammar != null)
+            if (loadedDriverNames == null ||
+                !loadedDriverNames.All(names.Contains))
             {
-                try
+                if (namesGrammar != null)
                 {
                     sre.UnloadGrammar(namesGrammar);
                     Console.WriteLine("Unloaded names");
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
+                Choices nameChoices = new Choices();
+                nameChoices.Add(names.ToArray());
+                GrammarBuilder nameGB = new GrammarBuilder();
+                nameGB.Culture = cultureInfo;
+                nameGB.Append(nameChoices);
+                namesGrammar = new Grammar(nameGB);
+                sre.LoadGrammar(namesGrammar);
+                Console.WriteLine("loaded names");
+                loadedDriverNames = names;
             }
-            
-            Choices nameChoices = new Choices();
-            nameChoices.Add(names.ToArray());
-            GrammarBuilder nameGB = new GrammarBuilder();
-            // TODO:
-            //nameGB.Culture = cultureInfo;
-            nameGB.Append(nameChoices);
-            namesGrammar = new Grammar(nameGB);
-            sre.LoadGrammar(namesGrammar);
-            Console.WriteLine("loaded names");
+            else
+            {
+                Console.WriteLine("Drive names are already loaded");
+            }
         }
 
         void sre_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)

@@ -335,6 +335,9 @@ namespace CrewChiefV2.PCars
          * skip to end - sessionState = SESSION_TEST, raceState = not started 
          * load race - sessionState = NO_SESSION, raceState = not started 
          * grid walk - sessionState = SESSION_RACE, raceState = racing
+         * 
+         * TODO: other session types. The "SESSION_TEST" above is actually the warmup. Presumably
+         * an event with prac -> qual -> warmup -> race would use SESSION_PRACTICE
          * */
         private SessionType mapToSessionType(uint sessionState)
         {
