@@ -17,27 +17,33 @@ namespace CrewChiefV2.RaceRoom
 
         public Boolean Initialise()
         {
-            try
+            lock (this)
             {
-                _file = MemoryMappedFile.OpenExisting(RaceRoomConstant.SharedMemoryName);
-                _view = _file.CreateViewAccessor(0, Marshal.SizeOf(typeof(RaceRoomShared)));
-                return true;
-            }
-            catch (FileNotFoundException)
-            {
-                return false;
-            }
+                try
+                {
+                    _file = MemoryMappedFile.OpenExisting(RaceRoomConstant.SharedMemoryName);
+                    _view = _file.CreateViewAccessor(0, Marshal.SizeOf(typeof(RaceRoomShared)));
+                    return true;
+                }
+                catch (FileNotFoundException)
+                {
+                    return false;
+                }
+            }            
         }
 
         public Object ReadSharedMemory()
         {
-            if (_view == null && _file == null)
+            lock (this)
             {
-                Initialise();
-            }
-            RaceRoomShared currentState = new RaceRoomShared();
-            _view.Read(0, out currentState);
-            return currentState;
+                if (_view == null && _file == null)
+                {
+                    Initialise();
+                }
+                RaceRoomShared currentState = new RaceRoomShared();
+                _view.Read(0, out currentState);
+                return currentState;
+            }            
         }
 
         public void Dispose()

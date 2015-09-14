@@ -212,15 +212,15 @@ namespace CrewChiefV2
             while (runSpotterThread)
             {
                 DateTime now = DateTime.Now;
-                if (now > nextRunTime)
+                if (now > nextRunTime && spotter != null)
                 {
                     lastSpotterState = currentSpotterState;
                     currentSpotterState = sharedMemoryLoader.ReadSharedMemory();
-                    if (spotter != null && lastSpotterState != null)
+                    if (lastSpotterState != null)
                     {
                         spotter.trigger(lastSpotterState, currentSpotterState);
                     }
-                    nextRunTime = nextRunTime.Add(spotterInterval);
+                    nextRunTime = DateTime.Now.Add(spotterInterval);
                 }
                 Thread.Sleep(threadSleepTime);
             }
@@ -334,6 +334,7 @@ namespace CrewChiefV2
                                 }
                                 if (spotter != null && spotterEnabled && !spotterIsRunning)
                                 {
+                                    Console.WriteLine("********** starting spotter***********");
                                     spotter.clearState();
                                     startSpotterThread();
                                 }

@@ -82,6 +82,7 @@
     <Compile Include="Events\Spotter.cs" />
     <Compile Include="GameDefinition.cs" />
     <Compile Include="GameState\SessionConstants.cs" />
+    <Compile Include="PCars\PCarsSpotter.cs" />
     <Compile Include="R3E\R3ESharedMemoryReader.cs" />
     <Compile Include="SharedMemoryLoader.cs" />
     <Compile Include="PCars\PCarsStruct.cs" />

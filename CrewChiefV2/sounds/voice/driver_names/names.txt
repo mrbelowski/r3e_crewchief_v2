@@ -1,4 +1,4 @@
-﻿knight:night
+knight:night
 piquet:peekay
 Andersson:Anderson
 Berjot:Beryot
@@ -106,3 +106,27 @@ Scotti:
 Sofron:
 Souza:
 Zijlstra:
+Azevedo:
+Beran:
+Campos:
+Cardoso:
+Carrera:
+De Masi:
+Decroix:
+Kennedy:
+Kleber:
+M. Tomas:
+Martinez:
+Mercy:
+Michael:
+Moncalieri:
+Navarrete Rojas:
+Rambert:
+Sellhorn:
+Simko:
+Tumbas:
+Vidén:
+Weigel:
+Roettenbacher:
+Reed:
+Lo Porto:

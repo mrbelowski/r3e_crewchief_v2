@@ -13,10 +13,10 @@ namespace CrewChiefV2
     class GameDefinition
     {
         public static GameDefinition pCars64Bit = new GameDefinition(GameEnum.PCARS_64BIT, "Project Cars (64 bit)", "pCARS64",
-            "CrewChiefV2.PCars.PCarsSharedMemoryReader", "CrewChiefV2.PCars.PCarsGameStateMapper", null,
+            "CrewChiefV2.PCars.PCarsSharedMemoryReader", "CrewChiefV2.PCars.PCarsGameStateMapper", "CrewChiefV2.PCars.PCarsSpotter",
             "pcars64_launch_exe", "pcars64_launch_params", "launch_pcars");
-        public static GameDefinition pCars32Bit = new GameDefinition(GameEnum.PCARS_32BIT, "Project Cars (32 bit)", "pCARS32", null,
-            "CrewChiefV2.PCars.PCarsSharedMemoryReader", "CrewChiefV2.PCars.PCarsGameStateMapper", 
+        public static GameDefinition pCars32Bit = new GameDefinition(GameEnum.PCARS_32BIT, "Project Cars (32 bit)", "pCARS32",
+            "CrewChiefV2.PCars.PCarsSharedMemoryReader", "CrewChiefV2.PCars.PCarsGameStateMapper", "CrewChiefV2.PCars.PCarsSpotter",
             "pcars64_launch_exe", "pcars64_launch_params", "launch_pcars");
         public static GameDefinition raceRoom = new GameDefinition(GameEnum.RACE_ROOM, "Race Room", "RRRE",
             "CrewChiefV2.RaceRoom.R3ESharedMemoryReader", "CrewChiefV2.RaceRoom.R3EGameStateMapper", "CrewChiefV2.RaceRoom.R3ESpotter",

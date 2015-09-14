@@ -19,50 +19,58 @@ namespace CrewChiefV2.PCars
 
         public Boolean Initialise()
         {
-            if (!initialised)
+            lock (this)
             {
-                try
+                if (!initialised)
                 {
-                    memoryMappedFile = MemoryMappedFile.OpenExisting("$pcars$");
-                    sharedmemorysize = Marshal.SizeOf(typeof(pCarsAPIStruct));
-                    sharedMemoryReadBuffer = new byte[sharedmemorysize];
-                    initialised = true;
+                    Console.WriteLine("Initialising pcars shared memory");
+                    try
+                    {
+                        memoryMappedFile = MemoryMappedFile.OpenExisting("$pcars$");
+                        sharedmemorysize = Marshal.SizeOf(typeof(pCarsAPIStruct));
+                        sharedMemoryReadBuffer = new byte[sharedmemorysize];
+                        initialised = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        initialised = false;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    initialised = false;
-                }
-            }
-            return initialised;
+                return initialised;
+            }            
         }
 
         public Object ReadSharedMemory()
         {
-            pCarsAPIStruct _pcarsapistruct = new pCarsAPIStruct();
-            if (!initialised)
+            lock (this)
             {
-                if (!Initialise())
+                pCarsAPIStruct _pcarsapistruct = new pCarsAPIStruct();
+                if (!initialised)
                 {
-                    throw new SharedMemoryReadException("Failed to initialise shared memory");
+                    if (!Initialise())
+                    {
+                        throw new SharedMemoryReadException("Failed to initialise shared memory");
+                    }
                 }
-            }
-            try
-            {
-                using (var sharedMemoryStreamView = memoryMappedFile.CreateViewStream())
+                try
                 {
-                    BinaryReader _SharedMemoryStream = new BinaryReader(sharedMemoryStreamView);
-                    sharedMemoryReadBuffer = _SharedMemoryStream.ReadBytes(sharedmemorysize);
-                    handle = GCHandle.Alloc(sharedMemoryReadBuffer, GCHandleType.Pinned);
-                    _pcarsapistruct = (pCarsAPIStruct)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(pCarsAPIStruct));
-                    handle.Free();
-                }
+                    using (var sharedMemoryStreamView = memoryMappedFile.CreateViewStream())
+                    {
+                        BinaryReader _SharedMemoryStream = new BinaryReader(sharedMemoryStreamView);
+                        sharedMemoryReadBuffer = _SharedMemoryStream.ReadBytes(sharedmemorysize);
+                        handle = GCHandle.Alloc(sharedMemoryReadBuffer, GCHandleType.Pinned);
+                        _pcarsapistruct = (pCarsAPIStruct)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(pCarsAPIStruct));
+                        //Console.WriteLine(_pcarsapistruct.mSpeed);
+                        handle.Free();
+                    }
 
-                return _pcarsapistruct;
-            }
-            catch (Exception ex)
-            {
-                throw new SharedMemoryReadException(ex.Message, ex);
-            }
+                    return _pcarsapistruct;
+                }
+                catch (Exception ex)
+                {
+                    throw new SharedMemoryReadException(ex.Message, ex);
+                }
+            }            
         }
 
         public void Dispose()
