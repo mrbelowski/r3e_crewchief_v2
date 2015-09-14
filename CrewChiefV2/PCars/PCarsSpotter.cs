@@ -126,7 +126,7 @@ namespace CrewChiefV2.PCars
                 if (!hasCompletedOneSector && playerData.mCurrentSector > 1) {
                     hasCompletedOneSector = true;
                 }
-                if (enabled && hasCompletedOneSector && currentSpeed > minSpeedForSpotterToOperate)
+                if (enabled && hasCompletedOneSector)// && currentSpeed > minSpeedForSpotterToOperate)
                 {
                     int carsOnLeft = 0;
                     int carsOnRight = 0;
@@ -261,24 +261,27 @@ namespace CrewChiefV2.PCars
             float playerRotationDegrees;
             if (playerRotation > 0)
             {
-                playerRotationDegrees = 360 - (playerRotation * 57.2958f);
+                playerRotationDegrees = playerRotation * 57.2958f;
             }
             else
             {
-                playerRotationDegrees = -1 * playerRotation * 57.2958f;
+                playerRotationDegrees = 360 + playerRotation * 57.2958f;
             }
+
             float rawXCoordinate = opponentWorldPosition[0] - playerWorldPosition[0];
             float rawYCoordinate = opponentWorldPosition[2] - playerWorldPosition[2];
             // now transform the position by rotating the frame of reference to align it north-south. The player's car is at the origin pointing north.
             // We assume that both cars have similar orientations (or at least, any orientation difference isn't going to be relevant)
-            float alignedXCoordinate = ((float)Math.Cos(playerRotation) * rawXCoordinate) + ((float)Math.Sin(playerRotation) * rawYCoordinate);
-            float alignedYCoordinate = ((float)Math.Cos(playerRotation) * rawYCoordinate) - ((float)Math.Sin(playerRotation) * rawXCoordinate);
-            
+            float alignedXCoordinate = ((float)Math.Cos(360 - playerRotationDegrees) * rawXCoordinate) + ((float)Math.Sin(360 - playerRotationDegrees) * rawYCoordinate);
+            float alignedYCoordinate = ((float)Math.Cos(360 - playerRotationDegrees) * rawYCoordinate) - ((float)Math.Sin(360 - playerRotationDegrees) * rawXCoordinate);
+            /*Console.WriteLine("opponent pos = " + opponentWorldPosition[0] + ", " + opponentWorldPosition[2] +
+                    "player pos = " + playerWorldPosition[0] + ", " + playerWorldPosition[2]);
+            Console.WriteLine("aligned pos = " + alignedXCoordinate + ", " + alignedYCoordinate);*/
+            /*Console.WriteLine("rotation " + playerRotationDegrees);
+            Console.WriteLine("player pos = " + playerWorldPosition[0] + ", " + playerWorldPosition[2]);*/
             if (Math.Abs(alignedYCoordinate) < carLength && Math.Abs(alignedXCoordinate) < trackWidth)
             {
-                Console.WriteLine("opponent pos = " + opponentWorldPosition[0] + ", " + opponentWorldPosition[2] +
-                    "player pos = " + playerWorldPosition[0] + ", " + playerWorldPosition[2]);
-                Console.WriteLine("aligned pos = " + alignedXCoordinate + ", " + alignedYCoordinate);
+                
                 if (alignedXCoordinate > 0)
                 {
                     return Side.right;
