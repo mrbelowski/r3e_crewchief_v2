@@ -44,10 +44,7 @@ namespace CrewChiefV2.PCars
 
         private float trackWidth = 10;
 
-        private String folderClear = "spotter/clear";
-        private String folderHoldYourLine = "spotter/hold_your_line";
         private String folderStillThere = "spotter/still_there";
-
         private String folderInTheMiddle = "spotter/in_the_middle";
         private String folderCarLeft = "spotter/car_left";
         private String folderCarRight = "spotter/car_right"; 
@@ -75,17 +72,12 @@ namespace CrewChiefV2.PCars
 
         private TimeSpan timeToWaitBeforeClosingChannelLeftOpen = TimeSpan.FromMilliseconds(500);
 
-        // this is -1 * the time taken to travel 1 car length at the minimum spotter speed
-        private float biggestAllowedNegativeTimeDelta;
-
         private Boolean channelLeftOpenTimerStarted = false;
 
         private DateTime timeWhenWeveHadEnoughUnusableData;
 
         private TimeSpan maxTimeToKeepChannelOpenWhileReceivingUnusableData = TimeSpan.FromSeconds(2);
-
-        private Boolean lastSpotterDataIsUsable;
-
+        
         private AudioPlayer audioPlayer;
 
         private Boolean hasCompletedOneSector;
@@ -253,7 +245,7 @@ namespace CrewChiefV2.PCars
                 Console.WriteLine("still there, carsOnLeftCount " + carsOnLeftCount + " carsOnRightCount " + carsOnRightCount + " hasCarLeft " + hasCarLeft + " hasCarRight " + hasCarRight);
                 QueuedMessage holdYourLineMessage = new QueuedMessage(0, null);
                 holdYourLineMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                audioPlayer.playClipImmediately(folderHoldYourLine, holdYourLineMessage);
+                audioPlayer.playClipImmediately(folderStillThere, holdYourLineMessage);
             }
 
             timeOfNextHoldMessage = now.Add(repeatHoldFrequency);
