@@ -178,7 +178,7 @@ namespace CrewChiefV2.Events
                 }
                 if (!currentGameState.PitData.InPitlane && !reportedEstimatedTimeLeft && enableTyreWearWarnings && !currentGameState.SessionData.LeaderHasFinishedRace)
                 {
-                    reportEstimatedTyreLife();
+                    reportEstimatedTyreLife(33, false);
                 }
                 // if the tyre wear has actually decreased, reset the 'reportdEstimatedTyreWear flag - assume this means the tyres have been changed
                 if (previousGameState != null && (currentGameState.TyreData.FrontLeftPercentWear < previousGameState.TyreData.FrontLeftPercentWear ||
@@ -219,40 +219,116 @@ namespace CrewChiefV2.Events
             }
         }
 
-        private void reportEstimatedTyreLife()
+        private void playEstimatedTypeLifeMinutes(int minutesRemainingOnTheseTyres, Boolean immediate)
+        {
+            if (immediate)
+            {
+                if (minutesRemainingOnTheseTyres > 59 || minutesRemainingOnTheseTyres > (timeInSession - timeElapsed) / 60)
+                {
+                    audioPlayer.openChannel();
+                    audioPlayer.playClipImmediately(folderGoodWear, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                    return;
+                }
+                else if (minutesRemainingOnTheseTyres < 1)
+                {
+                    audioPlayer.openChannel();
+                    audioPlayer.playClipImmediately(folderKnackeredAllRound, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                    return;
+                }
+            }
+            if (minutesRemainingOnTheseTyres < 59 && minutesRemainingOnTheseTyres > 1 &&
+                        minutesRemainingOnTheseTyres <= (timeInSession - timeElapsed) / 60)
+            {
+                List<String> messages = new List<String>();
+                messages.Add(folderMinutesOnCurrentTyresIntro);
+                messages.Add(QueuedMessage.folderNameNumbersStub + minutesRemainingOnTheseTyres);
+                messages.Add(folderMinutesOnCurrentTyresOutro);
+                if (immediate)
+                {
+                    audioPlayer.openChannel();
+                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "minutes_on_current_tyres",
+                        new QueuedMessage(messages, 0, this));
+                    audioPlayer.closeChannel();
+                }
+                else
+                {
+                    audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "minutes_on_current_tyres",
+                    new QueuedMessage(messages, 0, this));
+                }
+            }
+            else if (immediate)
+            {
+                audioPlayer.openChannel();
+                audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, this));
+                audioPlayer.closeChannel();
+            }
+        }
+
+        private void playEstimatedTypeLifeLaps(int lapsRemainingOnTheseTyres, Boolean immediate)
+        {
+            if (immediate)
+            {
+                if (lapsRemainingOnTheseTyres > 59 || lapsRemainingOnTheseTyres > lapsInSession - completedLaps)
+                {
+                    audioPlayer.openChannel();
+                    audioPlayer.playClipImmediately(folderGoodWear, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                    return;
+                }
+                else if (lapsRemainingOnTheseTyres < 1)
+                {
+                    audioPlayer.openChannel();
+                    audioPlayer.playClipImmediately(folderKnackeredAllRound, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                    return;
+                }
+            }
+            if (lapsRemainingOnTheseTyres < 59 && lapsRemainingOnTheseTyres > 1 &&
+                        lapsRemainingOnTheseTyres <= lapsInSession - completedLaps)
+            {
+                List<String> messages = new List<String>();
+                messages.Add(folderLapsOnCurrentTyresIntro);
+                messages.Add(QueuedMessage.folderNameNumbersStub + lapsRemainingOnTheseTyres);
+                messages.Add(folderLapsOnCurrentTyresOutro);
+                if (immediate)
+                {
+                    audioPlayer.openChannel();
+                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "laps_on_current_tyres",
+                        new QueuedMessage(messages, 0, this));
+                    audioPlayer.closeChannel();
+                }
+                else
+                {
+                    audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laps_on_current_tyres",
+                        new QueuedMessage(messages, 0, this));
+                }                
+            }
+            else if (immediate)
+            {
+                audioPlayer.openChannel();
+                audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, this));
+                audioPlayer.closeChannel();
+            }
+        }
+
+        private void reportEstimatedTyreLife(float maxWearThreshold, Boolean immediate)
         {
             float maxWearPercent = Math.Max(leftFrontWearPercent, Math.Max(rightFrontWearPercent, Math.Max(leftRearWearPercent, rightRearWearPercent)));
-            if (maxWearPercent >= 33)
+            if (maxWearPercent >= maxWearThreshold)
             {
                 // 1/3 through the tyre's life
                 reportedEstimatedTimeLeft = true;
                 if (lapsInSession > 0)
                 {
                     int lapsRemainingOnTheseTyres = (int)(completedLaps / (maxWearPercent / 100)) - completedLaps - 1;
-                    if (lapsRemainingOnTheseTyres < 59 && lapsRemainingOnTheseTyres > 1 &&
-                        lapsRemainingOnTheseTyres <= lapsInSession - completedLaps)
-                    {
-                        List<String> messages = new List<String>();
-                        messages.Add(folderLapsOnCurrentTyresIntro);
-                        messages.Add(QueuedMessage.folderNameNumbersStub + lapsRemainingOnTheseTyres);
-                        messages.Add(folderLapsOnCurrentTyresOutro);
-                        audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laps_on_current_tyres",
-                            new QueuedMessage(messages, 0, this));
-                    }
+                    playEstimatedTypeLifeLaps(lapsRemainingOnTheseTyres, immediate);
                 }
                 else
                 {
                     int minutesRemainingOnTheseTyres = (int)Math.Round((timeElapsed / (maxWearPercent / 100)) - timeElapsed - 1);
-                    if (minutesRemainingOnTheseTyres < 59 && minutesRemainingOnTheseTyres > 1 &&
-                        minutesRemainingOnTheseTyres <= (timeInSession - timeElapsed) / 60)
-                    {
-                        List<String> messages = new List<String>();
-                        messages.Add(folderMinutesOnCurrentTyresIntro);
-                        messages.Add(QueuedMessage.folderNameNumbersStub + minutesRemainingOnTheseTyres);
-                        messages.Add(folderMinutesOnCurrentTyresOutro);
-                        audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "minutes_on_current_tyres",
-                            new QueuedMessage(messages, 0, this));
-                    }
+                    playEstimatedTypeLifeMinutes(minutesRemainingOnTheseTyres, immediate);
                 }
             }
         }
@@ -286,6 +362,8 @@ namespace CrewChiefV2.Events
             else if (voiceMessage.Contains(SpeechRecogniser.TYRE_WEAR))
             {
                 playTyreWearMessages(false, true);
+                reportEstimatedTyreLife(10, true);
+                audioPlayer.closeChannel();
             }
         }
 
@@ -305,7 +383,6 @@ namespace CrewChiefV2.Events
                     {
                         audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(folderGoodWear, new QueuedMessage(0, this));
-                        audioPlayer.closeChannel();
                     }
                 }
             }

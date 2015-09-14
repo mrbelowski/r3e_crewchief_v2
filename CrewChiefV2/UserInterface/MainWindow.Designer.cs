@@ -1,4 +1,5 @@
-﻿namespace CrewChiefV2
+﻿using System;
+namespace CrewChiefV2
 {
     partial class MainWindow
     {
@@ -265,7 +266,29 @@
             this.gameDefinitionList.AllowDrop = true;
             this.gameDefinitionList.FormattingEnabled = true;
             this.gameDefinitionList.Items.AddRange(GameDefinition.getGameDefinitionFriendlyNames());
-            this.gameDefinitionList.Text = GameDefinition.raceRoom.friendlyName;
+            String[] commandLineArgs = Environment.GetCommandLineArgs();
+            if (commandLineArgs != null)
+            {
+                foreach (String arg in commandLineArgs)
+                {
+                    if (arg.Equals(GameDefinition.raceRoom.gameEnum.ToString()))
+                    {
+                        this.gameDefinitionList.Text = GameDefinition.raceRoom.friendlyName;
+                        break;
+                    }
+                    else if (arg.Equals(GameDefinition.pCars32Bit.gameEnum.ToString()))
+                    {
+                        this.gameDefinitionList.Text = GameDefinition.pCars32Bit.friendlyName;
+                        break;
+                    }
+                    else if (arg.Equals(GameDefinition.pCars64Bit.gameEnum.ToString()))
+                    {
+                        this.gameDefinitionList.Text = GameDefinition.pCars64Bit.friendlyName;
+                        break;
+                    }
+                }
+            }
+            this.gameDefinitionList.Text = "Please select";
             this.gameDefinitionList.Location = new System.Drawing.Point(782, 26);
             this.gameDefinitionList.Name = "listBox2";
             this.gameDefinitionList.Size = new System.Drawing.Size(203, 43);

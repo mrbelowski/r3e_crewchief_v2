@@ -195,6 +195,8 @@ namespace CrewChiefV2
         {
             if (spotter != null)
             {
+                lastSpotterState = null;
+                currentSpotterState = null;
                 spotterIsRunning = true;
                 ThreadStart work = spotterWork;
                 Thread thread = new Thread(work);
@@ -303,6 +305,8 @@ namespace CrewChiefV2
                         else
                         {
                             // otherwise process
+
+                            // TODO: session end messages need to be implemented
                             if (currentGameState.SessionData.IsNewSession && !stateCleared)
                             {
                                 Console.WriteLine("Clearing game state...");
@@ -319,6 +323,7 @@ namespace CrewChiefV2
                             }
                             else if (currentGameState.SessionData.SessionRunningTime > previousGameState.SessionData.SessionRunningTime)
                             {
+                                // TODO: IsNewLap isn't getting set in PCars
                                 if (currentGameState.SessionData.IsNewLap)
                                 {
                                     sessionConstants.display();

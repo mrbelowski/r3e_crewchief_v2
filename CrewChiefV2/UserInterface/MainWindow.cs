@@ -220,6 +220,17 @@ namespace CrewChiefV2
 
         private void doStartAppStuff()
         {
+            GameDefinition gameDefinition = GameDefinition.getGameDefinitionForFriendlyName(gameDefinitionList.Text);
+            if (gameDefinition != null)
+            {
+                crewChief.setGameDefinition(gameDefinition);
+            }
+            else
+            {
+                MessageBox.Show("Please choose a game option", "No game selected", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
             IsAppRunning = !IsAppRunning;
             if (_IsAppRunning)
             {
@@ -277,7 +288,6 @@ namespace CrewChiefV2
 
         private void runApp()
         {
-            crewChief.setGameDefinition(GameDefinition.getGameDefinitionForFriendlyName(gameDefinitionList.Text));
             if (!crewChief.Run())
             {
                 this.deleteAssigmentButton.Enabled = this.buttonActionSelect.SelectedIndex > -1 &&
