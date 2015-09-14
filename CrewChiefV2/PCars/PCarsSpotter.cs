@@ -181,9 +181,10 @@ namespace CrewChiefV2.PCars
 
         private void playMessage(int carsOnLeftCount, int carsOnRightCount, DateTime now) 
         {
+            Console.WriteLine(carsOnLeftCount + " cars on left, " + carsOnRightCount + " cars on right");
             if (carsOnLeftCount == 0 && carsOnRightCount == 0 && hasCarLeft && hasCarRight)
             {
-                Console.WriteLine("clear all round");
+                //Console.WriteLine("clear all round");
                 // just gone clear all round
                 audioPlayer.holdOpenChannel(true);
                 QueuedMessage clearAllRoundMessage = new QueuedMessage(0, null);
@@ -195,7 +196,7 @@ namespace CrewChiefV2.PCars
                 ((carsOnRightCount == 0 && !hasCarRight) || 
                 (carsOnRightCount > 0 && hasCarRight)))
             {
-                Console.WriteLine("clear left");
+                //Console.WriteLine("clear left");
                 // just gone clear on the left - might still be a car right
                 audioPlayer.holdOpenChannel(true);
                 QueuedMessage clearLeftMessage = new QueuedMessage(0, null);
@@ -207,7 +208,7 @@ namespace CrewChiefV2.PCars
                 ((carsOnLeftCount == 0 && !hasCarLeft) ||
                 (carsOnLeftCount > 0 && hasCarLeft)))
             {
-                Console.WriteLine("clear right");
+                //Console.WriteLine("clear right");
                 // just gone clear on the right - might still be a car left
                 audioPlayer.holdOpenChannel(true);
                 QueuedMessage clearRightMessage = new QueuedMessage(0, null);
@@ -218,7 +219,7 @@ namespace CrewChiefV2.PCars
             else if (carsOnLeftCount > 0 && carsOnRightCount > 0 && (!hasCarLeft || !hasCarRight))
             {
                 // new 'in the middle'
-                Console.WriteLine("3 wide");
+                //Console.WriteLine("3 wide");
 
                 audioPlayer.holdOpenChannel(true);
                 QueuedMessage inTheMiddleMessage = new QueuedMessage(0, null);
@@ -227,7 +228,7 @@ namespace CrewChiefV2.PCars
             }
             else if (carsOnLeftCount > 0 && carsOnRightCount == 0 && !hasCarLeft && !hasCarRight)
             {
-                Console.WriteLine("car left");
+                //Console.WriteLine("car left");
 
                 // new overlap on the left
                 audioPlayer.holdOpenChannel(true);
@@ -237,7 +238,7 @@ namespace CrewChiefV2.PCars
             }
             else if (carsOnLeftCount == 0 && carsOnRightCount > 0 && !hasCarLeft && !hasCarRight)
             {
-                Console.WriteLine("car right");
+                //Console.WriteLine("car right");
 
                 // new overlap on the right
                 audioPlayer.holdOpenChannel(true);
@@ -247,7 +248,7 @@ namespace CrewChiefV2.PCars
             }
             else if ((carsOnLeftCount > 0 || carsOnRightCount > 0) && now > timeOfNextHoldMessage)
             {
-                Console.WriteLine("still there");
+                //Console.WriteLine("still there");
                 QueuedMessage holdYourLineMessage = new QueuedMessage(0, null);
                 holdYourLineMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
                 audioPlayer.playClipImmediately(folderHoldYourLine, holdYourLineMessage);
@@ -258,31 +259,27 @@ namespace CrewChiefV2.PCars
 
         private Side getSide(float playerRotation, float[] playerWorldPosition, float[] opponentWorldPosition)
         {
-            float playerRotationDegrees;
-            if (playerRotation > 0)
+            if (playerRotation < 0)
             {
-                playerRotationDegrees = playerRotation * 57.2958f;
+                playerRotation = (float)(2 * Math.PI) + playerRotation;
             }
-            else
-            {
-                playerRotationDegrees = 360 + playerRotation * 57.2958f;
-            }
+            playerRotation = (float)(2 * Math.PI) - playerRotation;
 
             float rawXCoordinate = opponentWorldPosition[0] - playerWorldPosition[0];
             float rawYCoordinate = opponentWorldPosition[2] - playerWorldPosition[2];
             // now transform the position by rotating the frame of reference to align it north-south. The player's car is at the origin pointing north.
             // We assume that both cars have similar orientations (or at least, any orientation difference isn't going to be relevant)
-            float alignedXCoordinate = ((float)Math.Cos(360 - playerRotationDegrees) * rawXCoordinate) + ((float)Math.Sin(360 - playerRotationDegrees) * rawYCoordinate);
-            float alignedYCoordinate = ((float)Math.Cos(360 - playerRotationDegrees) * rawYCoordinate) - ((float)Math.Sin(360 - playerRotationDegrees) * rawXCoordinate);
-            /*Console.WriteLine("opponent pos = " + opponentWorldPosition[0] + ", " + opponentWorldPosition[2] +
-                    "player pos = " + playerWorldPosition[0] + ", " + playerWorldPosition[2]);
-            Console.WriteLine("aligned pos = " + alignedXCoordinate + ", " + alignedYCoordinate);*/
-            /*Console.WriteLine("rotation " + playerRotationDegrees);
-            Console.WriteLine("player pos = " + playerWorldPosition[0] + ", " + playerWorldPosition[2]);*/
+            float alignedXCoordinate = ((float)Math.Cos(playerRotation) * rawXCoordinate) + ((float)Math.Sin(playerRotation) * rawYCoordinate);
+            float alignedYCoordinate = ((float)Math.Cos(playerRotation) * rawYCoordinate) - ((float)Math.Sin(playerRotation) * rawXCoordinate);
+            
             if (Math.Abs(alignedYCoordinate) < carLength && Math.Abs(alignedXCoordinate) < trackWidth)
             {
-                
-                if (alignedXCoordinate > 0)
+                Console.WriteLine("opponent pos = " + opponentWorldPosition[0] + ", " + opponentWorldPosition[2] +
+                    "player pos = " + playerWorldPosition[0] + ", " + playerWorldPosition[2]);
+                Console.WriteLine("aligned pos = " + alignedXCoordinate + ", " + alignedYCoordinate);
+                Console.WriteLine("rotation " + playerRotation);
+                Console.WriteLine("player pos = " + playerWorldPosition[0] + ", " + playerWorldPosition[2]);
+                if (alignedXCoordinate < 0)
                 {
                     return Side.right;
                 }
