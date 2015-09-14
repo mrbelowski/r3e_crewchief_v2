@@ -137,3 +137,9 @@ Bell:
 Gabor:
 Wendt:
 Schmidt:
+Goldhorn:
+H Schmidt:
+Scavone:
+Szczechowicz:
+Thomson:
+Weisenfeld:
