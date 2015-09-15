@@ -13,11 +13,7 @@ namespace CrewChiefV2
     {
         private static Dictionary<String, String> nameToPhonetic = new Dictionary<String, String>();
 
-        private static String folder = @"C:\projects\crewchief_c_sharp\CrewChiefV2\CrewChiefV2\sounds\voice\driver_names";
-
-        private static void addFolder(String phoneticName) {
-            Directory.CreateDirectory(folder +@"\" + phoneticName);
-        }
+        private static String folder = @"C:\projects\crewchief_c_sharp\CrewChiefV2\CrewChiefV2\sounds\driver_names";
 
         private static void readNamesToPhoneticsFile()
         {
@@ -39,41 +35,6 @@ namespace CrewChiefV2
                 counter++;
             }
             file.Close();
-        }
-
-        private static void createNamesToPhoneticsFile()
-        {
-            File.Delete(folder + @"\names.txt");
-            List<String> lines = new List<String>();
-            foreach (KeyValuePair<String, String> entry in nameToPhonetic)
-            {
-                lines.Add(entry.Key.Trim() + ":" + entry.Value.Trim());
-            }
-            System.IO.File.WriteAllLines(folder + @"\names.txt", lines);
-        }
-
-        public static void addNamesToPhoneticsFile(List<String> driverNames) 
-        {
-            readNamesToPhoneticsFile();
-            foreach (String driverName in driverNames)
-            {
-                if (!nameToPhonetic.ContainsKey(driverName)) 
-                {
-                    nameToPhonetic.Add(driverName, "");
-                }
-            }
-            createNamesToPhoneticsFile();
-        }
-
-        public static void addPhoneticNamesFolders()
-        {
-            readNamesToPhoneticsFile();
-            foreach (KeyValuePair<String, String> entry in nameToPhonetic)
-            {
-                if (entry.Value.Length > 0) {
-                    addFolder(entry.Value);
-                }
-            }
         }
 
         public static List<String> getPhoneticDriverNames(List<String> driverNames)

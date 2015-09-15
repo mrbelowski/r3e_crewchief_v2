@@ -58,6 +58,10 @@ namespace CrewChiefV2
         public static String DO_I_HAVE_A_MANDATORY_STOP = "do I have a mandatory stop";
         public static String DO_I_HAVE_TO_MAKE_A_PIT_STOP = "do I have to make a pit stop";
 
+        public static String WHERE_IS = "where's";
+        public static String WHOS_IN_FRONT = "who's in front";
+        public static String WHOS_BEHIND = "who's behind";
+
         private float confidenceLimit = 0.5f;
 
         private CrewChief crewChief;
@@ -222,10 +226,14 @@ namespace CrewChiefV2
                     Console.WriteLine("Unloaded names");
                 }
                 Choices nameChoices = new Choices();
-                nameChoices.Add(names.ToArray());
+                foreach (String name in names)
+                {
+                    nameChoices.Add(WHERE_IS + " " + name);
+                }
+                nameChoices.Add(WHOS_BEHIND);
+                nameChoices.Add(WHOS_IN_FRONT);
                 GrammarBuilder nameGB = new GrammarBuilder();
-                nameGB.Culture = cultureInfo;
-                nameGB.Append("where's");
+                nameGB.Culture = cultureInfo;                
                 nameGB.Append(nameChoices);
                 namesGrammar = new Grammar(nameGB);
                 sre.LoadGrammar(namesGrammar);

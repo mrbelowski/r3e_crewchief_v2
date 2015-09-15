@@ -46,11 +46,15 @@ namespace CrewChiefV2
 
         private Dictionary<String, List<SoundPlayer>> clips = new Dictionary<String, List<SoundPlayer>>();
 
+        private Dictionary<String, SoundPlayer> driverNameClips = new Dictionary<String, SoundPlayer>();
+
         private String soundFolderName = UserSettings.GetUserSettings().getString("sound_files_path");
 
         private String voiceFolderPath;
 
         private String fxFolderPath;
+
+        private String driverNamesFolderPath;
 
         private readonly TimeSpan minTimeBetweenPearlsOfWisdom = TimeSpan.FromSeconds(UserSettings.GetUserSettings().getInt("minimum_time_between_pearls_of_wisdom"));
 
@@ -122,9 +126,11 @@ namespace CrewChiefV2
             
             voiceFolderPath = Path.Combine(soundFilesPath, "voice");
             fxFolderPath = Path.Combine(soundFilesPath , "fx");
+            driverNamesFolderPath = Path.Combine(soundFilesPath, "driver_names");
             backgroundFilesPath = Path.Combine(soundFilesPath, "background_sounds");
             Console.WriteLine("Voice dir full path = " + voiceFolderPath);
             Console.WriteLine("FX dir full path = " + fxFolderPath);
+            Console.WriteLine("driver names full path = " + driverNamesFolderPath);
             Console.WriteLine("Background sound dir full path = " + backgroundFilesPath);
             DirectoryInfo soundDirectory = new DirectoryInfo(soundFilesPath);
             if (!soundDirectory.Exists)
@@ -238,6 +244,51 @@ namespace CrewChiefV2
             }
         }
 
+        public void cacheDriverNames(List<String> driverNames)
+        {
+            foreach (KeyValuePair<String, SoundPlayer> driverNameClip in driverNameClips) 
+            {
+                driverNameClip.Value.Stop();
+                driverNameClip.Value.Dispose();
+            }
+            driverNameClips.Clear();
+            try
+            {
+                DirectoryInfo driverNamesSoundDirectory = new DirectoryInfo(driverNamesFolderPath);
+                if (!driverNamesSoundDirectory.Exists)
+                {
+                    Console.WriteLine("Unable to find driver names directory " + driverNamesSoundDirectory.FullName);
+                    return;
+                }
+                FileInfo[] driverNamesFiles = driverNamesSoundDirectory.GetFiles();
+                foreach (FileInfo driverNameFile in driverNamesFiles)
+                {
+                    if (driverNameFile.Name.EndsWith(".wav"))
+                    {
+                        foreach (String driverName in driverNames)
+                        {
+                            if (driverNameFile.Name.Equals(driverName + ".wav") && !driverNameClips.ContainsKey(driverName))
+                            {
+                                Console.WriteLine("Cached driver name sound file for " + driverName);
+                                SoundPlayer clip = new SoundPlayer(driverNameFile.FullName);
+                                clip.Load();
+                                driverNameClips.Add(driverName, clip);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (DirectoryNotFoundException)
+            {
+                Console.WriteLine("Unable to find driver names directory - path: " + driverNamesFolderPath);
+            }
+        }
+
+        public Boolean hasDriverName(String driverName)
+        {
+            return driverNameClips.ContainsKey(driverName);
+        }
+        
         public void startMonitor()
         {
             if (monitorRunning)
@@ -501,7 +552,7 @@ namespace CrewChiefV2
                     {
                         foreach (String eventName in keysToPlay)
                         {
-                            if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier)
+                            if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) || eventName.StartsWith(QueuedMessage.driverNameIdentifier)
                                 || enabledSounds.Contains(eventName))
                             {
                                 oneOrMoreEventsEnabled = true;
@@ -600,8 +651,8 @@ namespace CrewChiefV2
                     if (thisQueue.Contains(eventName))
                     {
                         QueuedMessage thisMessage = (QueuedMessage)thisQueue[eventName];
-                        if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) ||
-                            enabledSounds.Contains(eventName))
+                        if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier) || eventName.StartsWith(QueuedMessage.driverNameIdentifier)
+                            || enabledSounds.Contains(eventName))
                         {
                             if (clipIsPearlOfWisdom(eventName))
                             {
@@ -616,15 +667,36 @@ namespace CrewChiefV2
                                 {
                                     timeLastPearlOfWisdomPlayed = DateTime.UtcNow;
                                 }
-                            }                            
+                            }
                             if (eventName.StartsWith(QueuedMessage.compoundMessageIdentifier))
                             {                                
                                 foreach (String message in thisMessage.getMessageFolders())
                                 {
-                                    List<SoundPlayer> clipsList = clips[message];
-                                    int index = random.Next(0, clipsList.Count);
-                                    SoundPlayer clip = clipsList[index];
-                                    clip.PlaySync();
+                                    if (message.StartsWith(QueuedMessage.driverNameIdentifier)) 
+                                    {
+                                        String driverName = message.Substring(QueuedMessage.driverNameIdentifier.Length);
+                                        Console.WriteLine("Found a driver name!");
+                                        if (driverNameClips.ContainsKey(driverName))
+                                        {
+                                            driverNameClips[driverName].PlaySync();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        List<SoundPlayer> clipsList = clips[message];
+                                        int index = random.Next(0, clipsList.Count);
+                                        SoundPlayer clip = clipsList[index];
+                                        clip.PlaySync();
+                                    }                                   
+                                }
+                            }
+                            else if (eventName.StartsWith(QueuedMessage.driverNameIdentifier))
+                            {
+                                String driverName = eventName.Substring(QueuedMessage.driverNameIdentifier.Length);
+                                Console.WriteLine("Found a driver name!");
+                                if (driverNameClips.ContainsKey(driverName))
+                                {
+                                    driverNameClips[driverName].PlaySync();
                                 }
                             }
                             else

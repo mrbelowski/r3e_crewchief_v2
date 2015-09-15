@@ -144,7 +144,7 @@ namespace CrewChiefV2.PCars
                 }
                 if (isNewSession)
                 {
-                    Console.WriteLine("new session, participants " + shared.mParticipantData.Count());
+                    Console.WriteLine("new session, participants " + shared.mNumParticipants);
                     Console.WriteLine("Got driver names:");
                     Console.WriteLine(String.Join("; ", currentGameState.getOpponentLastNames()));
                 }

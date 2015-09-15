@@ -39,29 +39,56 @@ namespace CrewChiefV2.Events
         public override void respond(String voiceMessage)
         {
             // todo: replace this grotty string manipulation crap
+
+            // todo: more questions and responses for opponent drivers
             Boolean foundDriver = false;
             if (currentGameState != null)
             {
-                foreach (KeyValuePair<int, OpponentData> entry in currentGameState.OpponentData)
+                if (voiceMessage.StartsWith(SpeechRecogniser.WHERE_IS))
                 {
-                    if (voiceMessage.Contains(entry.Value.DriverLastName))
+                    foreach (KeyValuePair<int, OpponentData> entry in currentGameState.OpponentData)
                     {
-                        Console.WriteLine("Got opponent name, " + entry.Value.DriverLastName);
-                        int position = entry.Value.Position;
-                        audioPlayer.openChannel();
-                        audioPlayer.playClipImmediately(Position.folderStub + position, new QueuedMessage(0, null));
-                        audioPlayer.closeChannel();
-                        foundDriver = true;
-                        break;
+                        if (voiceMessage.Contains(entry.Value.DriverLastName))
+                        {
+                            Console.WriteLine("Got opponent name, " + entry.Value.DriverLastName);
+                            int position = entry.Value.Position;
+                            audioPlayer.openChannel();
+                            audioPlayer.playClipImmediately(Position.folderStub + position, new QueuedMessage(0, null));
+                            audioPlayer.closeChannel();
+                            foundDriver = true;
+                            break;
+                        }
                     }
                 }
-                if (!foundDriver)
+                else if (voiceMessage.StartsWith(SpeechRecogniser.WHOS_BEHIND) && !currentGameState.isLast())
                 {
-                    audioPlayer.openChannel();
-                    audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
-                    audioPlayer.closeChannel();
+                    OpponentData opponent = currentGameState.getOpponentAtPosition(currentGameState.SessionData.Position + 1);
+                    if (audioPlayer.hasDriverName(opponent.DriverLastName))
+                    {
+                        audioPlayer.openChannel();
+                        audioPlayer.playClipImmediately(QueuedMessage.driverNameIdentifier + opponent.DriverLastName, new QueuedMessage(0, null));
+                        audioPlayer.closeChannel();
+                        foundDriver = true;
+                    }
                 }
-            }            
+                else if (voiceMessage.StartsWith(SpeechRecogniser.WHOS_IN_FRONT) && currentGameState.SessionData.Position > 1)
+                {
+                    OpponentData opponent = currentGameState.getOpponentAtPosition(currentGameState.SessionData.Position - 1);
+                    if (audioPlayer.hasDriverName(opponent.DriverLastName))
+                    {
+                        audioPlayer.openChannel();
+                        audioPlayer.playClipImmediately(QueuedMessage.driverNameIdentifier + opponent.DriverLastName, new QueuedMessage(0, null));
+                        audioPlayer.closeChannel();
+                        foundDriver = true;
+                    }
+                }
+            }
+            if (!foundDriver)
+            {
+                audioPlayer.openChannel();
+                audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, null));
+                audioPlayer.closeChannel();
+            }       
         }
     }
 }

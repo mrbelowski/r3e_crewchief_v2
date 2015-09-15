@@ -11,6 +11,8 @@ namespace CrewChiefV2
     {
         public static String compoundMessageIdentifier = "COMPOUND_";
 
+        public static String driverNameIdentifier = "DRIVERNAME_";
+
         public static String folderNameOh = "numbers/oh";
         public static String folderNamePoint = "numbers/point";
         public static String folderNameNumbersStub = "numbers/";
