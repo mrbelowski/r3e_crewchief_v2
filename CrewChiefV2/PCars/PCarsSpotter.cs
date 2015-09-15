@@ -39,9 +39,9 @@ namespace CrewChiefV2.PCars
         private Boolean hasCarLeft;
         private Boolean hasCarRight;
 
-        private float trackWidth = 10;
+        private float trackWidth = 10f;
 
-        private float carWidth = 1.7;
+        private float carWidth = 1.7f;
 
         private String folderStillThere = "spotter/still_there";
         private String folderInTheMiddle = "spotter/in_the_middle";
