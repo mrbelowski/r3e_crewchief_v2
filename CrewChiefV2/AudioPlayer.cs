@@ -764,15 +764,22 @@ namespace CrewChiefV2
             return queueToPlay.Count == 1 || (queueToPlay.Count == 2 && random.NextDouble() >= 0.5);
         }
 
-        public void close()
+        public void purgeQueues()
         {
             foreach (KeyValuePair<string, List<SoundPlayer>> entry in clips)
             {
                 foreach (SoundPlayer clip in entry.Value)
                 {
                     clip.Stop();
-                    clips.Remove(entry.Key);
                 }
+            }
+            lock (queuedClips)
+            {
+                queuedClips.Clear();
+            }
+            lock (immediateClips)
+            {
+                immediateClips.Clear();
             }
         }
 

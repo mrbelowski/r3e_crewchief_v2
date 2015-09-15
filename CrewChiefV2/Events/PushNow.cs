@@ -88,7 +88,7 @@ namespace CrewChiefV2.Events
                 pushDataInFront.Add(new PushData(currentGameState.SessionData.LapTimePrevious, currentGameState.SessionData.TimeDeltaFront));
                 pushDataBehind.Add(new PushData(currentGameState.SessionData.LapTimePrevious, currentGameState.SessionData.TimeDeltaBehind));                    
             }
-            if (sessionConstants.SessionNumberOfLaps == -1 && !playedNearEndTimePush &&
+            if (sessionConstants.SessionNumberOfLaps <= 0 && !playedNearEndTimePush &&
                     currentGameState.SessionData.SessionTimeRemaining < 4 * 60 && currentGameState.SessionData.SessionTimeRemaining > 2 * 60)
             {
                 // estimate the number of remaining laps - be optimistic...

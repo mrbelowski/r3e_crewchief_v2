@@ -79,6 +79,7 @@
     <Compile Include="Events\AbstractEvent.cs" />
     <Compile Include="AudioPlayer.cs" />
     <Compile Include="ControllerConfiguration.cs" />
+    <Compile Include="Events\SessionEndMessages.cs" />
     <Compile Include="Events\Spotter.cs" />
     <Compile Include="GameDefinition.cs" />
     <Compile Include="GameState\SessionConstants.cs" />

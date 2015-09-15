@@ -59,9 +59,13 @@ namespace CrewChiefV2
 
         public GameStateData currentGameState;
 
+        public GameStateData previousGameState;
+
         public SessionConstants sessionConstants = null;
 
         private Boolean mapped = false;
+
+        private SessionEndMessages sessionEndMessages;
 
         public CrewChief()
         {
@@ -80,6 +84,7 @@ namespace CrewChiefV2
             eventsList.Add("Timings", new Timings(audioPlayer));
             eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
             eventsList.Add("PushNow", new PushNow(audioPlayer));
+            sessionEndMessages = new SessionEndMessages(audioPlayer);
         }
 
         public void setGameDefinition(GameDefinition gameDefinition)
@@ -277,37 +282,28 @@ namespace CrewChiefV2
                         Object sharedMemoryData = sharedMemoryLoader.ReadSharedMemory();
                         gameStateMapper.versionCheck(sharedMemoryData);
 
-                        // TODO something weird going on here - a race condition meaning that
-                        // the race start / get ready messages sometimes don't play
-
-                        if (sessionConstants == null || sessionConstants.SessionType == SessionType.Unavailable)
+                        Boolean isNewSession = false;
+                        if (sessionConstants == null || currentGameState == null)
                         {
-                            sessionConstants = gameStateMapper.getSessionConstants(sharedMemoryData);                            
+                            isNewSession = true;
+                            sessionConstants = gameStateMapper.getSessionConstants(sharedMemoryData);
                         }
-                        gameStateMapper.mapToGameStateData(sharedMemoryData, sessionConstants);
+                        else if (gameStateMapper.isSessionFinished(sharedMemoryData, sessionConstants, currentGameState))
+                        {
+                            audioPlayer.purgeQueues();
+                            sessionEndMessages.trigger(currentGameState.SessionData.SessionRunningTime, sessionConstants.SessionType, currentGameState.SessionData.SessionPhase,
+                                currentGameState.SessionData.Position, sessionConstants.NumCarsAtStartOfSession);
+                            sessionConstants = gameStateMapper.getSessionConstants(sharedMemoryData);
+                            isNewSession = true;
+                            gameStateMapper.discardCurrentGameState();
+                        }
+                        gameStateMapper.mapToGameStateData(sharedMemoryData, sessionConstants, isNewSession);
 
                         currentGameState = gameStateMapper.getCurrentGameState();
-                        GameStateData previousGameState = gameStateMapper.getPreviousGameState();
-                        // if this is the first game state we have in this session, load the opponent names
-                        if (previousGameState == null)
-                        {                            
-                            List<String> opponentNames = currentGameState.getOpponentLastNames();
-                            if (opponentNames.Count > 0)
-                            {
-                                DriveNameHelper.addNamesToPhoneticsFile(currentGameState.getOpponentLastNames());
-                                //DriveNameHelper.addPhoneticNamesFolders();
-                                if (speechRecogniser != null && speechRecogniser.initialised)
-                                {
-                                    speechRecogniser.addNames(DriveNameHelper.getPhoneticDriverNames(currentGameState.getOpponentLastNames()));
-                                }
-                            }                            
-                        }
-                        else
-                        {
-                            // otherwise process
+                        previousGameState = gameStateMapper.getPreviousGameState();
 
-                            // TODO: session end messages need to be implemented
-                            if (currentGameState.SessionData.IsNewSession && !stateCleared)
+                        if (isNewSession) {
+                            if (!stateCleared)
                             {
                                 Console.WriteLine("Clearing game state...");
                                 foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
@@ -316,37 +312,44 @@ namespace CrewChiefV2
                                 }
                                 faultingEvents.Clear();
                                 faultingEventsCount.Clear();
-                                sessionConstants = null;
-                                previousGameState = null;
-                                currentGameState = null;
-                                stateCleared = true;                                
+                                stateCleared = true;
                             }
-                            else if (currentGameState.SessionData.SessionRunningTime > previousGameState.SessionData.SessionRunningTime)
+                            List<String> opponentNames = currentGameState.getOpponentLastNames();
+                            /*if (opponentNames.Count > 0)
                             {
-                                // TODO: IsNewLap isn't getting set in PCars
-                                if (currentGameState.SessionData.IsNewLap)
+                                DriveNameHelper.addNamesToPhoneticsFile(currentGameState.getOpponentLastNames());
+                                //DriveNameHelper.addPhoneticNamesFolders();
+                                if (speechRecogniser != null && speechRecogniser.initialised)
                                 {
-                                    sessionConstants.display();
-                                    currentGameState.display();
+                                    speechRecogniser.addNames(DriveNameHelper.getPhoneticDriverNames(currentGameState.getOpponentLastNames()));
                                 }
-                                stateCleared = false;
-                                foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
+                            }   */  
+                        }
+                        else if (currentGameState.SessionData.SessionRunningTime > previousGameState.SessionData.SessionRunningTime)
+                        {
+                            // TODO: IsNewLap isn't getting set in PCars
+                            if (currentGameState.SessionData.IsNewLap)
+                            {
+                                sessionConstants.display();
+                                currentGameState.display();
+                            }
+                            stateCleared = false;
+                            foreach (KeyValuePair<String, AbstractEvent> entry in eventsList)
+                            {
+                                if (entry.Value.isApplicableForCurrentSessionAndPhase(sessionConstants.SessionType, currentGameState.SessionData.SessionPhase))
                                 {
-                                    if (entry.Value.isApplicableForCurrentSessionAndPhase(sessionConstants.SessionType, currentGameState.SessionData.SessionPhase))
-                                    {
-                                        triggerEvent(entry.Key, entry.Value, previousGameState, currentGameState, sessionConstants);
-                                    }
+                                    triggerEvent(entry.Key, entry.Value, previousGameState, currentGameState, sessionConstants);
                                 }
-                                if (spotter != null && spotterEnabled && !spotterIsRunning)
-                                {
-                                    Console.WriteLine("********** starting spotter***********");
-                                    spotter.clearState();
-                                    startSpotterThread();
-                                }
-                                else if (spotterIsRunning && !spotterEnabled)
-                                {
-                                    runSpotterThread = false;
-                                }
+                            }
+                            if (spotter != null && spotterEnabled && !spotterIsRunning)
+                            {
+                                Console.WriteLine("********** starting spotter***********");
+                                spotter.clearState();
+                                startSpotterThread();
+                            }
+                            else if (spotterIsRunning && !spotterEnabled)
+                            {
+                                runSpotterThread = false;
                             }
                         }
                     }

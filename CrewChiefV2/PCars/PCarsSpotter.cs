@@ -20,10 +20,7 @@ namespace CrewChiefV2.PCars
         // how long is a car? we use 3.5 meters by default here. Too long and we'll get 'hold your line' messages
         // when we're clearly directly behind the car
         private float carLength = UserSettings.GetUserSettings().getFloat("spotter_car_length");
-
-        // before saying 'clear', we need to be carLength + this value from the other car
-        private float gapNeededForClear = UserSettings.GetUserSettings().getFloat("spotter_gap_for_clear");
-
+        
         // don't play spotter messages if we're going < 10ms
         private float minSpeedForSpotterToOperate = UserSettings.GetUserSettings().getFloat("min_speed_for_spotter");
 
@@ -44,6 +41,8 @@ namespace CrewChiefV2.PCars
 
         private float trackWidth = 10;
 
+        private float carWidth = 1.7;
+
         private String folderStillThere = "spotter/still_there";
         private String folderInTheMiddle = "spotter/in_the_middle";
         private String folderCarLeft = "spotter/car_left";
@@ -56,14 +55,8 @@ namespace CrewChiefV2.PCars
         private TimeSpan clearMessageDelay = TimeSpan.FromMilliseconds(UserSettings.GetUserSettings().getInt("spotter_clear_delay"));
         private TimeSpan overlapMessageDelay = TimeSpan.FromMilliseconds(UserSettings.GetUserSettings().getInt("spotter_overlap_delay"));
 
-        private DateTime timeOfNextHoldMessage;
-
-        private DateTime timeWhenWeCanSayClear;
-        private DateTime timeWhenWeCanSayHold;
-
-        private Boolean newlyClear = true;
-        private Boolean newlyOverlapping = true;
-
+        private DateTime nextMessageDue = DateTime.Now;
+        
         private Boolean enabled;
 
         private Boolean initialEnabledState;
@@ -74,16 +67,19 @@ namespace CrewChiefV2.PCars
 
         private Boolean channelLeftOpenTimerStarted = false;
 
-        private DateTime timeWhenWeveHadEnoughUnusableData;
-
         private TimeSpan maxTimeToKeepChannelOpenWhileReceivingUnusableData = TimeSpan.FromSeconds(2);
         
         private AudioPlayer audioPlayer;
 
-        private Boolean hasCompletedOneSector;
+        private NextMessageType nextMessageType;
 
         private enum Side {
             right, left, none
+        }
+
+        private enum NextMessageType
+        {
+            none, clearLeft, clearRight, clearAllRound, carLeft, carRight, threeWide, stillThere
         }
 
         public PCarsSpotter(AudioPlayer audioPlayer, Boolean initialEnabledState)
@@ -97,11 +93,9 @@ namespace CrewChiefV2.PCars
         {
             hasCarLeft = false;
             hasCarRight = false;
-            timeOfNextHoldMessage = DateTime.Now.Add(repeatHoldFrequency);
-            timeWhenWeveHadEnoughUnusableData = DateTime.Now;
             timeWhenChannelShouldBeClosed = DateTime.Now;
             channelLeftOpenTimerStarted = false;
-            hasCompletedOneSector = true;
+            nextMessageType = NextMessageType.none;
         }
 
         public void trigger(Object lastStateObj, Object currentStateObj)
@@ -115,10 +109,7 @@ namespace CrewChiefV2.PCars
             if (enabled && currentState.mParticipantData.Count() > 1 && currentState.mViewedParticipantIndex >= 0)
             {
                 pCarsAPIParticipantStruct playerData = currentState.mParticipantData[currentState.mViewedParticipantIndex];
-                if (!hasCompletedOneSector && playerData.mCurrentSector > 1) {
-                    hasCompletedOneSector = true;
-                }
-                if (enabled && hasCompletedOneSector)// && currentSpeed > minSpeedForSpotterToOperate)
+                if (currentSpeed > minSpeedForSpotterToOperate && currentState.mPitMode == (uint) ePitMode.PIT_MODE_NONE)
                 {
                     int carsOnLeft = 0;
                     int carsOnRight = 0;
@@ -133,7 +124,7 @@ namespace CrewChiefV2.PCars
                         {
                             //Console.WriteLine("speed = "+ currentState.mSpeed + " time ahead = " + currentState.mSplitTimeAhead + " time behind = " + currentState.mSplitTimeBehind);
                             pCarsAPIParticipantStruct opponentData = currentState.mParticipantData[i];
-                            if (opponentData.mWorldPosition[0] != 0 && opponentData.mWorldPosition[2] != 0)
+                            if (opponentData.mIsActive && opponentData.mWorldPosition[0] != 0 && opponentData.mWorldPosition[2] != 0)
                             {
                                 Side side = getSide(currentState.mOrientation[1], playerData.mWorldPosition, opponentData.mWorldPosition);
                                 if (side == Side.left)
@@ -147,7 +138,8 @@ namespace CrewChiefV2.PCars
                             }                            
                         }                        
                     }
-                    playMessage(carsOnLeft, carsOnRight, now);
+                    getNextMessage(carsOnLeft, carsOnRight, now);
+                    playNextMessage(carsOnLeft, carsOnRight, now);
                     hasCarLeft = carsOnLeft > 0;
                     hasCarRight = carsOnRight > 0;
                 }
@@ -168,105 +160,143 @@ namespace CrewChiefV2.PCars
                         channelLeftOpenTimerStarted = false;
                     }
                 }
-            }            
+            }
         }
 
-        private void playMessage(int carsOnLeftCount, int carsOnRightCount, DateTime now) 
+        private void getNextMessage(int carsOnLeftCount, int carsOnRightCount, DateTime now)
         {
             if (carsOnLeftCount == 0 && carsOnRightCount == 0 && hasCarLeft && hasCarRight)
             {
                 Console.WriteLine("clear all round");
-                // just gone clear all round
-                QueuedMessage clearAllRoundMessage = new QueuedMessage(0, null);
-                clearAllRoundMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearAllRoundMessageExpiresAfter;
-                audioPlayer.playClipImmediately(folderClearAllRound, clearAllRoundMessage);
-                audioPlayer.closeChannel();
+                nextMessageType = NextMessageType.clearAllRound;
+                nextMessageDue = now.Add(clearMessageDelay);
             }
-            else if (carsOnLeftCount == 0 && hasCarLeft && 
-                ((carsOnRightCount == 0 && !hasCarRight) || 
-                (carsOnRightCount > 0 && hasCarRight)))
+            else if (carsOnLeftCount == 0 && hasCarLeft && ((carsOnRightCount == 0 && !hasCarRight) || (carsOnRightCount > 0 && hasCarRight)))
             {
                 Console.WriteLine("clear left, carsOnLeftCount " + carsOnLeftCount + " carsOnRightCount " + carsOnRightCount + " hasCarLeft " + hasCarLeft + " hasCarRight " + hasCarRight);
                 // just gone clear on the left - might still be a car right
-                QueuedMessage clearLeftMessage = new QueuedMessage(0, null);
-                clearLeftMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
-                audioPlayer.playClipImmediately(folderClearLeft, clearLeftMessage);
-                if (carsOnRightCount == 0)
-                {
-                    audioPlayer.closeChannel();
-                }
+                nextMessageType = NextMessageType.clearLeft;
+                nextMessageDue = now.Add(clearMessageDelay);
             }
-            else if (carsOnRightCount == 0 && hasCarRight &&
-                ((carsOnLeftCount == 0 && !hasCarLeft) ||
-                (carsOnLeftCount > 0 && hasCarLeft)))
+            else if (carsOnRightCount == 0 && hasCarRight && ((carsOnLeftCount == 0 && !hasCarLeft) || (carsOnLeftCount > 0 && hasCarLeft)))
             {
                 Console.WriteLine("clear right, carsOnLeftCount " + carsOnLeftCount + " carsOnRightCount " + carsOnRightCount + " hasCarLeft " + hasCarLeft + " hasCarRight " + hasCarRight);
                 // just gone clear on the right - might still be a car left
-                QueuedMessage clearRightMessage = new QueuedMessage(0, null);
-                clearRightMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
-                audioPlayer.playClipImmediately(folderClearRight, clearRightMessage);
-                if (carsOnLeftCount == 0)
-                {
-                    audioPlayer.closeChannel();
-                }
+                nextMessageType = NextMessageType.clearRight;
+                nextMessageDue = now.Add(clearMessageDelay);
             }
             else if (carsOnLeftCount > 0 && carsOnRightCount > 0 && (!hasCarLeft || !hasCarRight))
             {
                 // new 'in the middle'
                 Console.WriteLine("3 wide, carsOnLeftCount " + carsOnLeftCount + " carsOnRightCount " + carsOnRightCount + " hasCarLeft " + hasCarLeft + " hasCarRight " + hasCarRight);
-
-                audioPlayer.holdOpenChannel(true);
-                QueuedMessage inTheMiddleMessage = new QueuedMessage(0, null);
-                inTheMiddleMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + inTheMiddleMessageExpiresAfter;
-                audioPlayer.playClipImmediately(folderInTheMiddle, inTheMiddleMessage);
+                nextMessageType = NextMessageType.threeWide;
+                nextMessageDue = now;
             }
             else if (carsOnLeftCount > 0 && carsOnRightCount == 0 && !hasCarLeft && !hasCarRight)
             {
                 Console.WriteLine("car left, carsOnLeftCount " + carsOnLeftCount + " carsOnRightCount " + carsOnRightCount + " hasCarLeft " + hasCarLeft + " hasCarRight " + hasCarRight);
-
-                // new overlap on the left
-                audioPlayer.holdOpenChannel(true);
-                QueuedMessage carLeftMessage = new QueuedMessage(0, null);
-                carLeftMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                audioPlayer.playClipImmediately(folderCarLeft, carLeftMessage);
+                nextMessageType = NextMessageType.carLeft;
+                nextMessageDue = now;
             }
             else if (carsOnLeftCount == 0 && carsOnRightCount > 0 && !hasCarLeft && !hasCarRight)
             {
                 Console.WriteLine("car right, carsOnLeftCount " + carsOnLeftCount + " carsOnRightCount " + carsOnRightCount + " hasCarLeft " + hasCarLeft + " hasCarRight " + hasCarRight);
-
-                // new overlap on the right
-                audioPlayer.holdOpenChannel(true);
-                QueuedMessage carRightMessage = new QueuedMessage(0, null);
-                carRightMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                audioPlayer.playClipImmediately(folderCarRight, carRightMessage);
+                nextMessageType = NextMessageType.carRight;
+                nextMessageDue = now;
             }
-            else if ((carsOnLeftCount > 0 || carsOnRightCount > 0) && now > timeOfNextHoldMessage)
+        }
+
+        private void playNextMessage(int carsOnLeftCount, int carsOnRightCount, DateTime now) 
+        {
+            if (nextMessageType != NextMessageType.none && now > nextMessageDue)
             {
-                Console.WriteLine("still there, carsOnLeftCount " + carsOnLeftCount + " carsOnRightCount " + carsOnRightCount + " hasCarLeft " + hasCarLeft + " hasCarRight " + hasCarRight);
-                QueuedMessage holdYourLineMessage = new QueuedMessage(0, null);
-                holdYourLineMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
-                audioPlayer.playClipImmediately(folderStillThere, holdYourLineMessage);
+                switch (nextMessageType)
+                {
+                    case NextMessageType.threeWide:
+                        audioPlayer.holdOpenChannel(true);
+                        QueuedMessage inTheMiddleMessage = new QueuedMessage(0, null);
+                        inTheMiddleMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + inTheMiddleMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderInTheMiddle, inTheMiddleMessage);
+                        nextMessageType = NextMessageType.stillThere;
+                        nextMessageDue = now.Add(repeatHoldFrequency);
+                        break;
+                    case NextMessageType.carLeft:
+                        audioPlayer.holdOpenChannel(true);
+                        QueuedMessage carLeftMessage = new QueuedMessage(0, null);
+                        carLeftMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderCarLeft, carLeftMessage);
+                        nextMessageType = NextMessageType.stillThere;
+                        nextMessageDue = now.Add(repeatHoldFrequency);
+                        break;
+                    case NextMessageType.carRight:
+                        audioPlayer.holdOpenChannel(true);
+                        QueuedMessage carRightMessage = new QueuedMessage(0, null);
+                        carRightMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderCarRight, carRightMessage);
+                        nextMessageType = NextMessageType.stillThere;
+                        nextMessageDue = now.Add(repeatHoldFrequency);
+                        break;
+                    case NextMessageType.clearAllRound:
+                        QueuedMessage clearAllRoundMessage = new QueuedMessage(0, null);
+                        clearAllRoundMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearAllRoundMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderClearAllRound, clearAllRoundMessage);
+                        audioPlayer.closeChannel();
+                        nextMessageType = NextMessageType.none;
+                        break;
+                    case NextMessageType.clearLeft:
+                        QueuedMessage clearLeftMessage = new QueuedMessage(0, null);
+                        clearLeftMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderClearLeft, clearLeftMessage);
+                        if (carsOnRightCount == 0)
+                        {
+                            audioPlayer.closeChannel();
+                        }
+                        nextMessageType = NextMessageType.none;
+                        break;
+                    case NextMessageType.clearRight:
+                        QueuedMessage clearRightMessage = new QueuedMessage(0, null);
+                        clearRightMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + clearMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderClearRight, clearRightMessage);
+                        if (carsOnLeftCount == 0)
+                        {
+                            audioPlayer.closeChannel();
+                        }
+                        nextMessageType = NextMessageType.none;
+                        break;
+                    case NextMessageType.stillThere:
+                        QueuedMessage holdYourLineMessage = new QueuedMessage(0, null);
+                        holdYourLineMessage.expiryTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) + holdMessageExpiresAfter;
+                        audioPlayer.playClipImmediately(folderStillThere, holdYourLineMessage);
+                        nextMessageType = NextMessageType.stillThere;
+                        nextMessageDue = now.Add(repeatHoldFrequency);
+                        break;
+                    case NextMessageType.none:
+                        break;
+                }
             }
-
-            timeOfNextHoldMessage = now.Add(repeatHoldFrequency);
         }
 
         private Side getSide(float playerRotation, float[] playerWorldPosition, float[] opponentWorldPosition)
         {
+            float rawXCoordinate = opponentWorldPosition[0] - playerWorldPosition[0];
+            float rawYCoordinate = opponentWorldPosition[2] - playerWorldPosition[2];
+            if (rawXCoordinate > carLength && rawYCoordinate > carLength)
+            {
+                return Side.none;
+            }
+
             if (playerRotation < 0)
             {
                 playerRotation = (float)(2 * Math.PI) + playerRotation;
             }
             playerRotation = (float)(2 * Math.PI) - playerRotation;
-
-            float rawXCoordinate = opponentWorldPosition[0] - playerWorldPosition[0];
-            float rawYCoordinate = opponentWorldPosition[2] - playerWorldPosition[2];
+            
             // now transform the position by rotating the frame of reference to align it north-south. The player's car is at the origin pointing north.
             // We assume that both cars have similar orientations (or at least, any orientation difference isn't going to be relevant)
             float alignedXCoordinate = ((float)Math.Cos(playerRotation) * rawXCoordinate) + ((float)Math.Sin(playerRotation) * rawYCoordinate);
             float alignedYCoordinate = ((float)Math.Cos(playerRotation) * rawYCoordinate) - ((float)Math.Sin(playerRotation) * rawXCoordinate);
             
-            if (Math.Abs(alignedYCoordinate) < carLength && Math.Abs(alignedXCoordinate) < trackWidth)
+            if (Math.Abs(alignedYCoordinate) < carLength && Math.Abs(alignedXCoordinate) < trackWidth && Math.Abs(alignedXCoordinate) > carWidth)
             {
                 if (alignedXCoordinate < 0)
                 {

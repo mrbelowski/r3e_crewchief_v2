@@ -45,6 +45,25 @@ namespace CrewChiefV2.RaceRoom
         {
             // no version number in r3e shared data so this is a no-op
         }
+
+        public Boolean isSessionFinished(Object memoryMappedFileStruct, SessionConstants currentSessionConstants, GameStateData currentGameState)
+        {
+            if (currentSessionConstants == null || currentGameState == null)
+            {
+                return false;
+            }
+            RaceRoomData.RaceRoomShared shared = (RaceRoomData.RaceRoomShared)memoryMappedFileStruct;
+            if (mapToSessionType(shared.SessionType, shared.NumCars) != currentSessionConstants.SessionType)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public void discardCurrentGameState()
+        {
+            currentGameState = null;
+        }
         
         /**
          * Creates session data which are valid for the entire session (even if this session has multiple iterations).
@@ -59,8 +78,14 @@ namespace CrewChiefV2.RaceRoom
             sessionConstants.EventIndex = shared.EventIndex - 1;
             sessionConstants.SessionIteration = shared.SessionIteration - 1;
 
-            sessionConstants.SessionNumberOfLaps = shared.NumberOfLaps;
-            sessionConstants.SessionRunTime = shared.SessionTimeRemaining;
+            if (shared.NumberOfLaps > 0)
+            {
+                sessionConstants.SessionNumberOfLaps = shared.NumberOfLaps;
+            }
+            if (shared.SessionTimeRemaining > 0)
+            {
+                sessionConstants.SessionRunTime = shared.SessionTimeRemaining;
+            }
             // hotlap sessions are not explicity declared in R3E - have to check if it's qual and there are 1 or 2 cars
             sessionConstants.SessionType = mapToSessionType(shared.SessionType, shared.NumCars);
             sessionConstants.SessionStartPosition = shared.Position;
@@ -72,7 +97,7 @@ namespace CrewChiefV2.RaceRoom
             return sessionConstants;
         }
 
-        public void mapToGameStateData(Object memoryMappedFileStruct, SessionConstants sessionConstants)
+        public void mapToGameStateData(Object memoryMappedFileStruct, SessionConstants sessionConstants, Boolean isNewSession)
         {
             previousGameState = currentGameState;
             currentGameState = new GameStateData();
@@ -105,6 +130,7 @@ namespace CrewChiefV2.RaceRoom
 
             // session phase - if the phase has changed we'll need to update the session constants
             SessionPhase lastSessionPhase = SessionPhase.Unavailable;
+            SessionType lastSessionType = SessionType.Unavailable;
             float lastSessionRunningTime = 0;
             if (previousGameState != null)
             {
@@ -122,12 +148,6 @@ namespace CrewChiefV2.RaceRoom
                 Console.WriteLine("new lap");
             }
             currentGameState.SessionData.SessionTimeRemaining = shared.SessionTimeRemaining;
-            if ((lastSessionPhase != currentGameState.SessionData.SessionPhase && (lastSessionPhase == SessionPhase.Unavailable || lastSessionPhase == SessionPhase.Finished)) || 
-                lastSessionRunningTime > currentGameState.SessionData.SessionRunningTime)
-            {
-                currentGameState.SessionData.IsNewSession = true;
-                Console.WriteLine("New session");
-            }
 
             if (shared.SessionType == (int)RaceRoomConstant.Session.Race && shared.SessionPhase == (int)RaceRoomConstant.SessionPhase.Checkered &&
                 previousGameState != null && previousGameState.SessionData.SessionPhase == SessionPhase.Green)

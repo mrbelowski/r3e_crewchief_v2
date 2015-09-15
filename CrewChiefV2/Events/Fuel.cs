@@ -181,7 +181,7 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(folderOneLapEstimate, 0, this);
                     }
                 }
-                else if (initialised && sessionConstants.SessionNumberOfLaps < 0 && !playedHalfTimeFuelEstimate && currentGameState.SessionData.SessionTimeRemaining <= halfTime &&
+                else if (initialised && sessionConstants.SessionNumberOfLaps <= 0 && !playedHalfTimeFuelEstimate && currentGameState.SessionData.SessionTimeRemaining <= halfTime &&
                     averageUsagePerMinute > 0)
                 {
                     Console.WriteLine("Half race distance. Fuel in tank = " + currentGameState.FuelData.FuelLeft + ", average usage per minute = " + averageUsagePerMinute);
@@ -196,7 +196,7 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(folderHalfDistanceGoodFuel, 0, this);
                     }
                 }
-                else if (initialised && sessionConstants.SessionNumberOfLaps < 0 && currentGameState.SessionData.SessionRunningTime > gameTimeAtLastFuelWindowUpdate + (60 * fuelUseSampleTime))
+                else if (initialised && sessionConstants.SessionNumberOfLaps <= 0 && currentGameState.SessionData.SessionRunningTime > gameTimeAtLastFuelWindowUpdate + (60 * fuelUseSampleTime))
                 {
                     // it's 2 minutes since the last fuel window check
                     gameTimeAtLastFuelWindowUpdate = currentGameState.SessionData.SessionRunningTime;

@@ -25,6 +25,10 @@ namespace CrewChiefV2.GameState
 
         public String TrackName = null;
 
+        public String TrackLayout = null;
+
+        public float TrackLength = 0;
+
         // race number in ongoing championship (zero indexed)
         public int EventIndex = 0;
 

@@ -44,6 +44,25 @@ namespace CrewChiefV2.PCars
             }
         }
         
+        public Boolean isSessionFinished(Object memoryMappedFileStruct, SessionConstants currentSessionConstants, GameStateData currentGameState)
+        {
+            if (currentSessionConstants == null || currentGameState == null)
+            {
+                return false;
+            }
+            pCarsAPIStruct shared = (pCarsAPIStruct)memoryMappedFileStruct;
+            if (mapToSessionType(shared.mSessionState) != currentSessionConstants.SessionType)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public void discardCurrentGameState()
+        {
+            currentGameState = null;
+        }
+
         /**
          * Creates session data which are valid for the entire session (even if this session has multiple iterations).
          * Note that we may need to update these constants during a session if something happens in that session which 
@@ -57,13 +76,23 @@ namespace CrewChiefV2.PCars
             sessionConstants.SessionType = mapToSessionType(shared.mSessionState);
             if (shared.mEventTimeRemaining > 0)
             {
-                sessionConstants.SessionRunTime = shared.mEventTimeRemaining;
+                sessionConstants.SessionRunTime = shared.mEventTimeRemaining / 1000;
             }
-            sessionConstants.SessionNumberOfLaps = (int)shared.mLapsInEvent;
+            if (shared.mLapsInEvent > 0)
+            {
+                sessionConstants.SessionNumberOfLaps = (int)shared.mLapsInEvent;
+            }
+            if (shared.mViewedParticipantIndex > -1) {
+                sessionConstants.SessionStartPosition = (int)shared.mParticipantData[shared.mViewedParticipantIndex].mRacePosition;
+                sessionConstants.NumCarsAtStartOfSession = shared.mParticipantData.Count();
+            }
+            sessionConstants.TrackName = shared.mTrackLocation;
+            sessionConstants.TrackLayout = shared.mTrackVariation;
+            sessionConstants.TrackLength = shared.mTrackLength;
             return sessionConstants;
         }
 
-        public void mapToGameStateData(Object memoryMappedFileStruct, SessionConstants sessionConstants)
+        public void mapToGameStateData(Object memoryMappedFileStruct, SessionConstants sessionConstants, Boolean isNewSession)
         {            
             previousGameState = currentGameState;
             currentGameState = new GameStateData();
@@ -77,7 +106,7 @@ namespace CrewChiefV2.PCars
                     currentGameState.SessionData.SessionPhase = mapToSessionPhase(sessionConstants.SessionType, shared.mSessionState, shared.mRaceState);
                     if (sessionConstants.SessionRunTime > 0)
                     {
-                        currentGameState.SessionData.SessionRunningTime = sessionConstants.SessionRunTime - shared.mEventTimeRemaining;
+                        currentGameState.SessionData.SessionRunningTime = sessionConstants.SessionRunTime - shared.mEventTimeRemaining / 1000;
                     }
                     else
                     {
@@ -93,14 +122,9 @@ namespace CrewChiefV2.PCars
                     lastSessionPhase = previousGameState.SessionData.SessionPhase;
                     lastSessionRunningTime = previousGameState.SessionData.SessionRunningTime;
                 }
-                if ((lastSessionPhase != currentGameState.SessionData.SessionPhase && (lastSessionPhase == SessionPhase.Unavailable || lastSessionPhase == SessionPhase.Finished)) ||
-                    lastSessionRunningTime > currentGameState.SessionData.SessionRunningTime)
+                if (isNewSession)
                 {
-                    Console.WriteLine("New session");
-                    currentGameState.SessionData.IsNewSession = true;        
-            
-                    // new session phase so collect up the opponent data
-                    // Opponent data
+                    // new session so collect up the opponent data
                     int opponentSlotId = 0;
                     foreach (pCarsAPIParticipantStruct participantStruct in shared.mParticipantData)
                     {
@@ -138,7 +162,7 @@ namespace CrewChiefV2.PCars
                 currentGameState.SessionData.NumCars = shared.mNumParticipants;
                 currentGameState.SessionData.CurrentLapIsValid = !shared.mLapInvalidated;
                 
-                currentGameState.SessionData.IsNewLap = previousGameState == null || viewedParticipant.mLapsCompleted == previousGameState.SessionData.CompletedLaps - 1;
+                currentGameState.SessionData.IsNewLap = previousGameState == null || currentGameState.SessionData.CompletedLaps == previousGameState.SessionData.CompletedLaps + 1;
                 if (currentGameState.SessionData.IsNewLap)
                 {
                     currentGameState.SessionData.PreviousLapWasValid = previousGameState != null && previousGameState.SessionData.CurrentLapIsValid;
@@ -225,7 +249,7 @@ namespace CrewChiefV2.PCars
                 currentGameState.EngineData.MaxEngineRpm = shared.mMaxRPM;
 
                 currentGameState.FuelData.FuelCapacity = shared.mFuelCapacity;
-                currentGameState.FuelData.FuelLeft = shared.mFuelLevel;
+                currentGameState.FuelData.FuelLeft = currentGameState.FuelData.FuelCapacity * shared.mFuelLevel;
                 currentGameState.FuelData.FuelPressure = shared.mFuelPressureKPa;
                 currentGameState.FuelData.FuelUseActive = true;         // no way to tell if it's disabled
 
