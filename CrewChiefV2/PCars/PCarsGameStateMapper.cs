@@ -82,9 +82,9 @@ namespace CrewChiefV2.PCars
             {
                 sessionConstants.SessionNumberOfLaps = (int)shared.mLapsInEvent;
             }
+            sessionConstants.NumCarsAtStartOfSession = shared.mNumParticipants;
             if (shared.mViewedParticipantIndex > -1) {
                 sessionConstants.SessionStartPosition = (int)shared.mParticipantData[shared.mViewedParticipantIndex].mRacePosition;
-                sessionConstants.NumCarsAtStartOfSession = shared.mParticipantData.Count();
             }
             sessionConstants.TrackName = shared.mTrackLocation;
             sessionConstants.TrackLayout = shared.mTrackVariation;
@@ -122,33 +122,32 @@ namespace CrewChiefV2.PCars
                     lastSessionPhase = previousGameState.SessionData.SessionPhase;
                     lastSessionRunningTime = previousGameState.SessionData.SessionRunningTime;
                 }
+                int opponentSlotId = 0;
+                foreach (pCarsAPIParticipantStruct participantStruct in shared.mParticipantData)
+                {
+                    if (participantStruct.mIsActive)
+                    {
+                        if (shared.mViewedParticipantIndex != opponentSlotId)
+                        {
+                            if (currentGameState.OpponentData.ContainsKey(opponentSlotId))
+                            {
+                                upateOpponentData(currentGameState.OpponentData[opponentSlotId], participantStruct.mRacePosition, participantStruct.mCurrentLap,
+                                    participantStruct.mCurrentSector, participantStruct.mCurrentLapDistance, false);
+                            }
+                            else
+                            {
+                                currentGameState.OpponentData.Add(opponentSlotId, createOpponentData(participantStruct));
+                            }
+                        }
+                        opponentSlotId++;
+                    }
+                }
                 if (isNewSession)
                 {
-                    // new session so collect up the opponent data
-                    int opponentSlotId = 0;
-                    foreach (pCarsAPIParticipantStruct participantStruct in shared.mParticipantData)
-                    {
-                        if (participantStruct.mIsActive)
-                        {
-                            if (shared.mViewedParticipantIndex != opponentSlotId)
-                            {
-                                if (currentGameState.OpponentData.ContainsKey(opponentSlotId))
-                                {
-                                    upateOpponentData(currentGameState.OpponentData[opponentSlotId], participantStruct.mRacePosition, participantStruct.mCurrentLap,
-                                        participantStruct.mCurrentSector, participantStruct.mCurrentLapDistance, false);
-                                }
-                                else
-                                {
-                                    currentGameState.OpponentData.Add(opponentSlotId, createOpponentData(participantStruct));
-                                }
-                            }
-                            opponentSlotId++;
-                        }
-                    }
+                    Console.WriteLine("new session, participants " + shared.mParticipantData.Count());
                     Console.WriteLine("Got driver names:");
                     Console.WriteLine(String.Join("; ", currentGameState.getOpponentLastNames()));
                 }
-                
                 //------------------- Session data ---------------------------
                 currentGameState.SessionData.Position = (int)viewedParticipant.mRacePosition;
                 currentGameState.SessionData.CompletedLaps = (int)viewedParticipant.mLapsCompleted;

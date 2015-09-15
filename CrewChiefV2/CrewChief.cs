@@ -84,6 +84,7 @@ namespace CrewChiefV2
             eventsList.Add("Timings", new Timings(audioPlayer));
             eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
             eventsList.Add("PushNow", new PushNow(audioPlayer));
+            eventsList.Add("DriverNames", new DriverNames(audioPlayer));
             sessionEndMessages = new SessionEndMessages(audioPlayer);
         }
 
@@ -315,15 +316,15 @@ namespace CrewChiefV2
                                 stateCleared = true;
                             }
                             List<String> opponentNames = currentGameState.getOpponentLastNames();
-                            /*if (opponentNames.Count > 0)
+                            if (opponentNames.Count > 0)
                             {
-                                DriveNameHelper.addNamesToPhoneticsFile(currentGameState.getOpponentLastNames());
+                                //DriveNameHelper.addNamesToPhoneticsFile(currentGameState.getOpponentLastNames());
                                 //DriveNameHelper.addPhoneticNamesFolders();
                                 if (speechRecogniser != null && speechRecogniser.initialised)
                                 {
                                     speechRecogniser.addNames(DriveNameHelper.getPhoneticDriverNames(currentGameState.getOpponentLastNames()));
                                 }
-                            }   */  
+                            }
                         }
                         else if (currentGameState.SessionData.SessionRunningTime > previousGameState.SessionData.SessionRunningTime)
                         {

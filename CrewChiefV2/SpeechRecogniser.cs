@@ -225,6 +225,7 @@ namespace CrewChiefV2
                 nameChoices.Add(names.ToArray());
                 GrammarBuilder nameGB = new GrammarBuilder();
                 nameGB.Culture = cultureInfo;
+                nameGB.Append("where's");
                 nameGB.Append(nameChoices);
                 namesGrammar = new Grammar(nameGB);
                 sre.LoadGrammar(namesGrammar);
@@ -244,10 +245,17 @@ namespace CrewChiefV2
             {
                 try
                 {
-                    AbstractEvent abstractEvent = getEventForSpeech(e.Result.Text);
-                    if (abstractEvent != null)
+                    if (e.Result.Grammar == namesGrammar)
                     {
-                        abstractEvent.respond(e.Result.Text);
+                        CrewChief.getEvent("DriverNames").respond(e.Result.Text);
+                    }
+                    else
+                    {
+                        AbstractEvent abstractEvent = getEventForSpeech(e.Result.Text);
+                        if (abstractEvent != null)
+                        {
+                            abstractEvent.respond(e.Result.Text);
+                        }
                     }
                 }
                 catch (Exception exception)

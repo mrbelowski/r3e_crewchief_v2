@@ -26,14 +26,12 @@ namespace CrewChiefV2
             StreamReader file = new StreamReader(folder + @"\names.txt");
             while ((line = file.ReadLine()) != null)
             {
-                Console.WriteLine("Line = " + line);
                 String[] split = line.Split(new char[] {':'});
                 if (!nameToPhonetic.ContainsKey(split[0].Trim()))
                 {
                     String phonetic = "";
                     if (split.Length == 2)
                     {
-                        Console.WriteLine("phonetic = " + phonetic);
                         phonetic = split[1].Trim();
                     }
                     nameToPhonetic.Add(split[0].Trim(), phonetic);
@@ -88,6 +86,7 @@ namespace CrewChiefV2
                 if (nameToPhonetic.ContainsKey(driverName) && nameToPhonetic[driverName].Length > 0)
                 {
                     phoneticName = nameToPhonetic[driverName];
+                    Console.WriteLine("Using phonetic " + phoneticName + " for driver name " + driverName);
                 }
                 if (!phoneticNames.Contains(phoneticName))
                 {
