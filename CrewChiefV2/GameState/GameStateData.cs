@@ -109,8 +109,6 @@ namespace CrewChiefV2.GameState
 
         public Boolean PreviousLapWasValid = true;
 
-        public Boolean HasParticipatedInPreviousSession = false;
-
         public SessionPhase SessionPhase = SessionPhase.Unavailable;
 
         public Boolean IsNewLap = false;

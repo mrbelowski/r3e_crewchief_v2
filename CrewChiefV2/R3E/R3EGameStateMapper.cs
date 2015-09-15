@@ -53,7 +53,8 @@ namespace CrewChiefV2.RaceRoom
                 return false;
             }
             RaceRoomData.RaceRoomShared shared = (RaceRoomData.RaceRoomShared)memoryMappedFileStruct;
-            if (mapToSessionType(shared.SessionType, shared.NumCars) != currentSessionConstants.SessionType)
+            if (mapToSessionType(shared.SessionType, shared.NumCars) != currentSessionConstants.SessionType 
+                || shared.SessionIteration != currentSessionConstants.SessionIteration)
             {
                 return true;
             }
@@ -74,9 +75,8 @@ namespace CrewChiefV2.RaceRoom
         {
             RaceRoomData.RaceRoomShared shared = (RaceRoomData.RaceRoomShared)memoryMappedFileStruct;
             SessionConstants sessionConstants = new SessionConstants();
-            // zero indexed in our local data but 1 indexed in R3E
-            sessionConstants.EventIndex = shared.EventIndex - 1;
-            sessionConstants.SessionIteration = shared.SessionIteration - 1;
+            sessionConstants.EventIndex = shared.EventIndex;
+            sessionConstants.SessionIteration = shared.SessionIteration;
 
             if (shared.NumberOfLaps > 0)
             {

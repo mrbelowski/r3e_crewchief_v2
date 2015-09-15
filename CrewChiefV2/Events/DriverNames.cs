@@ -10,8 +10,6 @@ namespace CrewChiefV2.Events
 {
     class DriverNames : AbstractEvent
     {
-        public static String folderNameStub = "driver_names/";
-
         private SessionConstants sessionConstants;
         private GameStateData currentGameState;
 

@@ -37,7 +37,7 @@ namespace CrewChiefV2.Events
                 {
                     if (lastSessionPhase == SessionPhase.Finished)
                     {
-                        // only play session end message for races if we've actually finished
+                        // only play session end message for races if we've actually finished, not restarted
                         playFinishMessage(sessionType, finishPosition, numCars);
                     } 
                 }

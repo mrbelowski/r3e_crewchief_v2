@@ -188,9 +188,6 @@ namespace CrewChiefV2.PCars
                 currentGameState.SessionData.LeaderHasFinishedRace = shared.mHighestFlagColour == (int) eFlagColors.FLAG_COLOUR_CHEQUERED;
                 
 
-                //TODO...
-                currentGameState.SessionData.HasParticipatedInPreviousSession = false;
-
 
                 currentGameState.PitData.InPitlane = shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_INTO_PITS ||
                     shared.mPitMode == (int)ePitMode.PIT_MODE_IN_PIT ||
