@@ -54,7 +54,7 @@ namespace CrewChiefV2.Events
                             messages.Add(QueuedMessage.folderNameNumbersStub + position);
                             audioPlayer.openChannel();
                             audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentPosition", new QueuedMessage(messages, 0, null));
-                            if (opponentDelta != null) 
+                            if (opponentDelta != null && (opponentDelta.lapDifference != 0 || Math.Abs(opponentDelta.time) > 0.05))
                             {
                                 if (opponentDelta.lapDifference == 1)
                                 {
