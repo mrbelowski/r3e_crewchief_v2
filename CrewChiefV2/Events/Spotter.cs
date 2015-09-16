@@ -14,5 +14,9 @@ namespace CrewChiefV2.Events
         void enableSpotter();
 
         void disableSpotter();
+
+        void pause();
+
+        void unpause();
     }
 }

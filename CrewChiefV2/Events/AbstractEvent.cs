@@ -24,7 +24,7 @@ namespace CrewChiefV2.Events
 
         // this is called on each 'tick' - the event subtype should
         // place its logic in here including calls to audioPlayer.queueClip
-        abstract protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants);
+        abstract protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState);
 
         // reinitialise any state held by the event subtype
         public abstract void clearState();
@@ -32,9 +32,9 @@ namespace CrewChiefV2.Events
         // generally the event subclass can just return true for this, but when a clip is played with
         // a non-zero delay it may be necessary to re-check that the clip is still valid against the current
         // state
-        public virtual Boolean isMessageStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public virtual Boolean isMessageStillValid(String eventSubType, GameStateData currentGameState)
         {
-            return isApplicableForCurrentSessionAndPhase(sessionConstants.SessionType, currentGameState.SessionData.SessionPhase);
+            return isApplicableForCurrentSessionAndPhase(currentGameState.SessionData.SessionType, currentGameState.SessionData.SessionPhase);
         }
 
         public Boolean isApplicableForCurrentSessionAndPhase(SessionType sessionType, SessionPhase sessionPhase)
@@ -52,10 +52,10 @@ namespace CrewChiefV2.Events
             this.pearlsOfWisdom = pearlsOfWisdom;
         }
 
-        public void trigger(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        public void trigger(GameStateData previousGameState, GameStateData currentGameState)
         {
             // common checks here?
-            triggerInternal(previousGameState, currentGameState, sessionConstants);
+            triggerInternal(previousGameState, currentGameState);
         }
     }
 }

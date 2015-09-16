@@ -65,13 +65,13 @@ namespace CrewChiefV2.Events
             leaderHasFinishedRace = false;
         }
 
-        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
             leaderHasFinishedRace = currentGameState.SessionData.LeaderHasFinishedRace;
             timeLeft = currentGameState.SessionData.SessionTimeRemaining;
-            if (sessionConstants.SessionNumberOfLaps > 0)
+            if (currentGameState.SessionData.SessionNumberOfLaps > 0)
             {
-                lapsLeft = sessionConstants.SessionNumberOfLaps - currentGameState.SessionData.CompletedLaps;
+                lapsLeft = currentGameState.SessionData.SessionNumberOfLaps - currentGameState.SessionData.CompletedLaps;
                 sessionLengthIsTime = false;
             }
             else
@@ -92,7 +92,7 @@ namespace CrewChiefV2.Events
                     }
                 }
                 PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.NONE;
-                if (sessionConstants.SessionType == SessionType.Race && currentGameState.SessionData.CompletedLaps > 1)
+                if (currentGameState.SessionData.SessionType == SessionType.Race && currentGameState.SessionData.CompletedLaps > 1)
                 {
                     pearlType = PearlsOfWisdom.PearlType.NEUTRAL;
                     if (currentGameState.SessionData.Position < 4)
@@ -107,7 +107,7 @@ namespace CrewChiefV2.Events
 
                 // this event only works if we're leading because we don't know when the leader 
                 // crosses the line :(
-                if (sessionConstants.SessionType == SessionType.Race && currentGameState.SessionData.IsNewLap &&
+                if (currentGameState.SessionData.SessionType == SessionType.Race && currentGameState.SessionData.IsNewLap &&
                     currentGameState.SessionData.SessionRunningTime > 60 && !playedLastLap &&
                     currentGameState.SessionData.Position == 1 && timeLeft > 0 && timeLeft < currentGameState.SessionData.LapTimeBest)
                 {
@@ -149,12 +149,12 @@ namespace CrewChiefV2.Events
                     played15mins = true;
                     played20mins = true;
                     playedHalfWayHome = true;
-                    if (sessionConstants.SessionType == SessionType.Race && currentGameState.SessionData.Position == 1)
+                    if (currentGameState.SessionData.SessionType == SessionType.Race && currentGameState.SessionData.Position == 1)
                     {
                         // don't add a pearl here - the audio clip already contains encouragement
                         audioPlayer.queueClip(folder5minsLeading, 0, this, pearlType, 0);
                     }
-                    else if (sessionConstants.SessionType == SessionType.Race && currentGameState.SessionData.Position < 4)
+                    else if (currentGameState.SessionData.SessionType == SessionType.Race && currentGameState.SessionData.Position < 4)
                     {
                         // don't add a pearl here - the audio clip already contains encouragement
                         audioPlayer.queueClip(folder5minsPodium, 0, this, pearlType, 0);
@@ -182,7 +182,7 @@ namespace CrewChiefV2.Events
                     played20mins = true;
                     audioPlayer.queueClip(folder20mins, 0, this, pearlType, 0.7);
                 }
-                else if (sessionConstants.SessionType == SessionType.Race &&
+                else if (currentGameState.SessionData.SessionType == SessionType.Race &&
                     currentGameState.SessionData.SessionRunningTime > 60 && !playedHalfWayHome && timeLeft > 0 && timeLeft < halfTime)
                 {
                     // this one sounds weird in practice and qual sessions, so skip it

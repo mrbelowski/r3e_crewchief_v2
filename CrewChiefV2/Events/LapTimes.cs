@@ -102,9 +102,9 @@ namespace CrewChiefV2.Events
             currentPosition = -1;
         }
 
-        protected override void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        protected override void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
-            sessionType = sessionConstants.SessionType;
+            sessionType = currentGameState.SessionData.SessionType;
             if (currentGameState.SessionData.LapTimeBest > 0)
             {
                 sessionBestLapTimeDeltaToLeader = TimeSpan.FromSeconds(currentGameState.SessionData.LapTimeBest - getLapTimeBestForClassLeader(currentGameState));
@@ -135,7 +135,7 @@ namespace CrewChiefV2.Events
                 lastLapTime = currentGameState.SessionData.LapTimePrevious;
             }
             if (currentGameState.SessionData.IsNewLap && !currentGameState.PitData.OnInLap && !currentGameState.PitData.OnOutLap &&
-                ((sessionConstants.SessionType == SessionType.HotLap && currentGameState.SessionData.CompletedLaps > 0) || currentGameState.SessionData.CompletedLaps > 1))
+                ((currentGameState.SessionData.SessionType == SessionType.HotLap && currentGameState.SessionData.CompletedLaps > 0) || currentGameState.SessionData.CompletedLaps > 1))
             {
                 if (lapTimesWindow == null)
                 {
@@ -151,7 +151,7 @@ namespace CrewChiefV2.Events
                     {
                         // queue the actual laptime as a 'gap filler' - this is only played if the
                         // queue would otherwise be empty
-                        if (enableLapTimeMessages && readLapTimes && sessionConstants.SessionType != SessionType.HotLap)
+                        if (enableLapTimeMessages && readLapTimes && currentGameState.SessionData.SessionType != SessionType.HotLap)
                         {
                             QueuedMessage gapFillerLapTime = new QueuedMessage(folderLapTimeIntro, null,
                             TimeSpan.FromSeconds(currentGameState.SessionData.LapTimePrevious), 0, this);
@@ -160,9 +160,10 @@ namespace CrewChiefV2.Events
                         }
 
                         if (enableLapTimeMessages &&
-                            (sessionConstants.SessionType == SessionType.Qualify || sessionConstants.SessionType == SessionType.Practice || sessionConstants.SessionType == SessionType.HotLap))
+                            (currentGameState.SessionData.SessionType == SessionType.Qualify || currentGameState.SessionData.SessionType == SessionType.Practice ||
+                            currentGameState.SessionData.SessionType == SessionType.HotLap))
                         {
-                            if (sessionConstants.SessionType == SessionType.HotLap)
+                            if (currentGameState.SessionData.SessionType == SessionType.HotLap)
                             {
                                 // special case for hot lapping - read best lap message and the laptime
                                 audioPlayer.queueClip(QueuedMessage.compoundMessageIdentifier + "laptime", new QueuedMessage(folderLapTimeIntro, null,
@@ -199,11 +200,11 @@ namespace CrewChiefV2.Events
                             }
                             else if (lastLapRating == LastLapRating.BEST_OVERALL)
                             {
-                                if (sessionConstants.SessionType == SessionType.Qualify)
+                                if (currentGameState.SessionData.SessionType == SessionType.Qualify)
                                 {
                                     audioPlayer.queueClip(Position.folderPole, 0, this);
                                 }
-                                else if (sessionConstants.SessionType == SessionType.Practice)
+                                else if (currentGameState.SessionData.SessionType == SessionType.Practice)
                                 {
                                     audioPlayer.queueClip(Position.folderStub + currentGameState.SessionData.Position, 0, this);
                                 }
@@ -241,7 +242,7 @@ namespace CrewChiefV2.Events
                                 }
                             }
                         }
-                        else if (enableLapTimeMessages && sessionConstants.SessionType == SessionType.Race)
+                        else if (enableLapTimeMessages && currentGameState.SessionData.SessionType == SessionType.Race)
                         {
                             Boolean playedLapMessage = false;
                             float pearlLikelihood = 0.8f;

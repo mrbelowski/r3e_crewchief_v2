@@ -54,12 +54,12 @@ namespace CrewChiefV2.Events
             isLast = false;
         }
 
-        public override bool isMessageStillValid(string eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public override bool isMessageStillValid(string eventSubType, GameStateData currentGameState)
         {
-            return isApplicableForCurrentSessionAndPhase(sessionConstants.SessionType, currentGameState.SessionData.SessionPhase) && !currentGameState.PitData.InPitlane;
+            return isApplicableForCurrentSessionAndPhase(currentGameState.SessionData.SessionType, currentGameState.SessionData.SessionPhase) && !currentGameState.PitData.InPitlane;
         }
 
-        protected override void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        protected override void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
             currentPosition = currentGameState.SessionData.Position;
             isLast = currentGameState.isLast();
@@ -67,19 +67,19 @@ namespace CrewChiefV2.Events
             {
                 previousPosition = currentPosition;
             }
-            if (sessionConstants.SessionType == SessionType.Race && enableRaceStartMessages && !playedRaceStartMessage && 
+            if (currentGameState.SessionData.SessionType == SessionType.Race && enableRaceStartMessages && !playedRaceStartMessage && 
                 currentGameState.SessionData.SessionRunningTime > startMessageTime)
             {
                 playedRaceStartMessage = true;
-                if (isLast || sessionConstants.SessionStartPosition + 1 < currentGameState.SessionData.Position)
+                if (isLast || currentGameState.SessionData.SessionStartPosition + 1 < currentGameState.SessionData.Position)
                 {
                     audioPlayer.queueClip(folderBadStart, 0, this);
                 }
-                else if (currentGameState.SessionData.Position == 1 || sessionConstants.SessionStartPosition >= currentGameState.SessionData.Position)
+                else if (currentGameState.SessionData.Position == 1 || currentGameState.SessionData.SessionStartPosition >= currentGameState.SessionData.Position)
                 {
                     audioPlayer.queueClip(folderGoodStart, 0, this);
                 }
-                else if (sessionConstants.SessionStartPosition + 5 < currentGameState.SessionData.Position)
+                else if (currentGameState.SessionData.SessionStartPosition + 5 < currentGameState.SessionData.Position)
                 {
                     audioPlayer.queueClip(folderTerribleStart, 0, this);
                 }                
@@ -111,7 +111,7 @@ namespace CrewChiefV2.Events
                     {
                         PearlsOfWisdom.PearlType pearlType = PearlsOfWisdom.PearlType.NONE;
                         float pearlLikelihood = 0.2f;
-                        if (sessionConstants.SessionType == SessionType.Race)
+                        if (currentGameState.SessionData.SessionType == SessionType.Race)
                         {
                             if (!isLast && (previousPosition > currentGameState.SessionData.Position + 5 ||
                                 (previousPosition > currentGameState.SessionData.Position && currentGameState.SessionData.Position <= 5)))
@@ -133,11 +133,11 @@ namespace CrewChiefV2.Events
                         }
                         if (currentGameState.SessionData.Position == 1)
                         {
-                            if (sessionConstants.SessionType == SessionType.Race)
+                            if (currentGameState.SessionData.SessionType == SessionType.Race)
                             {
                                 audioPlayer.queueClip(folderLeading, 0, this, pearlType, pearlLikelihood);
                             }
-                            else if (sessionConstants.SessionType == SessionType.Practice)
+                            else if (currentGameState.SessionData.SessionType == SessionType.Practice)
                             {
                                 audioPlayer.queueClip(folderStub + 1, 0, this, pearlType, pearlLikelihood);
                             }

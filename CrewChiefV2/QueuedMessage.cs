@@ -92,10 +92,10 @@ namespace CrewChiefV2
             this.abstractEvent = abstractEvent;
         }
 
-        public Boolean isMessageStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public Boolean isMessageStillValid(String eventSubType, GameStateData currentGameState)
         {
             return this.abstractEvent == null || 
-                this.abstractEvent.isMessageStillValid(eventSubType, currentGameState, sessionConstants);
+                this.abstractEvent.isMessageStillValid(eventSubType, currentGameState);
         }
 
         public List<String> getMessageFolders()

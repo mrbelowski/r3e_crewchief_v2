@@ -24,15 +24,14 @@ namespace CrewChiefV2.PCars
         private float severeDamageThreshold = 0.7f;
         private float destroyedDamageThreshold = 0.99f;
 
+        // tyres in PCars are worn out when the wear level is > ?
+        private float wornOutTyreWearLevel = 0.50f;
+
         private float scrubbedTyreWearPercent = 5f;
         private float minorTyreWearPercent = 30f;
         private float majorTyreWearPercent = 50f;
         private float wornOutTyreWearPercent = 90f;    
-
-        private GameStateData currentGameState = null;
-
-        private GameStateData previousGameState = null;
-
+        
         private TimeSpan minimumSessionParticipationTime = TimeSpan.FromSeconds(6);
 
         public void versionCheck(Object memoryMappedFileStruct)
@@ -43,85 +42,71 @@ namespace CrewChiefV2.PCars
                 throw new SharedMemoryReadException("Expected shared data version " + expectedVersion + " but got version " + currentVersion);
             }
         }
-        
-        public Boolean isSessionFinished(Object memoryMappedFileStruct, SessionConstants currentSessionConstants, GameStateData currentGameState)
-        {
-            if (currentSessionConstants == null || currentGameState == null)
-            {
-                return false;
-            }
-            pCarsAPIStruct shared = (pCarsAPIStruct)memoryMappedFileStruct;
-            if (mapToSessionType(shared.mSessionState) != currentSessionConstants.SessionType)
-            {
-                return true;
-            }
-            return false;
-        }
 
-        public void discardCurrentGameState()
+        public GameStateData mapToGameStateData(Object memoryMappedFileStruct, GameStateData previousGameState)
         {
-            currentGameState = null;
-        }
-
-        /**
-         * Creates session data which are valid for the entire session (even if this session has multiple iterations).
-         * Note that we may need to update these constants during a session if something happens in that session which 
-         * changes its run time, or whatever.
-         */
-        public SessionConstants getSessionConstants(Object memoryMappedFileStruct)
-        {
+            GameStateData currentGameState = new GameStateData();
             pCarsAPIStruct shared = (pCarsAPIStruct)memoryMappedFileStruct;
-            SessionConstants sessionConstants = new SessionConstants();            
-            // zero indexed in our local data but 1 indexed in R3E
-            sessionConstants.SessionType = mapToSessionType(shared.mSessionState);
+
+            if (shared.mViewedParticipantIndex < 0 || shared.mNumParticipants < 1)
+            {
+                // Unusable data in the block - throw an error here?
+                return null;
+            }
+            pCarsAPIParticipantStruct viewedParticipant = shared.mParticipantData[shared.mViewedParticipantIndex];
+            currentGameState.SessionData.CompletedLaps = (int)viewedParticipant.mLapsCompleted;
+            currentGameState.SessionData.SectorNumber = (int)viewedParticipant.mCurrentSector;
+            currentGameState.SessionData.Position = (int)viewedParticipant.mRacePosition;
+            currentGameState.SessionData.IsNewSector = previousGameState == null || viewedParticipant.mCurrentSector != previousGameState.SessionData.SectorNumber;
+            currentGameState.SessionData.SectorNumber = (int)viewedParticipant.mCurrentSector;
+            currentGameState.PositionAndMotionData.DistanceRoundTrack = viewedParticipant.mCurrentLapDistance;
+          
+            
+            // previous session data to check if we've started an new session
+            SessionPhase lastSessionPhase = SessionPhase.Unavailable;
+            SessionType lastSessionType = SessionType.Unavailable;
+            float lastSessionRunningTime = 0;
+            int lastSessionLapsCompleted = 0;
+            String lastSessionTrack = "";
+            String lastSessionTrackLayout = "";
+            Boolean lastSessionHasFixedTime = false;
+            int lastSessionNumberOfLaps = 0;
+            if (previousGameState != null)
+            {
+                lastSessionPhase = previousGameState.SessionData.SessionPhase;
+                lastSessionType = previousGameState.SessionData.SessionType;
+                lastSessionRunningTime = previousGameState.SessionData.SessionRunningTime;
+                lastSessionHasFixedTime = previousGameState.SessionData.SessionHasFixedTime;
+                lastSessionTrack = previousGameState.SessionData.TrackName;
+                lastSessionTrackLayout = previousGameState.SessionData.TrackLayout;
+                lastSessionLapsCompleted = previousGameState.SessionData.CompletedLaps;
+                lastSessionNumberOfLaps = previousGameState.SessionData.SessionNumberOfLaps;
+            }
+
+            // current session data
+            currentGameState.SessionData.SessionType = mapToSessionType(shared);
+            currentGameState.SessionData.SessionPhase = mapToSessionPhase(currentGameState.SessionData.SessionType, shared.mSessionState, shared.mRaceState);
+            float sessionTimeRemaining = -1;
+            int numberOfLapsInSession = (int)shared.mLapsInEvent;
             if (shared.mEventTimeRemaining > 0)
             {
-                sessionConstants.SessionRunTime = shared.mEventTimeRemaining / 1000;
+                currentGameState.SessionData.SessionHasFixedTime = true;
+                sessionTimeRemaining = shared.mEventTimeRemaining / 1000;
             }
-            if (shared.mLapsInEvent > 0)
-            {
-                sessionConstants.SessionNumberOfLaps = (int)shared.mLapsInEvent;
-            }
-            sessionConstants.NumCarsAtStartOfSession = shared.mNumParticipants;
-            if (shared.mViewedParticipantIndex > -1) {
-                sessionConstants.SessionStartPosition = (int)shared.mParticipantData[shared.mViewedParticipantIndex].mRacePosition;
-            }
-            sessionConstants.TrackName = shared.mTrackLocation;
-            sessionConstants.TrackLayout = shared.mTrackVariation;
-            sessionConstants.TrackLength = shared.mTrackLength;
-            return sessionConstants;
-        }
-
-        public void mapToGameStateData(Object memoryMappedFileStruct, SessionConstants sessionConstants, Boolean isNewSession)
-        {            
-            previousGameState = currentGameState;
-            currentGameState = new GameStateData();
-            pCarsAPIStruct shared = (pCarsAPIStruct)memoryMappedFileStruct;
+            currentGameState.SessionData.TrackName = shared.mTrackLocation;
+            currentGameState.SessionData.TrackLayout = shared.mTrackVariation;
             
-            if (shared.mViewedParticipantIndex > -1)
+            // now check if this is a new session...
+            if (lastSessionPhase != currentGameState.SessionData.SessionPhase || lastSessionType != currentGameState.SessionData.SessionType ||
+                lastSessionHasFixedTime != currentGameState.SessionData.SessionHasFixedTime || lastSessionTrack != currentGameState.SessionData.TrackName ||
+                lastSessionTrackLayout != currentGameState.SessionData.TrackLayout || lastSessionLapsCompleted > currentGameState.SessionData.CompletedLaps ||
+                lastSessionNumberOfLaps != numberOfLapsInSession)
             {
-                pCarsAPIParticipantStruct viewedParticipant = shared.mParticipantData[shared.mViewedParticipantIndex];
-                if (sessionConstants != null)
-                {
-                    currentGameState.SessionData.SessionPhase = mapToSessionPhase(sessionConstants.SessionType, shared.mSessionState, shared.mRaceState);
-                    if (sessionConstants.SessionRunTime > 0)
-                    {
-                        currentGameState.SessionData.SessionRunningTime = sessionConstants.SessionRunTime - shared.mEventTimeRemaining / 1000;
-                    }
-                    else
-                    {
-                        currentGameState.SessionData.SessionRunningTime = (float)(DateTime.Now - sessionConstants.SessionStartTime).TotalSeconds;
-                    }
-                }
+                Console.WriteLine("New session");                
+                currentGameState.SessionData.IsNewSession = true;
+                currentGameState.SessionData.TrackLength = shared.mTrackLength;
+
                 
-                // session phase - if the phase has changed we'll need to update the session constants
-                SessionPhase lastSessionPhase = SessionPhase.Unavailable;
-                float lastSessionRunningTime = 0;
-                if (previousGameState != null)
-                {
-                    lastSessionPhase = previousGameState.SessionData.SessionPhase;
-                    lastSessionRunningTime = previousGameState.SessionData.SessionRunningTime;
-                }
                 int opponentSlotId = 0;
                 foreach (pCarsAPIParticipantStruct participantStruct in shared.mParticipantData)
                 {
@@ -142,165 +127,214 @@ namespace CrewChiefV2.PCars
                         opponentSlotId++;
                     }
                 }
-                if (isNewSession)
-                {
-                    Console.WriteLine("new session, participants " + shared.mNumParticipants);
-                    Console.WriteLine("Got driver names:");
-                    Console.WriteLine(String.Join("; ", currentGameState.getOpponentLastNames()));
-                }
-                //------------------- Session data ---------------------------
-                currentGameState.SessionData.Position = (int)viewedParticipant.mRacePosition;
-                currentGameState.SessionData.CompletedLaps = (int)viewedParticipant.mLapsCompleted;
-                currentGameState.SessionData.SectorNumber = (int)viewedParticipant.mCurrentSector;
-                if (previousGameState == null || currentGameState.SessionData.SectorNumber != previousGameState.SessionData.SectorNumber)
-                {
-                    currentGameState.SessionData.IsNewSector = true;
-                }               
-                currentGameState.SessionData.CompletedLaps = (int)viewedParticipant.mLapsCompleted;
-                currentGameState.SessionData.Position = (int)viewedParticipant.mRacePosition;
-                currentGameState.SessionData.NumCars = shared.mNumParticipants;
-                currentGameState.SessionData.CurrentLapIsValid = !shared.mLapInvalidated;
-                
-                currentGameState.SessionData.IsNewLap = previousGameState == null || currentGameState.SessionData.CompletedLaps == previousGameState.SessionData.CompletedLaps + 1;
-                if (currentGameState.SessionData.IsNewLap)
-                {
-                    currentGameState.SessionData.PreviousLapWasValid = previousGameState != null && previousGameState.SessionData.CurrentLapIsValid;
-                }
-                else if (previousGameState != null)
-                {
-                    currentGameState.SessionData.PreviousLapWasValid = previousGameState.SessionData.PreviousLapWasValid;
-                }
-                currentGameState.SessionData.IsNewSector = previousGameState == null || viewedParticipant.mCurrentSector != previousGameState.SessionData.SectorNumber;
-                currentGameState.SessionData.SectorNumber = (int)viewedParticipant.mCurrentSector;
-
-                currentGameState.SessionData.IsRacingSameCarBehind = previousGameState != null && previousGameState.getOpponentIdBehind() == currentGameState.getOpponentIdBehind();
-                currentGameState.SessionData.IsRacingSameCarInFront = previousGameState != null && previousGameState.getOpponentIdInFront() == currentGameState.getOpponentIdInFront();
-
-                currentGameState.SessionData.LapTimeBest = shared.mPersonalFastestLapTime;
-                currentGameState.SessionData.LapTimeBestLeader = shared.mSessionFastestLapTime;
-                currentGameState.SessionData.LapTimePrevious = shared.mLastLapTime;
-                currentGameState.SessionData.LapTimeCurrent = shared.mCurrentTime;
-                currentGameState.SessionData.LapTimeDeltaSelf = shared.mLastLapTime - shared.mSessionFastestLapTime;
-                currentGameState.SessionData.LapTimeDeltaLeader = shared.mLastLapTime - shared.mSessionFastestLapTime; // is this appropriate?
-                currentGameState.SessionData.TimeDeltaBehind = shared.mSplitTimeBehind;
-                currentGameState.SessionData.TimeDeltaFront = shared.mSplitTimeAhead;
-                // is this right??
-                currentGameState.SessionData.LeaderHasFinishedRace = shared.mHighestFlagColour == (int) eFlagColors.FLAG_COLOUR_CHEQUERED;
-                
-
-
-                currentGameState.PitData.InPitlane = shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_INTO_PITS ||
-                    shared.mPitMode == (int)ePitMode.PIT_MODE_IN_PIT ||
-                    shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_OUT_OF_PITS ||
-                    shared.mPitMode == (int)ePitMode.PIT_MODE_IN_GARAGE;
-                currentGameState.PitData.IsAtPitExit = previousGameState != null && previousGameState.PitData.InPitlane && !currentGameState.PitData.InPitlane;
-                if (currentGameState.PitData.IsAtPitExit)
-                {
-                    int lapCount = currentGameState.SessionData.CompletedLaps - 1;
-                    if (lapCount < 0)
-                    {
-                        lapCount = 0;
-                    }
-                    currentGameState.PitData.LapCountWhenLastEnteredPits = lapCount;
-                }
-                else if (previousGameState != null)
-                {
-                    currentGameState.PitData.LapCountWhenLastEnteredPits = previousGameState.PitData.LapCountWhenLastEnteredPits;
-                }
-
-                if (shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_INTO_PITS)
-                {
-                    currentGameState.PitData.OnInLap = true; 
-                    currentGameState.PitData.OnOutLap = false;
-                }
-                else if (shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_OUT_OF_PITS)
-                {
-                    currentGameState.PitData.OnInLap = false;
-                    currentGameState.PitData.OnOutLap = true;
-                }
-                else if (currentGameState.SessionData.IsNewLap)
-                {
-                    currentGameState.PitData.OnInLap = false;
-                    currentGameState.PitData.OnOutLap = false;
-                }
-                else if (previousGameState != null)
-                {
-                    currentGameState.PitData.OnInLap = previousGameState.PitData.OnInLap;
-                    currentGameState.PitData.OnOutLap = previousGameState.PitData.OnOutLap;
-                }
-                
-                currentGameState.CarDamageData.DamageEnabled = true;    // no way to tell if it's disabled from the shared memory
-                currentGameState.CarDamageData.OverallAeroDamage = mapToDamageLevel(shared.mAeroDamage);
-                currentGameState.CarDamageData.OverallEngineDamage = mapToDamageLevel(shared.mEngineDamage);
-                currentGameState.CarDamageData.OverallTransmissionDamage = DamageLevel.UNKNOWN;
-                currentGameState.CarDamageData.LeftFrontSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[0]);
-                currentGameState.CarDamageData.RightFrontSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[1]);
-                currentGameState.CarDamageData.LeftRearSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[2]);
-                currentGameState.CarDamageData.RightRearSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[3]);
-
-                currentGameState.EngineData.EngineOilPressure = shared.mOilPressureKPa; // todo: units
-                currentGameState.EngineData.EngineOilTemp = shared.mOilTempCelsius;
-                currentGameState.EngineData.EngineWaterTemp = shared.mWaterTempCelsius;
-                currentGameState.EngineData.EngineRpm = shared.mRPM;
-                currentGameState.EngineData.MaxEngineRpm = shared.mMaxRPM;
-
-                currentGameState.FuelData.FuelCapacity = shared.mFuelCapacity;
-                currentGameState.FuelData.FuelLeft = currentGameState.FuelData.FuelCapacity * shared.mFuelLevel;
-                currentGameState.FuelData.FuelPressure = shared.mFuelPressureKPa;
-                currentGameState.FuelData.FuelUseActive = true;         // no way to tell if it's disabled
-
-                currentGameState.PenaltiesData.HasDriveThrough = shared.mPitSchedule == (int)ePitSchedule.PIT_SCHEDULE_DRIVE_THROUGH;
-                currentGameState.PenaltiesData.HasStopAndGo = shared.mPitSchedule == (int)ePitSchedule.PIT_SCHEDULE_STOP_GO;
-
-                currentGameState.PositionAndMotionData.CarSpeed = shared.mSpeed;
-                currentGameState.PositionAndMotionData.DistanceRoundTrack = viewedParticipant.mCurrentLapDistance;
-
-                //------------------------ Tyre data -----------------------          
-                currentGameState.TyreData.HasMatchedTyreTypes = true;
-                currentGameState.TyreData.TireWearActive = true;
-                TyreType tyreType = TyreType.Unknown;
-
-                currentGameState.TyreData.FrontLeft_CenterTemp = shared.mTyreTreadTemp[0] - 273;
-                currentGameState.TyreData.FrontLeft_LeftTemp = shared.mTyreTreadTemp[0] - 273;
-                currentGameState.TyreData.FrontLeft_RightTemp = shared.mTyreTreadTemp[0] - 273;
-                currentGameState.TyreData.FrontLeftTyreType = tyreType;
-                currentGameState.TyreData.FrontLeftPressure = -1; // not in the block
-                currentGameState.TyreData.FrontLeftPercentWear = shared.mTyreWear[0] * 100;
-                currentGameState.TyreData.FrontLeftCondition = getTyreCondition(currentGameState.TyreData.FrontLeftPercentWear);
-
-                currentGameState.TyreData.FrontRight_CenterTemp = shared.mTyreTreadTemp[1] - 273;
-                currentGameState.TyreData.FrontRight_LeftTemp = shared.mTyreTreadTemp[1] - 273;
-                currentGameState.TyreData.FrontRight_RightTemp = shared.mTyreTreadTemp[1] - 273;
-                currentGameState.TyreData.FrontRightTyreType = tyreType;
-                currentGameState.TyreData.FrontRightPressure = -1; // not in the block
-                currentGameState.TyreData.FrontRightPercentWear = shared.mTyreWear[1] * 100;
-                currentGameState.TyreData.FrontRightCondition = getTyreCondition(currentGameState.TyreData.FrontRightPercentWear);
-
-                currentGameState.TyreData.RearLeft_CenterTemp = shared.mTyreTreadTemp[2] - 273;
-                currentGameState.TyreData.RearLeft_LeftTemp = shared.mTyreTreadTemp[2] - 273;
-                currentGameState.TyreData.RearLeft_RightTemp = shared.mTyreTreadTemp[2] - 273;
-                currentGameState.TyreData.RearLeftTyreType = tyreType;
-                currentGameState.TyreData.RearLeftPressure = -1; // not in the block
-                currentGameState.TyreData.RearLeftPercentWear = shared.mTyreWear[2] * 100;
-                currentGameState.TyreData.RearLeftCondition = getTyreCondition(currentGameState.TyreData.RearLeftPercentWear);
-
-                currentGameState.TyreData.RearRight_CenterTemp = shared.mTyreTreadTemp[3] - 273;
-                currentGameState.TyreData.RearRight_LeftTemp = shared.mTyreTreadTemp[3] - 273;
-                currentGameState.TyreData.RearRight_RightTemp = shared.mTyreTreadTemp[3] - 273;
-                currentGameState.TyreData.RearRightTyreType = tyreType;
-                currentGameState.TyreData.RearRightPressure = -1; // not in the block
-                currentGameState.TyreData.RearRightPercentWear = shared.mTyreWear[3] * 100;
-                currentGameState.TyreData.RearRightCondition = getTyreCondition(currentGameState.TyreData.RearRightPercentWear);
-
-                // improvised cut track warnings...
-                currentGameState.PenaltiesData.isOffRacingSurface = !racingSurfaces.Contains(shared.mTerrain[0]) &&
-                    !racingSurfaces.Contains(shared.mTerrain[1]) && !racingSurfaces.Contains(shared.mTerrain[2]) &&
-                    !racingSurfaces.Contains(shared.mTerrain[3]);
-                if (previousGameState != null && previousGameState.PenaltiesData.isOffRacingSurface && currentGameState.PenaltiesData.isOffRacingSurface) 
-                {
-                    currentGameState.PenaltiesData.CutTrackWarnings = previousGameState.PenaltiesData.CutTrackWarnings + 1;
-                }
             }
+            else
+            {
+                if (lastSessionPhase != currentGameState.SessionData.SessionPhase)
+                {
+                    Console.WriteLine("New session phase, was " + lastSessionPhase + " now " + currentGameState.SessionData.SessionPhase);
+                    if (currentGameState.SessionData.SessionPhase == SessionPhase.Green)
+                    {
+                        // just gone green, so get the session data
+                        currentGameState.SessionData.NumCarsAtStartOfSession = shared.mNumParticipants;
+                        if (currentGameState.SessionData.SessionHasFixedTime)
+                        {
+                            currentGameState.SessionData.SessionRunTime = sessionTimeRemaining;
+                        }
+                        currentGameState.SessionData.SessionNumberOfLaps = numberOfLapsInSession;
+                        currentGameState.SessionData.SessionStartPosition = (int)shared.mParticipantData[shared.mViewedParticipantIndex].mRacePosition;
+                        Console.WriteLine("Just gone green, session details...");
+                        Console.WriteLine("SessionType " + currentGameState.SessionData.SessionType);
+                        Console.WriteLine("SessionPhase " + currentGameState.SessionData.SessionPhase);
+                        Console.WriteLine("EventIndex " + currentGameState.SessionData.EventIndex);
+                        Console.WriteLine("SessionIteration " + currentGameState.SessionData.SessionIteration);
+                        Console.WriteLine("HasMandatoryPitStop " + currentGameState.SessionData.HasMandatoryPitStop);
+                        Console.WriteLine("PitWindowStart " + currentGameState.SessionData.PitWindowStart);
+                        Console.WriteLine("PitWindowEnd " + currentGameState.SessionData.PitWindowEnd);
+                        Console.WriteLine("NumCarsAtStartOfSession " + currentGameState.SessionData.NumCarsAtStartOfSession);
+                        Console.WriteLine("SessionNumberOfLaps " + currentGameState.SessionData.SessionNumberOfLaps);
+                        Console.WriteLine("SessionRunTime " + currentGameState.SessionData.SessionRunTime);
+                        Console.WriteLine("SessionStartPosition " + currentGameState.SessionData.SessionStartPosition);
+                        Console.WriteLine("SessionStartTime " + currentGameState.SessionData.SessionStartTime);
+                        Console.WriteLine("TrackName " + currentGameState.SessionData.TrackName);
+                    }
+                }
+                // copy persistent data from the previous game state
+                //
+                if (previousGameState != null)
+                {
+                    currentGameState.SessionData.SessionStartTime = previousGameState.SessionData.SessionStartTime;
+                    currentGameState.SessionData.SessionRunTime = previousGameState.SessionData.SessionRunTime;
+                    currentGameState.SessionData.SessionNumberOfLaps = previousGameState.SessionData.SessionNumberOfLaps;
+                    currentGameState.SessionData.SessionStartPosition = previousGameState.SessionData.SessionStartPosition;
+                    currentGameState.SessionData.NumCarsAtStartOfSession = previousGameState.SessionData.NumCarsAtStartOfSession;
+                    currentGameState.SessionData.TrackLength = previousGameState.SessionData.TrackLength;
+                    currentGameState.SessionData.EventIndex = previousGameState.SessionData.EventIndex;
+                    currentGameState.SessionData.SessionIteration = previousGameState.SessionData.SessionIteration;
+                    currentGameState.SessionData.PitWindowStart = previousGameState.SessionData.PitWindowStart;
+                    currentGameState.SessionData.PitWindowEnd = previousGameState.SessionData.PitWindowEnd;
+                    currentGameState.SessionData.HasMandatoryPitStop = previousGameState.SessionData.HasMandatoryPitStop;
+                }
+                if (currentGameState.SessionData.SessionHasFixedTime)
+                {
+                    currentGameState.SessionData.SessionRunningTime = currentGameState.SessionData.SessionRunTime - shared.mEventTimeRemaining / 1000;
+                }
+                else
+                {
+                    currentGameState.SessionData.SessionRunningTime = (float)(DateTime.Now - currentGameState.SessionData.SessionStartTime).TotalSeconds;
+                }
+            }            
+            
+            //------------------- Variable session data ---------------------------
+            if (previousGameState == null || currentGameState.SessionData.SectorNumber != previousGameState.SessionData.SectorNumber)
+            {
+                currentGameState.SessionData.IsNewSector = true;
+            }               
+            
+            currentGameState.SessionData.NumCars = shared.mNumParticipants;
+            currentGameState.SessionData.CurrentLapIsValid = !shared.mLapInvalidated;
+                
+            currentGameState.SessionData.IsNewLap = previousGameState == null || currentGameState.SessionData.CompletedLaps == previousGameState.SessionData.CompletedLaps + 1;
+            if (currentGameState.SessionData.IsNewLap)
+            {
+                currentGameState.SessionData.PreviousLapWasValid = previousGameState != null && previousGameState.SessionData.CurrentLapIsValid;
+            }
+            else if (previousGameState != null)
+            {
+                currentGameState.SessionData.PreviousLapWasValid = previousGameState.SessionData.PreviousLapWasValid;
+            }
+            
+
+            currentGameState.SessionData.IsRacingSameCarBehind = previousGameState != null && previousGameState.getOpponentIdBehind() == currentGameState.getOpponentIdBehind();
+            currentGameState.SessionData.IsRacingSameCarInFront = previousGameState != null && previousGameState.getOpponentIdInFront() == currentGameState.getOpponentIdInFront();
+
+            currentGameState.SessionData.LapTimeBest = shared.mPersonalFastestLapTime;
+            currentGameState.SessionData.LapTimeBestLeader = shared.mSessionFastestLapTime;
+            currentGameState.SessionData.LapTimePrevious = shared.mLastLapTime;
+            currentGameState.SessionData.LapTimeCurrent = shared.mCurrentTime;
+            currentGameState.SessionData.LapTimeDeltaSelf = shared.mLastLapTime - shared.mSessionFastestLapTime;
+            currentGameState.SessionData.LapTimeDeltaLeader = shared.mLastLapTime - shared.mSessionFastestLapTime; // is this appropriate?
+            currentGameState.SessionData.TimeDeltaBehind = shared.mSplitTimeBehind;
+            currentGameState.SessionData.TimeDeltaFront = shared.mSplitTimeAhead;
+            // is this right??
+            currentGameState.SessionData.LeaderHasFinishedRace = shared.mHighestFlagColour == (int) eFlagColors.FLAG_COLOUR_CHEQUERED;
+                
+
+
+            currentGameState.PitData.InPitlane = shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_INTO_PITS ||
+                shared.mPitMode == (int)ePitMode.PIT_MODE_IN_PIT ||
+                shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_OUT_OF_PITS ||
+                shared.mPitMode == (int)ePitMode.PIT_MODE_IN_GARAGE;
+            currentGameState.PitData.IsAtPitExit = previousGameState != null && previousGameState.PitData.InPitlane && !currentGameState.PitData.InPitlane;
+            if (currentGameState.PitData.IsAtPitExit)
+            {
+                int lapCount = currentGameState.SessionData.CompletedLaps - 1;
+                if (lapCount < 0)
+                {
+                    lapCount = 0;
+                }
+                currentGameState.PitData.LapCountWhenLastEnteredPits = lapCount;
+            }
+            else if (previousGameState != null)
+            {
+                currentGameState.PitData.LapCountWhenLastEnteredPits = previousGameState.PitData.LapCountWhenLastEnteredPits;
+            }
+
+            if (shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_INTO_PITS)
+            {
+                currentGameState.PitData.OnInLap = true; 
+                currentGameState.PitData.OnOutLap = false;
+            }
+            else if (shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_OUT_OF_PITS)
+            {
+                currentGameState.PitData.OnInLap = false;
+                currentGameState.PitData.OnOutLap = true;
+            }
+            else if (currentGameState.SessionData.IsNewLap)
+            {
+                currentGameState.PitData.OnInLap = false;
+                currentGameState.PitData.OnOutLap = false;
+            }
+            else if (previousGameState != null)
+            {
+                currentGameState.PitData.OnInLap = previousGameState.PitData.OnInLap;
+                currentGameState.PitData.OnOutLap = previousGameState.PitData.OnOutLap;
+            }
+                
+            currentGameState.CarDamageData.DamageEnabled = true;    // no way to tell if it's disabled from the shared memory
+            currentGameState.CarDamageData.OverallAeroDamage = mapToDamageLevel(shared.mAeroDamage);
+            currentGameState.CarDamageData.OverallEngineDamage = mapToDamageLevel(shared.mEngineDamage);
+            currentGameState.CarDamageData.OverallTransmissionDamage = DamageLevel.UNKNOWN;
+            currentGameState.CarDamageData.LeftFrontSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[0]);
+            currentGameState.CarDamageData.RightFrontSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[1]);
+            currentGameState.CarDamageData.LeftRearSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[2]);
+            currentGameState.CarDamageData.RightRearSuspensionDamage = mapToDamageLevel(shared.mSuspensionDamage[3]);
+
+            currentGameState.EngineData.EngineOilPressure = shared.mOilPressureKPa; // todo: units
+            currentGameState.EngineData.EngineOilTemp = shared.mOilTempCelsius;
+            currentGameState.EngineData.EngineWaterTemp = shared.mWaterTempCelsius;
+            currentGameState.EngineData.EngineRpm = shared.mRPM;
+            currentGameState.EngineData.MaxEngineRpm = shared.mMaxRPM;
+
+            currentGameState.FuelData.FuelCapacity = shared.mFuelCapacity;
+            currentGameState.FuelData.FuelLeft = currentGameState.FuelData.FuelCapacity * shared.mFuelLevel;
+            currentGameState.FuelData.FuelPressure = shared.mFuelPressureKPa;
+            currentGameState.FuelData.FuelUseActive = true;         // no way to tell if it's disabled
+
+            currentGameState.PenaltiesData.HasDriveThrough = shared.mPitSchedule == (int)ePitSchedule.PIT_SCHEDULE_DRIVE_THROUGH;
+            currentGameState.PenaltiesData.HasStopAndGo = shared.mPitSchedule == (int)ePitSchedule.PIT_SCHEDULE_STOP_GO;
+
+            currentGameState.PositionAndMotionData.CarSpeed = shared.mSpeed;
+            
+
+            //------------------------ Tyre data -----------------------          
+            currentGameState.TyreData.HasMatchedTyreTypes = true;
+            currentGameState.TyreData.TireWearActive = true;
+            TyreType tyreType = TyreType.Unknown;
+
+            currentGameState.TyreData.FrontLeft_CenterTemp = shared.mTyreTreadTemp[0] - 273;
+            currentGameState.TyreData.FrontLeft_LeftTemp = shared.mTyreTreadTemp[0] - 273;
+            currentGameState.TyreData.FrontLeft_RightTemp = shared.mTyreTreadTemp[0] - 273;
+            currentGameState.TyreData.FrontLeftTyreType = tyreType;
+            currentGameState.TyreData.FrontLeftPressure = -1; // not in the block
+            currentGameState.TyreData.FrontLeftPercentWear = Math.Min(100, shared.mTyreWear[0] * 100 / wornOutTyreWearLevel);
+            currentGameState.TyreData.FrontLeftCondition = getTyreCondition(currentGameState.TyreData.FrontLeftPercentWear);
+
+            currentGameState.TyreData.FrontRight_CenterTemp = shared.mTyreTreadTemp[1] - 273;
+            currentGameState.TyreData.FrontRight_LeftTemp = shared.mTyreTreadTemp[1] - 273;
+            currentGameState.TyreData.FrontRight_RightTemp = shared.mTyreTreadTemp[1] - 273;
+            currentGameState.TyreData.FrontRightTyreType = tyreType;
+            currentGameState.TyreData.FrontRightPressure = -1; // not in the block
+            currentGameState.TyreData.FrontRightPercentWear = Math.Min(100, shared.mTyreWear[1] * 100 / wornOutTyreWearLevel);
+            currentGameState.TyreData.FrontRightCondition = getTyreCondition(currentGameState.TyreData.FrontRightPercentWear);
+
+            currentGameState.TyreData.RearLeft_CenterTemp = shared.mTyreTreadTemp[2] - 273;
+            currentGameState.TyreData.RearLeft_LeftTemp = shared.mTyreTreadTemp[2] - 273;
+            currentGameState.TyreData.RearLeft_RightTemp = shared.mTyreTreadTemp[2] - 273;
+            currentGameState.TyreData.RearLeftTyreType = tyreType;
+            currentGameState.TyreData.RearLeftPressure = -1; // not in the block
+            currentGameState.TyreData.RearLeftPercentWear = Math.Min(100, shared.mTyreWear[2] * 100 / wornOutTyreWearLevel);
+            currentGameState.TyreData.RearLeftCondition = getTyreCondition(currentGameState.TyreData.RearLeftPercentWear);
+
+            currentGameState.TyreData.RearRight_CenterTemp = shared.mTyreTreadTemp[3] - 273;
+            currentGameState.TyreData.RearRight_LeftTemp = shared.mTyreTreadTemp[3] - 273;
+            currentGameState.TyreData.RearRight_RightTemp = shared.mTyreTreadTemp[3] - 273;
+            currentGameState.TyreData.RearRightTyreType = tyreType;
+            currentGameState.TyreData.RearRightPressure = -1; // not in the block
+            currentGameState.TyreData.RearRightPercentWear = Math.Min(100, shared.mTyreWear[3] * 100 / wornOutTyreWearLevel);
+            currentGameState.TyreData.RearRightCondition = getTyreCondition(currentGameState.TyreData.RearRightPercentWear);
+
+            // improvised cut track warnings...
+            currentGameState.PenaltiesData.isOffRacingSurface = !racingSurfaces.Contains(shared.mTerrain[0]) &&
+                !racingSurfaces.Contains(shared.mTerrain[1]) && !racingSurfaces.Contains(shared.mTerrain[2]) &&
+                !racingSurfaces.Contains(shared.mTerrain[3]);
+            if (previousGameState != null && previousGameState.PenaltiesData.isOffRacingSurface && currentGameState.PenaltiesData.isOffRacingSurface) 
+            {
+                currentGameState.PenaltiesData.CutTrackWarnings = previousGameState.PenaltiesData.CutTrackWarnings + 1;
+            }
+
+            
+            return currentGameState;
         }
 
         private DamageLevel mapToDamageLevel(float damage)
@@ -374,8 +408,10 @@ namespace CrewChiefV2.PCars
          * TODO: other session types. The "SESSION_TEST" above is actually the warmup. Presumably
          * an event with prac -> qual -> warmup -> race would use SESSION_PRACTICE
          * */
-        private SessionType mapToSessionType(uint sessionState)
+        public SessionType mapToSessionType(Object memoryMappedFileStruct)
         {
+            pCarsAPIStruct shared = (pCarsAPIStruct)memoryMappedFileStruct;
+            uint sessionState = shared.mSessionState;
             if (sessionState == (uint)eSessionState.SESSION_RACE || sessionState == (uint)eSessionState.SESSION_FORMATIONLAP)
             {
                 return SessionType.Race;
@@ -453,16 +489,6 @@ namespace CrewChiefV2.PCars
                 } 
             }
             return SessionPhase.Unavailable;
-        }
-
-        public GameStateData getCurrentGameState()
-        {
-            return currentGameState;
-        }
-
-        public GameStateData getPreviousGameState()
-        {
-            return previousGameState;
         }
 
         private TyreCondition getTyreCondition(float percentWear)

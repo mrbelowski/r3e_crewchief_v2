@@ -21,12 +21,12 @@ namespace CrewChiefV2.Events
         {
         }
 
-        public override bool isMessageStillValid(string eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public override bool isMessageStillValid(string eventSubType, GameStateData currentGameState)
         {
             return true;
         }
 
-        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
             audioPlayer.queueClip(folderTest, 0, this);            
         }

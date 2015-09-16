@@ -55,7 +55,7 @@ namespace CrewChiefV2.Events
             aeroDamage = DamageLevel.NONE;
         }
 
-        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
             if (currentGameState.CarDamageData.DamageEnabled)
             {

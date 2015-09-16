@@ -104,6 +104,44 @@ namespace CrewChiefV2.GameState
 
     public class SessionData
     {
+        public Boolean IsNewSession = false;
+
+        public Boolean SessionHasFixedTime = false;
+
+        public SessionType SessionType = SessionType.Unavailable;
+
+        public DateTime SessionStartTime = DateTime.Now;
+
+        // in minutes, 0 if this session is a fixed number of laps rather than a fixed time.
+        public float SessionRunTime = 0;
+
+        public int SessionNumberOfLaps = 0;
+
+        public int SessionStartPosition = 0;
+
+        public int NumCarsAtStartOfSession = 0;
+
+        public String TrackName = null;
+
+        public String TrackLayout = null;
+
+        public float TrackLength = 0;
+
+        // race number in ongoing championship (zero indexed)
+        public int EventIndex = 0;
+
+        // zero indexed - you multi iteration sessions like DTM qual
+        public int SessionIteration = 0;
+
+        // TODO: will this always be an Integer?
+        public int PitWindowStart = 0;
+
+        // The minute/lap into which you can/should pit
+        // Unit: Minutes in time based sessions, otherwise lap
+        public int PitWindowEnd = 0;
+
+        public Boolean HasMandatoryPitStop = false;
+
         // as soon as the player leaves the racing surface this is set to false
         public Boolean CurrentLapIsValid = true;
 

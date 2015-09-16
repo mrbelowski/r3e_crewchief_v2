@@ -11,10 +11,6 @@ namespace CrewChiefV2.RaceRoom
 {
     class R3EGameStateMapper : GameStateMapper
     {
-        private GameStateData currentGameState = null;
-
-        private GameStateData previousGameState = null;
-
         private TimeSpan minimumSessionParticipationTime = TimeSpan.FromSeconds(6);
 
         // tyres in R3E only go down to 0.9
@@ -45,69 +41,90 @@ namespace CrewChiefV2.RaceRoom
         {
             // no version number in r3e shared data so this is a no-op
         }
-
-        public Boolean isSessionFinished(Object memoryMappedFileStruct, SessionConstants currentSessionConstants, GameStateData currentGameState)
+           
+        public GameStateData mapToGameStateData(Object memoryMappedFileStruct, GameStateData previousGameState)
         {
-            if (currentSessionConstants == null || currentGameState == null)
-            {
-                return false;
-            }
-            RaceRoomData.RaceRoomShared shared = (RaceRoomData.RaceRoomShared)memoryMappedFileStruct;
-            if (mapToSessionType(shared.SessionType, shared.NumCars) != currentSessionConstants.SessionType 
-                || shared.SessionIteration != currentSessionConstants.SessionIteration)
-            {
-                return true;
-            }
-            return false;
-        }
-
-        public void discardCurrentGameState()
-        {
-            currentGameState = null;
-        }
-        
-        /**
-         * Creates session data which are valid for the entire session (even if this session has multiple iterations).
-         * Note that we may need to update these constants during a session if something happens in that session which 
-         * changes its run time, or whatever.
-         */
-        public SessionConstants getSessionConstants(Object memoryMappedFileStruct)
-        {
-            RaceRoomData.RaceRoomShared shared = (RaceRoomData.RaceRoomShared)memoryMappedFileStruct;
-            SessionConstants sessionConstants = new SessionConstants();
-            sessionConstants.EventIndex = shared.EventIndex;
-            sessionConstants.SessionIteration = shared.SessionIteration;
-
-            if (shared.NumberOfLaps > 0)
-            {
-                sessionConstants.SessionNumberOfLaps = shared.NumberOfLaps;
-            }
-            if (shared.SessionTimeRemaining > 0)
-            {
-                sessionConstants.SessionRunTime = shared.SessionTimeRemaining;
-            }
-            // hotlap sessions are not explicity declared in R3E - have to check if it's qual and there are 1 or 2 cars
-            sessionConstants.SessionType = mapToSessionType(shared.SessionType, shared.NumCars);
-            sessionConstants.SessionStartPosition = shared.Position;
-            sessionConstants.NumCarsAtStartOfSession = shared.NumCars;
-            sessionConstants.PitWindowStart = shared.PitWindowStart;
-            sessionConstants.PitWindowEnd = shared.PitWindowEnd;
-            sessionConstants.HasMandatoryPitStop = sessionConstants.PitWindowStart > 0 && sessionConstants.PitWindowEnd > 0;
-            // no mapping for track name
-            return sessionConstants;
-        }
-
-        public void mapToGameStateData(Object memoryMappedFileStruct, SessionConstants sessionConstants, Boolean isNewSession)
-        {
-            previousGameState = currentGameState;
-            currentGameState = new GameStateData();
+            GameStateData currentGameState = new GameStateData();
             RaceRoomData.RaceRoomShared shared = (RaceRoomData.RaceRoomShared)memoryMappedFileStruct;
 
-            //------------------------ Control data -----------------------
-            currentGameState.ControlData.ControlType = mapToControlType(shared.ControlType);
-            // TODO: the rest of the control data
+            SessionPhase lastSessionPhase = SessionPhase.Unavailable;
+            float lastSessionRunningTime = 0;
+            if (previousGameState != null)
+            {
+                lastSessionPhase = previousGameState.SessionData.SessionPhase;
+                lastSessionRunningTime = previousGameState.SessionData.SessionRunningTime;
+            }
+
+            currentGameState.SessionData.SessionType = mapToSessionType(shared);
+            currentGameState.SessionData.SessionRunningTime = (float)shared.Player.GameSimulationTime;
+            currentGameState.ControlData.ControlType = mapToControlType(shared.ControlType); // TODO: the rest of the control data
+            currentGameState.SessionData.SessionPhase = mapToSessionPhase(lastSessionPhase, lastSessionRunningTime,
+                currentGameState.SessionData.SessionRunningTime, shared.SessionPhase, currentGameState.ControlData.ControlType);
+
+            if ((lastSessionPhase != currentGameState.SessionData.SessionPhase && (lastSessionPhase == SessionPhase.Unavailable || lastSessionPhase == SessionPhase.Finished)) ||
+                lastSessionRunningTime > currentGameState.SessionData.SessionRunningTime)
+            {
+                currentGameState.SessionData.IsNewSession = true;
+                Console.WriteLine("New session");
+                currentGameState.SessionData.EventIndex = shared.EventIndex;
+                currentGameState.SessionData.SessionIteration = shared.SessionIteration;
+            }
+            else
+            {
+                if (lastSessionPhase != currentGameState.SessionData.SessionPhase)
+                {
+                    Console.WriteLine("New session phase, was " + lastSessionPhase + " now " + currentGameState.SessionData.SessionPhase);
+                    if (currentGameState.SessionData.SessionPhase == SessionPhase.Green)
+                    {
+                        // just gone green, so get the session data
+                        if (shared.NumberOfLaps > 0)
+                        {
+                            currentGameState.SessionData.SessionNumberOfLaps = shared.NumberOfLaps;
+                            currentGameState.SessionData.SessionHasFixedTime = false;
+                        }
+                        if (shared.SessionTimeRemaining > 0)
+                        {
+                            currentGameState.SessionData.SessionRunTime = shared.SessionTimeRemaining;
+                            currentGameState.SessionData.SessionHasFixedTime = true;
+                        }
+                        currentGameState.SessionData.SessionStartPosition = shared.Position;
+                        currentGameState.SessionData.NumCarsAtStartOfSession = shared.NumCars;
+                        currentGameState.SessionData.PitWindowStart = shared.PitWindowStart;
+                        currentGameState.SessionData.PitWindowEnd = shared.PitWindowEnd;
+                        currentGameState.SessionData.HasMandatoryPitStop = currentGameState.SessionData.PitWindowStart > 0 && currentGameState.SessionData.PitWindowEnd > 0; Console.WriteLine("Just gone green, session details...");
+                        Console.WriteLine("SessionType " + currentGameState.SessionData.SessionType);
+                        Console.WriteLine("SessionPhase " + currentGameState.SessionData.SessionPhase);
+                        Console.WriteLine("EventIndex " + currentGameState.SessionData.EventIndex);
+                        Console.WriteLine("SessionIteration " + currentGameState.SessionData.SessionIteration);
+                        Console.WriteLine("HasMandatoryPitStop " + currentGameState.SessionData.HasMandatoryPitStop);
+                        Console.WriteLine("PitWindowStart " + currentGameState.SessionData.PitWindowStart);
+                        Console.WriteLine("PitWindowEnd " + currentGameState.SessionData.PitWindowEnd);
+                        Console.WriteLine("NumCarsAtStartOfSession " + currentGameState.SessionData.NumCarsAtStartOfSession);
+                        Console.WriteLine("SessionNumberOfLaps " + currentGameState.SessionData.SessionNumberOfLaps);
+                        Console.WriteLine("SessionRunTime " + currentGameState.SessionData.SessionRunTime);
+                        Console.WriteLine("SessionStartPosition " + currentGameState.SessionData.SessionStartPosition);
+                        Console.WriteLine("SessionStartTime " + currentGameState.SessionData.SessionStartTime);
+                        Console.WriteLine("TrackName " + currentGameState.SessionData.TrackName);                        
+                    }
+                }
+                if (previousGameState != null)
+                {
+                    currentGameState.SessionData.SessionStartTime = previousGameState.SessionData.SessionStartTime;
+                    currentGameState.SessionData.SessionRunTime = previousGameState.SessionData.SessionRunTime;
+                    currentGameState.SessionData.SessionNumberOfLaps = previousGameState.SessionData.SessionNumberOfLaps;
+                    currentGameState.SessionData.SessionStartPosition = previousGameState.SessionData.SessionStartPosition;
+                    currentGameState.SessionData.NumCarsAtStartOfSession = previousGameState.SessionData.NumCarsAtStartOfSession;
+                    currentGameState.SessionData.TrackLength = previousGameState.SessionData.TrackLength;
+                    currentGameState.SessionData.EventIndex = previousGameState.SessionData.EventIndex;
+                    currentGameState.SessionData.SessionIteration = previousGameState.SessionData.SessionIteration;
+                    currentGameState.SessionData.PitWindowStart = previousGameState.SessionData.PitWindowStart;
+                    currentGameState.SessionData.PitWindowEnd = previousGameState.SessionData.PitWindowEnd;
+                    currentGameState.SessionData.HasMandatoryPitStop = previousGameState.SessionData.HasMandatoryPitStop;
+                }
+            }
 
             //------------------------ Session data -----------------------
+            currentGameState.SessionData.SessionTimeRemaining = shared.SessionTimeRemaining;
             currentGameState.SessionData.CompletedLaps = shared.CompletedLaps;     
             currentGameState.SessionData.LapTimeBest = shared.LapTimeBest;
             currentGameState.SessionData.LapTimeBestLeader = shared.LapTimeBestLeader;
@@ -124,30 +141,14 @@ namespace CrewChiefV2.RaceRoom
             currentGameState.SessionData.Sector3TimeDeltaSelf = shared.SectorTimeDeltaSelf.Sector3;
             currentGameState.SessionData.NumCars = shared.NumCars;
             currentGameState.SessionData.Position = shared.Position;
-            currentGameState.SessionData.SessionRunningTime = (float)shared.Player.GameSimulationTime;
             currentGameState.SessionData.TimeDeltaBehind = shared.TimeDeltaBehind;
             currentGameState.SessionData.TimeDeltaFront = shared.TimeDeltaFront;
 
-            // session phase - if the phase has changed we'll need to update the session constants
-            SessionPhase lastSessionPhase = SessionPhase.Unavailable;
-            SessionType lastSessionType = SessionType.Unavailable;
-            float lastSessionRunningTime = 0;
-            if (previousGameState != null)
-            {
-                lastSessionPhase = previousGameState.SessionData.SessionPhase;
-                lastSessionRunningTime = previousGameState.SessionData.SessionRunningTime;
-            }
-            currentGameState.SessionData.SessionPhase = mapToSessionPhase(lastSessionPhase, lastSessionRunningTime, 
-                currentGameState.SessionData.SessionRunningTime, shared.SessionPhase, currentGameState.ControlData.ControlType);
             currentGameState.SessionData.IsNewLap = previousGameState != null && previousGameState.SessionData.IsNewLap == false &&
                 (shared.CompletedLaps == previousGameState.SessionData.CompletedLaps + 1 ||
                 ((lastSessionPhase == SessionPhase.Countdown || lastSessionPhase == SessionPhase.Formation || lastSessionPhase == SessionPhase.Garage)
                 && currentGameState.SessionData.SessionPhase == SessionPhase.Green));
-            if (currentGameState.SessionData.IsNewLap)
-            {
-                Console.WriteLine("new lap");
-            }
-            currentGameState.SessionData.SessionTimeRemaining = shared.SessionTimeRemaining;
+
 
             if (shared.SessionType == (int)RaceRoomConstant.Session.Race && shared.SessionPhase == (int)RaceRoomConstant.SessionPhase.Checkered &&
                 previousGameState != null && previousGameState.SessionData.SessionPhase == SessionPhase.Green)
@@ -160,7 +161,6 @@ namespace CrewChiefV2.RaceRoom
             {
                 currentGameState.SessionData.SectorNumber = 1;
                 currentGameState.SessionData.IsNewSector = true;
-                Console.WriteLine("Started sector 1");
             } else 
             {
                 currentGameState.SessionData.SectorNumber = previousGameState.SessionData.SectorNumber;
@@ -168,13 +168,11 @@ namespace CrewChiefV2.RaceRoom
                     previousGameState.SessionData.Sector1TimeDeltaSelf != currentGameState.SessionData.Sector1TimeDeltaSelf)
                 {
                     currentGameState.SessionData.SectorNumber = 2;
-                    Console.WriteLine("Started sector 2");
                 }
                 else if (previousGameState.SessionData.SectorNumber == 2 &&
                     previousGameState.SessionData.Sector2TimeDeltaSelf != currentGameState.SessionData.Sector2TimeDeltaSelf)
                 {
                     currentGameState.SessionData.SectorNumber = 3;
-                    Console.WriteLine("Started sector 3");
                 }
                 currentGameState.SessionData.IsNewSector = currentGameState.SessionData.SectorNumber != previousGameState.SessionData.SectorNumber;
             }
@@ -381,18 +379,11 @@ namespace CrewChiefV2.RaceRoom
             currentGameState.TyreData.RearRightPressure = shared.TirePressure.RearRight;
             currentGameState.TyreData.RearRightPercentWear = getTyreWearPercentage(shared.CarDamage.TireRearRight);
             currentGameState.TyreData.RearRightCondition = getTyreCondition(currentGameState.TyreData.RearRightPercentWear);
-        }
 
-        public GameStateData getCurrentGameState()
-        {
+            
             return currentGameState;
         }
-
-        public GameStateData getPreviousGameState()
-        {
-            return previousGameState;
-        }
-
+        
         private TyreType mapToTyreType(int r3eTyreType)
         {
             if ((int)RaceRoomConstant.TireType.Option == r3eTyreType)
@@ -486,8 +477,11 @@ namespace CrewChiefV2.RaceRoom
             return lastSessionPhase;
         }
 
-        private SessionType mapToSessionType(int r3eSessionType, int numCars)
+        public SessionType mapToSessionType(Object memoryMappedFileStruct)
         {
+            RaceRoomData.RaceRoomShared shared = (RaceRoomData.RaceRoomShared)memoryMappedFileStruct;
+            int r3eSessionType = shared.SessionType;
+            int numCars = shared.NumCars;
             if ((int)RaceRoomConstant.Session.Practice == r3eSessionType)
             {
                 return SessionType.Practice;

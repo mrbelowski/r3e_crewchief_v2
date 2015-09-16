@@ -141,7 +141,7 @@ namespace CrewChiefV2.Events
             }
         }
 
-        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
             if (currentGameState.TyreData.TireWearActive)
             {
@@ -156,8 +156,8 @@ namespace CrewChiefV2.Events
                 rightRearWearPercent = currentGameState.TyreData.RearRightPercentWear;
 
                 completedLaps = currentGameState.SessionData.CompletedLaps;
-                lapsInSession = sessionConstants.SessionNumberOfLaps;
-                timeInSession = sessionConstants.SessionRunTime;
+                lapsInSession = currentGameState.SessionData.SessionNumberOfLaps;
+                timeInSession = currentGameState.SessionData.SessionRunTime;
                 timeElapsed = currentGameState.SessionData.SessionRunningTime;
                     
                 if (currentGameState.PitData.InPitlane && !currentGameState.SessionData.LeaderHasFinishedRace)

@@ -68,11 +68,11 @@ namespace CrewChiefV2.Events
             isRace = false;
         }
 
-        protected override void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        protected override void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
             isLeading = currentGameState.SessionData.Position == 1;
             isLast = currentGameState.isLast();
-            isRace = sessionConstants.SessionType == SessionType.Race;
+            isRace = currentGameState.SessionData.SessionType == SessionType.Race;
             currentGapInFront = currentGameState.SessionData.TimeDeltaFront;
             currentGapBehind = currentGameState.SessionData.TimeDeltaBehind;
 

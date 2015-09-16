@@ -10,6 +10,8 @@ namespace CrewChiefV2.PCars
 {
     class PCarsSpotter : Spotter
     {
+        private Boolean paused = false;
+
         // if the audio player is in the middle of another message, this 'immediate' message will have to wait.
         // If it's older than 1000 milliseconds by the time the player's got round to playing it, it's expired
         private int clearMessageExpiresAfter = 2000;
@@ -98,8 +100,22 @@ namespace CrewChiefV2.PCars
             nextMessageType = NextMessageType.none;
         }
 
+        public void pause()
+        {
+            paused = true;
+        }
+
+        public void unpause()
+        {
+            paused = false;
+        }
+
         public void trigger(Object lastStateObj, Object currentStateObj)
         {
+            if (paused)
+            {
+                return;
+            }
             pCarsAPIStruct lastState = (pCarsAPIStruct)lastStateObj;
             pCarsAPIStruct currentState = (pCarsAPIStruct)currentStateObj;
             DateTime now = DateTime.Now;

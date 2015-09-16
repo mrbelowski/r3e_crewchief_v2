@@ -67,7 +67,7 @@ namespace CrewChiefV2.Events
             return bestLap;
         }
 
-        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
             if (pushDataInFront == null || pushDataBehind == null)
             {
@@ -88,17 +88,17 @@ namespace CrewChiefV2.Events
                 pushDataInFront.Add(new PushData(currentGameState.SessionData.LapTimePrevious, currentGameState.SessionData.TimeDeltaFront));
                 pushDataBehind.Add(new PushData(currentGameState.SessionData.LapTimePrevious, currentGameState.SessionData.TimeDeltaBehind));                    
             }
-            if (sessionConstants.SessionNumberOfLaps <= 0 && !playedNearEndTimePush &&
+            if (currentGameState.SessionData.SessionNumberOfLaps <= 0 && !playedNearEndTimePush &&
                     currentGameState.SessionData.SessionTimeRemaining < 4 * 60 && currentGameState.SessionData.SessionTimeRemaining > 2 * 60)
             {
                 // estimate the number of remaining laps - be optimistic...
                 int numLapsLeft = (int)Math.Ceiling((double)currentGameState.SessionData.SessionTimeRemaining / (double)currentGameState.SessionData.LapTimeBest);
                 playedNearEndTimePush = checkGaps(currentGameState, numLapsLeft);
             }
-            else if (sessionConstants.SessionNumberOfLaps > 0 && sessionConstants.SessionNumberOfLaps - currentGameState.SessionData.CompletedLaps <= 4 &&
+            else if (currentGameState.SessionData.SessionNumberOfLaps > 0 && currentGameState.SessionData.SessionNumberOfLaps - currentGameState.SessionData.CompletedLaps <= 4 &&
                 !playedNearEndLapsPush)
             {
-                playedNearEndLapsPush = checkGaps(currentGameState, sessionConstants.SessionNumberOfLaps - currentGameState.SessionData.CompletedLaps);
+                playedNearEndLapsPush = checkGaps(currentGameState, currentGameState.SessionData.SessionNumberOfLaps - currentGameState.SessionData.CompletedLaps);
             }
             else if (currentGameState.PitData.IsAtPitExit)
             {

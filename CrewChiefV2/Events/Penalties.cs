@@ -98,7 +98,7 @@ namespace CrewChiefV2.Events
             playedTimePenaltyMessage = false;
         }
 
-        public override bool isMessageStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public override bool isMessageStillValid(String eventSubType, GameStateData currentGameState)
         {
             // when a new penalty is given we queue a 'three laps left to serve' message for 20 seconds in the future.
             // If, 20 seconds later, the player has started a new lap, this message is no longer valid so shouldn't be played
@@ -121,9 +121,9 @@ namespace CrewChiefV2.Events
             }
         }
 
-        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
-            if (sessionConstants.SessionType == SessionType.Race && previousGameState != null && 
+            if (currentGameState.SessionData.SessionType == SessionType.Race && previousGameState != null && 
                 currentGameState.PenaltiesData.HasDriveThrough || currentGameState.PenaltiesData.HasStopAndGo || currentGameState.PenaltiesData.HasTimeDeduction)
             {
                 if (currentGameState.PenaltiesData.HasDriveThrough && !previousGameState.PenaltiesData.HasDriveThrough)
@@ -200,7 +200,7 @@ namespace CrewChiefV2.Events
                     audioPlayer.queueClip(folderTimePenalty, 0, this);
                 }
             }
-            else if (currentGameState.PositionAndMotionData.CarSpeed > 1 && playCutTrackWarnings && sessionConstants.SessionType != SessionType.Race &&
+            else if (currentGameState.PositionAndMotionData.CarSpeed > 1 && playCutTrackWarnings && currentGameState.SessionData.SessionType != SessionType.Race &&
               !currentGameState.SessionData.CurrentLapIsValid && previousGameState != null && previousGameState.SessionData.CurrentLapIsValid)
             {
                 cutTrackWarningsCount = currentGameState.PenaltiesData.CutTrackWarnings;
@@ -223,7 +223,7 @@ namespace CrewChiefV2.Events
                     lastCutTrackWarningTime.Add(cutTrackWarningFrequency) < now)
                 {
                     lastCutTrackWarningTime = now;
-                    if (sessionConstants.SessionType == SessionType.Race)
+                    if (currentGameState.SessionData.SessionType == SessionType.Race)
                     {
                         audioPlayer.queueClip(folderCutTrackInRace, 2, this);
                     }
@@ -238,7 +238,7 @@ namespace CrewChiefV2.Events
             {
                 clearPenaltyState();
             }
-            if (sessionConstants.SessionType == SessionType.Race && previousGameState != null && 
+            if (currentGameState.SessionData.SessionType == SessionType.Race && previousGameState != null && 
                 ((previousGameState.PenaltiesData.HasStopAndGo && !currentGameState.PenaltiesData.HasStopAndGo) ||
                 (previousGameState.PenaltiesData.HasDriveThrough && !currentGameState.PenaltiesData.HasDriveThrough)))
             {

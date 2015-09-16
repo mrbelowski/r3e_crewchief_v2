@@ -110,9 +110,9 @@ namespace CrewChiefV2.Events
             mandatoryStopMissed = false;
         }
 
-        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
-            if (sessionConstants.SessionType == SessionType.Race && sessionConstants.HasMandatoryPitStop)
+            if (currentGameState.SessionData.SessionType == SessionType.Race && currentGameState.SessionData.HasMandatoryPitStop)
             {                
                 if (!pitDataInitialised)
                 {
@@ -120,29 +120,29 @@ namespace CrewChiefV2.Events
                     mandatoryStopRequired = true;
                     mandatoryStopBoxThisLap = false;
                     mandatoryStopMissed = false;
-                    Console.WriteLine("pit start = " + sessionConstants.PitWindowStart + ", pit end = " + sessionConstants.PitWindowEnd);
-                    if (sessionConstants.SessionNumberOfLaps > 0)
+                    Console.WriteLine("pit start = " + currentGameState.SessionData.PitWindowStart + ", pit end = " + currentGameState.SessionData.PitWindowEnd);
+                    if (currentGameState.SessionData.SessionNumberOfLaps > 0)
                     {
-                        pitWindowOpenLap = sessionConstants.PitWindowStart;
-                        pitWindowClosedLap = sessionConstants.PitWindowEnd;
+                        pitWindowOpenLap = currentGameState.SessionData.PitWindowStart;
+                        pitWindowClosedLap = currentGameState.SessionData.PitWindowEnd;
                         // DTM specific stuff...
                         if (currentGameState.TyreData.HasMatchedTyreTypes && currentGameState.TyreData.FrontLeftTyreType == TyreType.Option)
                         {
                             onOptions = true;
                             // when we've completed half distance - 1 laps, we need to come in at the end of the current lap
-                            tyreChangeLap = (int)Math.Floor((double)sessionConstants.SessionNumberOfLaps / 2d) - 1;
+                            tyreChangeLap = (int)Math.Floor((double)currentGameState.SessionData.SessionNumberOfLaps / 2d) - 1;
                         }
                         else if (currentGameState.TyreData.HasMatchedTyreTypes && currentGameState.TyreData.FrontLeftTyreType == TyreType.Prime)
                         {
                             onPrimes = true;
-                            tyreChangeLap = (int)Math.Floor((double)sessionConstants.SessionNumberOfLaps / 2d);
+                            tyreChangeLap = (int)Math.Floor((double)currentGameState.SessionData.SessionNumberOfLaps / 2d);
                         }
                         playPitThisLap = true;
                     }
                     else if (currentGameState.SessionData.SessionTimeRemaining > 0)
                     {
-                        pitWindowOpenTime = sessionConstants.PitWindowStart;
-                        pitWindowClosedTime = sessionConstants.PitWindowEnd;
+                        pitWindowOpenTime = currentGameState.SessionData.PitWindowStart;
+                        pitWindowClosedTime = currentGameState.SessionData.PitWindowEnd;
                         play2minOpenWarning = true;
                         play1minOpenWarning = true;
                         playOpenNow = true;
@@ -167,7 +167,7 @@ namespace CrewChiefV2.Events
                 }
                 else
                 {
-                    if (currentGameState.SessionData.IsNewLap && currentGameState.SessionData.CompletedLaps > 0 && sessionConstants.SessionNumberOfLaps > 0)
+                    if (currentGameState.SessionData.IsNewLap && currentGameState.SessionData.CompletedLaps > 0 && currentGameState.SessionData.SessionNumberOfLaps > 0)
                     {
                         if (currentGameState.PitData.PitWindow != PitWindow.StopInProgress &&
                             currentGameState.PitData.PitWindow != PitWindow.Completed &&
@@ -225,10 +225,10 @@ namespace CrewChiefV2.Events
                     {
                         if (currentGameState.PitData.PitWindow != PitWindow.StopInProgress &&
                             currentGameState.PitData.PitWindow != PitWindow.Completed &&
-                            sessionConstants.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > pitWindowOpenTime * 60 &&
-                            sessionConstants.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining < pitWindowClosedTime * 60)
+                            currentGameState.SessionData.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > pitWindowOpenTime * 60 &&
+                            currentGameState.SessionData.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining < pitWindowClosedTime * 60)
                         {
-                            double timeLeftToPit = pitWindowClosedTime * 60 - (sessionConstants.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining);
+                            double timeLeftToPit = pitWindowClosedTime * 60 - (currentGameState.SessionData.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining);
                             if (playPitThisLap && currentGameState.SessionData.LapTimeBest + 10 > timeLeftToPit)
                             {
                                 // oh dear, we might have missed the pit window.
@@ -249,7 +249,7 @@ namespace CrewChiefV2.Events
                         }
                     }
                     if (playOpenNow && currentGameState.SessionData.SessionTimeRemaining > 0 &&
-                        (sessionConstants.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > (pitWindowOpenTime * 60) ||
+                        (currentGameState.SessionData.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > (pitWindowOpenTime * 60) ||
                         currentGameState.PitData.PitWindow == PitWindow.Open))
                     {
                         playOpenNow = false;
@@ -258,20 +258,20 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen, 0, this);
                     }
                     else if (play1minOpenWarning && currentGameState.SessionData.SessionTimeRemaining > 0 &&
-                        sessionConstants.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > ((pitWindowOpenTime - 1) * 60))
+                        currentGameState.SessionData.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > ((pitWindowOpenTime - 1) * 60))
                     {
                         play1minOpenWarning = false;
                         play2minOpenWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen1Min, 0, this);
                     }
                     else if (play2minOpenWarning && currentGameState.SessionData.SessionTimeRemaining > 0 &&
-                        sessionConstants.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > ((pitWindowOpenTime - 2) * 60))
+                        currentGameState.SessionData.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > ((pitWindowOpenTime - 2) * 60))
                     {
                         play2minOpenWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowOpen2Min, 0, this);
                     }
                     else if (playClosedNow && currentGameState.SessionData.SessionTimeRemaining > 0 &&
-                        sessionConstants.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > (pitWindowClosedTime * 60))
+                        currentGameState.SessionData.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > (pitWindowClosedTime * 60))
                     {
                         playClosedNow = false;
                         playBoxNowMessage = false;
@@ -286,14 +286,14 @@ namespace CrewChiefV2.Events
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowClosed, 0, this);
                     }
                     else if (play1minCloseWarning && currentGameState.SessionData.SessionTimeRemaining > 0 &&
-                        sessionConstants.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > ((pitWindowClosedTime - 1) * 60))
+                        currentGameState.SessionData.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > ((pitWindowClosedTime - 1) * 60))
                     {
                         play1minCloseWarning = false;
                         play2minCloseWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowCloses1min, 0, this);
                     }
                     else if (play2minCloseWarning && currentGameState.SessionData.SessionTimeRemaining > 0 &&
-                        sessionConstants.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > ((pitWindowClosedTime - 2) * 60))
+                        currentGameState.SessionData.SessionRunTime - currentGameState.SessionData.SessionTimeRemaining > ((pitWindowClosedTime - 2) * 60))
                     {
                         play2minCloseWarning = false;
                         audioPlayer.queueClip(folderMandatoryPitStopsPitWindowCloses2min, 0, this);

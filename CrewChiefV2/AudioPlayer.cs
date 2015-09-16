@@ -313,7 +313,7 @@ namespace CrewChiefV2
                 Thread thread = new Thread(work);
                 thread.Start();
             }
-            new SmokeTest(this).trigger(new GameStateData(), new GameStateData(), new SessionConstants());
+            new SmokeTest(this).trigger(new GameStateData(), new GameStateData());
         }
 
         public void stopMonitor()
@@ -527,7 +527,7 @@ namespace CrewChiefV2
                     if (isImmediateMessages || queuedMessage.dueTime <= milliseconds)
                     {
                         if ((isImmediateMessages || !keepQuiet) && 
-                            queuedMessage.isMessageStillValid(key, crewChief.currentGameState, crewChief.sessionConstants) &&
+                            queuedMessage.isMessageStillValid(key, crewChief.currentGameState) &&
                             !keysToPlay.Contains(key) && (!queuedMessage.gapFiller || playGapFillerMessage(queueToPlay)) &&
                             (queuedMessage.expiryTime == 0 || queuedMessage.expiryTime > milliseconds))
                         {

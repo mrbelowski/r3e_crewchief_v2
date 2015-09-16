@@ -10,7 +10,6 @@ namespace CrewChiefV2.Events
 {
     class DriverNames : AbstractEvent
     {
-        private SessionConstants sessionConstants;
         private GameStateData currentGameState;
 
         public DriverNames(AudioPlayer audioPlayer)
@@ -23,14 +22,13 @@ namespace CrewChiefV2.Events
             currentGameState = null;
         }
 
-        public override bool isMessageStillValid(string eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public override bool isMessageStillValid(string eventSubType, GameStateData currentGameState)
         {
             return true;
         }
 
-        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
-            this.sessionConstants = sessionConstants;
             this.currentGameState = currentGameState;
         }
         

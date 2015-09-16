@@ -72,7 +72,7 @@ namespace CrewChiefV2.Events
             baselineWaterTemp = 0;
         }
 
-        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
             if (engineData == null)
             {

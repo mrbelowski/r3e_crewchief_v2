@@ -50,21 +50,21 @@ namespace CrewChiefV2.Events
             playedFinished = false;
         }
 
-        public override bool isMessageStillValid(String eventSubType, GameStateData currentGameState, SessionConstants sessionConstants)
+        public override bool isMessageStillValid(String eventSubType, GameStateData currentGameState)
         {
             return applicableSessionPhases.Contains(currentGameState.SessionData.SessionPhase);
         }
 
-        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState, SessionConstants sessionConstants)
+        override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
         {
-            if (!playedGetReady && sessionConstants.SessionType == SessionType.Race && currentGameState.SessionData.SessionPhase == SessionPhase.Countdown)
+            if (!playedGetReady && currentGameState.SessionData.SessionType == SessionType.Race && currentGameState.SessionData.SessionPhase == SessionPhase.Countdown)
             {
                 audioPlayer.openChannel();
                 audioPlayer.playClipImmediately(folderGetReady, new QueuedMessage(0, this));
                 playedGetReady = true;
                 audioPlayer.closeChannel();
             }
-            if (!playedGreenGreenGreen && previousGameState != null && sessionConstants.SessionType == SessionType.Race && 
+            if (!playedGreenGreenGreen && previousGameState != null && currentGameState.SessionData.SessionType == SessionType.Race && 
                 (currentGameState.SessionData.SessionPhase == SessionPhase.Green && 
                     (previousGameState.SessionData.SessionPhase == SessionPhase.Formation || 
                      previousGameState.SessionData.SessionPhase == SessionPhase.Countdown)))
@@ -74,11 +74,11 @@ namespace CrewChiefV2.Events
                 audioPlayer.closeChannel();
                 playedGreenGreenGreen = true;
             }
-            if (sessionConstants.SessionType == SessionType.Race && currentGameState.SessionData.IsNewLap && currentGameState.SessionData.CompletedLaps > 0)
+            if (currentGameState.SessionData.SessionType == SessionType.Race && currentGameState.SessionData.IsNewLap && currentGameState.SessionData.CompletedLaps > 0)
             {
                 // a new lap has been started in race mode
                 int position = currentGameState.SessionData.Position;
-                if (currentGameState.SessionData.CompletedLaps == sessionConstants.SessionNumberOfLaps - 1)
+                if (currentGameState.SessionData.CompletedLaps == currentGameState.SessionData.SessionNumberOfLaps - 1)
                 {
                     if (position == 1)
                     {
@@ -101,7 +101,7 @@ namespace CrewChiefV2.Events
                         Console.WriteLine("1 lap left but position is < 1");
                     }
                 }
-                else if (currentGameState.SessionData.CompletedLaps == sessionConstants.SessionNumberOfLaps - 2)
+                else if (currentGameState.SessionData.CompletedLaps == currentGameState.SessionData.SessionNumberOfLaps - 2)
                 {
                     if (position == 1)
                     {
