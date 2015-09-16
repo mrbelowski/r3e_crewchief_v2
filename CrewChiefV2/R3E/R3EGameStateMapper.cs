@@ -37,6 +37,34 @@ namespace CrewChiefV2.RaceRoom
         private float destroyedEngineThreshold = 0.0f;
         private float destroyedAeroThreshold = 0.0f;
 
+        // Oil temps are typically 1 or 2 units (I'm assuming celcius) higher than water temps. Typical temps while racing tend to be
+        // mid - high 50s, with some in-traffic running this creeps up to the mid 60s. To get it into the 
+        // 70s you have to really try. Any higher requires you to sit by the side of the road bouncing off the
+        // rev limiter. Doing this I've been able to get to 110 without blowing up (I got bored). With temps in the
+        // 80s, by the end of a single lap at racing speed they're back into the 60s.
+        //
+        // I think the cool down effect of the radiator is the underlying issue here - it's far too strong. 
+        // The oil temp does lag behind the water temp, which is correct, but I think it should lag 
+        // more (i.e. it should take longer for the oil to cool) and the oil should heat up more relative to the water. 
+        // 
+        // I'd expect to be seeing water temperatures in the 80s for 'normal' running, with this getting well into the 
+        // 90s or 100s in traffic. The oil temps should be 100+, maybe hitting 125 or more when the water's also hot.
+        // 
+        // To work around this I take a 'baseline' temp for oil and water - this is the average temperature between 3
+        // and 5 minutes of the session. I then look at differences between this baseline and the current temperature, allowing
+        // a configurable 'max above baseline' for each. Assuming the base line temps are sensible (say, 85 for water 105 for oil), 
+        // then anthing over 95 for water and 120 for oil is 'bad' - the numbers in the config reflect this
+
+        private Boolean gotBaselineEngineData = false;
+        private int baselineEngineDataSamples = 0;
+        // record the average temperature between minutes 2 and 4
+        private double baselineEngineDataStartSeconds = 120;
+        private double baselineEngineDataFinishSeconds = 240;
+        private float baselineEngineDataOilTemp = 0;
+        private float baselineEngineDataWaterTemp = 0;
+        private float targetEngineWaterTemp = 88;
+        private float targetEngineOilTemp = 105;
+
         public void versionCheck(Object memoryMappedFileStruct)
         {
             // no version number in r3e shared data so this is a no-op
@@ -92,6 +120,12 @@ namespace CrewChiefV2.RaceRoom
                         currentGameState.SessionData.PitWindowStart = shared.PitWindowStart;
                         currentGameState.SessionData.PitWindowEnd = shared.PitWindowEnd;
                         currentGameState.SessionData.HasMandatoryPitStop = currentGameState.SessionData.PitWindowStart > 0 && currentGameState.SessionData.PitWindowEnd > 0; Console.WriteLine("Just gone green, session details...");
+                        
+                        // reset the engine temp monitor stuff
+                        gotBaselineEngineData = false;
+                        baselineEngineDataSamples = 0;
+                        baselineEngineDataOilTemp = 0;
+                        baselineEngineDataWaterTemp = 0;
                         Console.WriteLine("SessionType " + currentGameState.SessionData.SessionType);
                         Console.WriteLine("SessionPhase " + currentGameState.SessionData.SessionPhase);
                         Console.WriteLine("EventIndex " + currentGameState.SessionData.EventIndex);
@@ -282,12 +316,33 @@ namespace CrewChiefV2.RaceRoom
                 }
             }
             
-            //------------------------ Engine data -----------------------
+            //------------------------ Engine data -----------------------            
             currentGameState.EngineData.EngineOilPressure = shared.EngineOilPressure;
-            currentGameState.EngineData.EngineOilTemp = shared.EngineOilTemp;
             currentGameState.EngineData.EngineRpm = Utilities.RpsToRpm(shared.EngineRps);
-            currentGameState.EngineData.EngineWaterTemp = shared.EngineWaterTemp;
             currentGameState.EngineData.MaxEngineRpm = Utilities.RpsToRpm(shared.MaxEngineRps);
+            currentGameState.EngineData.MinutesIntoSessionBeforeMonitoring = 5;
+
+            if (!gotBaselineEngineData)
+            {
+                if (currentGameState.SessionData.SessionRunningTime > baselineEngineDataStartSeconds && currentGameState.SessionData.SessionRunningTime < baselineEngineDataFinishSeconds)
+                {
+                    baselineEngineDataSamples++;
+                    baselineEngineDataWaterTemp += shared.EngineWaterTemp;
+                    baselineEngineDataOilTemp += shared.EngineOilTemp;
+                }
+                else if (currentGameState.SessionData.SessionRunningTime >= baselineEngineDataFinishSeconds && baselineEngineDataSamples > 0)
+                {
+                    gotBaselineEngineData = true;
+                    baselineEngineDataOilTemp = baselineEngineDataOilTemp / baselineEngineDataSamples;
+                    baselineEngineDataWaterTemp = baselineEngineDataWaterTemp / baselineEngineDataSamples;
+                    Console.WriteLine("Got baseline engine temps, water = " + baselineEngineDataWaterTemp + ", oil = " + baselineEngineDataOilTemp);
+                }
+            }
+            else
+            {
+                currentGameState.EngineData.EngineOilTemp = shared.EngineOilTemp * targetEngineOilTemp / baselineEngineDataOilTemp;
+                currentGameState.EngineData.EngineWaterTemp = shared.EngineWaterTemp * targetEngineWaterTemp / baselineEngineDataWaterTemp;
+            }
 
 
             //------------------------ Fuel data -----------------------

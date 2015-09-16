@@ -23,6 +23,7 @@ namespace CrewChiefV2
         public static String BODY_WORK = "body work";
         public static String TRANSMISSION = "transmission";
         public static String ENGINE = "engine";
+        public static String ENGINE_TEMPS = "engine temps";
         public static String GAP_IN_FRONT = "gap in front";
         public static String GAP_AHEAD = "gap ahead";
         public static String GAP_BEHIND = "gap behind";
@@ -129,7 +130,7 @@ namespace CrewChiefV2
             try
             {
                 Choices info1 = new Choices();
-                info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, BODY_WORK, TRANSMISSION, ENGINE, PACE });
+                info1.Add(new string[] { FUEL, TYRE_WEAR, TYRE_TEMPS, AERO, BODY_WORK, TRANSMISSION, ENGINE, PACE, ENGINE_TEMPS });
                 GrammarBuilder gb1 = new GrammarBuilder();
                 gb1.Culture = cultureInfo;
                 gb1.Append("how is my");
@@ -376,6 +377,10 @@ namespace CrewChiefV2
                 recognisedSpeech.Contains(DO_I_HAVE_TO_MAKE_A_PIT_STOP))
             {
                 return CrewChief.getEvent("MandatoryPitStops");
+            }
+            else if (recognisedSpeech.Contains(ENGINE_TEMPS))
+            {
+                return CrewChief.getEvent("EngineMonitor");
             }
             return null;
         }

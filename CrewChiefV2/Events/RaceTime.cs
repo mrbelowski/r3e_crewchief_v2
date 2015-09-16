@@ -257,8 +257,6 @@ namespace CrewChiefV2.Events
                     audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "RaceTime/laps_remaining",
                         new QueuedMessage(messages, 0, this));
 
-                    // TODO: the 'isSessionRunning' flag appears to be set to false when the
-                    // leader crosses the line at the end of the race
                     audioPlayer.closeChannel();
                 }
                 else if (lapsLeft == 1)

@@ -64,6 +64,8 @@ namespace CrewChiefV2.GameState
 
         // Unit: ?
         public Single EngineOilPressure = 0;
+
+        public int MinutesIntoSessionBeforeMonitoring = 0;
     }
 
     public class FuelData

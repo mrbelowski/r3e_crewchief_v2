@@ -4,24 +4,6 @@ using System.Linq;
 using System.Text;
 using CrewChiefV2.GameState;
 
-// Oil temps are typically 1 or 2 units (I'm assuming celcius) higher than water temps. Typical temps while racing tend to be
-// mid - high 50s, with some in-traffic running this creeps up to the mid 60s. To get it into the 
-// 70s you have to really try. Any higher requires you to sit by the side of the road bouncing off the
-// rev limiter. Doing this I've been able to get to 110 without blowing up (I got bored). With temps in the
-// 80s, by the end of a single lap at racing speed they're back into the 60s.
-//
-// I think the cool down effect of the radiator is the underlying issue here - it's far too strong. 
-// The oil temp does lag behind the water temp, which is correct, but I think it should lag 
-// more (i.e. it should take longer for the oil to cool) and the oil should heat up more relative to the water. 
-// 
-// I'd expect to be seeing water temperatures in the 80s for 'normal' running, with this getting well into the 
-// 90s or 100s in traffic. The oil temps should be 100+, maybe hitting 125 or more when the water's also hot.
-// 
-// To work around this I take a 'baseline' temp for oil and water - this is the average temperature between 3
-// and 5 minutes of the session. I then look at differences between this baseline and the current temperature, allowing
-// a configurable 'max above baseline' for each. Assuming the base line temps are sensible (say, 85 for water 105 for oil), 
-// then anthing over 95 for water and 120 for oil is 'bad' - the numbers in the config reflect this
-
 namespace CrewChiefV2.Events
 {
     class EngineMonitor : AbstractEvent
@@ -31,8 +13,8 @@ namespace CrewChiefV2.Events
         private String folderHotOil = "engine_monitor/hot_oil";
         private String folderHotOilAndWater = "engine_monitor/hot_oil_and_water";
 
-        private static float maxSafeWaterTempOverBaseline = UserSettings.GetUserSettings().getFloat("max_safe_water_temp_over_baseline");
-        private static float maxSafeOilTempOverBaseline = UserSettings.GetUserSettings().getFloat("max_safe_oil_temp_over_baseline");
+        private static float maxSafeWaterTemp = UserSettings.GetUserSettings().getFloat("max_safe_water_temp");
+        private static float maxSafeOilTemp = UserSettings.GetUserSettings().getFloat("max_safe_oil_temp");
 
         EngineStatus lastStatusMessage;
 
@@ -42,19 +24,6 @@ namespace CrewChiefV2.Events
         double statusMonitorWindowLength = 60;
 
         double gameTimeAtLastStatusCheck;
-
-        Boolean gotBaseline;
-
-        int baselineSamples;
-
-        // record the average temperature between minutes 3 and 5
-        double baselineStartSeconds = 180;
-
-        double baselineFinishSeconds = 300;
-
-        float baselineOilTemp;
-
-        float baselineWaterTemp;
 
         public EngineMonitor(AudioPlayer audioPlayer)
         {
@@ -66,10 +35,6 @@ namespace CrewChiefV2.Events
             lastStatusMessage = EngineStatus.ALL_CLEAR;
             engineData = new EngineData();
             gameTimeAtLastStatusCheck = 0;
-            gotBaseline = false;
-            baselineSamples = 0;
-            baselineOilTemp = 0;
-            baselineWaterTemp = 0;
         }
 
         override protected void triggerInternal(GameStateData previousGameState, GameStateData currentGameState)
@@ -78,27 +43,14 @@ namespace CrewChiefV2.Events
             {
                 clearState();
             }
-            if (!gotBaseline)
+            if (currentGameState.SessionData.SessionRunningTime > 60 * currentGameState.EngineData.MinutesIntoSessionBeforeMonitoring)
             {
-                if (currentGameState.SessionData.SessionRunningTime > baselineStartSeconds && currentGameState.SessionData.SessionRunningTime < baselineFinishSeconds)
-                {
-                    baselineSamples++;
-                    baselineWaterTemp += currentGameState.EngineData.EngineWaterTemp;
-                    baselineOilTemp += currentGameState.EngineData.EngineOilTemp;
-                }
-                else if (currentGameState.SessionData.SessionRunningTime >= baselineFinishSeconds && baselineSamples > 0)
-                {
-                    gotBaseline = true;
-                    baselineOilTemp = baselineOilTemp / baselineSamples;
-                    baselineWaterTemp = baselineWaterTemp / baselineSamples;
-                    Console.WriteLine("Got baseline engine temps, water = " + baselineWaterTemp + ", oil = " + baselineOilTemp);
-                }
-            }
-            else
-            {
+                engineData.addSample(currentGameState.EngineData.EngineOilTemp, currentGameState.EngineData.EngineWaterTemp, 
+                    currentGameState.EngineData.EngineOilPressure);
+
                 if (currentGameState.SessionData.SessionRunningTime > gameTimeAtLastStatusCheck + statusMonitorWindowLength)
                 {
-                    EngineStatus currentEngineStatus = engineData.getEngineStatus(baselineOilTemp, baselineWaterTemp);
+                    EngineStatus currentEngineStatus = engineData.getEngineStatusFromAverage();
                     if (currentEngineStatus != lastStatusMessage)
                     {
                         switch (currentEngineStatus)
@@ -132,54 +84,122 @@ namespace CrewChiefV2.Events
                     gameTimeAtLastStatusCheck = currentGameState.SessionData.SessionRunningTime;
                     engineData = new EngineData();
                 }
-                engineData.addSample(currentGameState.EngineData.EngineOilTemp, currentGameState.EngineData.EngineWaterTemp, currentGameState.EngineData.EngineOilPressure);
-                
+            }
+        }
+
+        public override void respond(string voiceMessage)
+        {
+            Boolean gotData = false;
+            if (engineData != null)
+            {
+                gotData = true;
+                EngineStatus currentEngineStatus = engineData.getEngineStatusFromCurrent();
+                audioPlayer.openChannel();
+                switch (currentEngineStatus)
+                {
+                    case EngineStatus.ALL_CLEAR:
+                        lastStatusMessage = currentEngineStatus;
+                        audioPlayer.playClipImmediately(folderAllClear, new QueuedMessage(0, null));
+                        break;
+                    case EngineStatus.HOT_OIL:
+                        // don't play this if the last message was about hot oil *and* water - wait for 'all clear'
+                        if (lastStatusMessage != EngineStatus.HOT_OIL_AND_WATER)
+                        {
+                            lastStatusMessage = currentEngineStatus;
+                            audioPlayer.playClipImmediately(folderHotOil, new QueuedMessage(0, null));
+                        }
+                        break;
+                    case EngineStatus.HOT_WATER:
+                        // don't play this if the last message was about hot oil *and* water - wait for 'all clear'
+                        if (lastStatusMessage != EngineStatus.HOT_OIL_AND_WATER)
+                        {
+                            lastStatusMessage = currentEngineStatus;
+                            audioPlayer.playClipImmediately(folderHotWater, new QueuedMessage(0, null));
+                        }
+                        break;
+                    case EngineStatus.HOT_OIL_AND_WATER:
+                        lastStatusMessage = currentEngineStatus;
+                        audioPlayer.playClipImmediately(folderHotOilAndWater, new QueuedMessage(0, null));
+                        break;
+                }
+                audioPlayer.closeChannel();
+            }
+            if (!gotData)
+            {
+                audioPlayer.openChannel();
+                audioPlayer.playClipImmediately(AudioPlayer.folderNoData, new QueuedMessage(0, this));
+                audioPlayer.closeChannel();
             }
         }
 
         private class EngineData
         {
             private int samples;
-            private float oilTemp;
-            private float waterTemp;
-            private float oilPressure;
+            private float cumulativeOilTemp;
+            private float cumulativeWaterTemp;
+            private float cumulativeOilPressure;
+            private float currentOilTemp;
+            private float currentWaterTemp;
+            private float currentOilPressure;
             public EngineData()
             {
                 this.samples = 0;
-                this.oilPressure = 0;
-                this.oilTemp = 0;
-                this.waterTemp = 0;
+                this.cumulativeOilTemp = 0;
+                this.cumulativeWaterTemp = 0;
+                this.cumulativeOilPressure = 0;
+                this.currentOilTemp = 0;
+                this.currentWaterTemp = 0;
+                this.currentOilPressure = 0;
             }
             public void addSample(float engineOilTemp, float engineWaterTemp, float engineOilPressure)
             {
                 this.samples++;
-                this.oilTemp += engineOilTemp;
-                this.waterTemp += engineWaterTemp;
-                this.oilPressure +=engineOilPressure;
+                this.cumulativeOilTemp += engineOilTemp;
+                this.cumulativeWaterTemp += engineWaterTemp;
+                this.cumulativeOilPressure += engineOilPressure;
+                this.currentOilTemp = engineOilTemp;
+                this.currentWaterTemp = engineWaterTemp;
+                this.currentOilPressure = engineOilPressure;
             }
-            public EngineStatus getEngineStatus(float baselineOilTemp, float baselineWaterTemp)
+            public EngineStatus getEngineStatusFromAverage()
             {
                 // TODO: detect a sudden drop in oil pressure without triggering false positives caused by stalling the engine
-                float averageOilTemp = oilTemp / samples;
-                float averageWaterTemp = waterTemp / samples;
-                float averageOilPressure = oilPressure / samples;
-                if (averageOilTemp > baselineOilTemp + maxSafeOilTempOverBaseline && averageWaterTemp > baselineWaterTemp + maxSafeWaterTempOverBaseline)
+                if (samples > 10)
+                {
+                    float averageOilTemp = cumulativeOilTemp / samples;
+                    float averageWaterTemp = cumulativeWaterTemp / samples;
+                    float averageOilPressure = cumulativeOilPressure / samples;
+                    if (averageOilTemp > maxSafeOilTemp && averageWaterTemp > maxSafeWaterTemp)
+                    {
+                        return EngineStatus.HOT_OIL_AND_WATER;
+                    }
+                    else if (averageWaterTemp > maxSafeWaterTemp)
+                    {
+                        return EngineStatus.HOT_WATER;
+                    }
+                    else if (averageOilTemp > maxSafeOilTemp)
+                    {
+                        return EngineStatus.HOT_OIL;
+                    }
+                }                
+                return EngineStatus.ALL_CLEAR;
+                // low oil pressure not implemented
+            }
+            public EngineStatus getEngineStatusFromCurrent()
+            {
+                if (currentOilTemp > maxSafeOilTemp && currentWaterTemp > maxSafeWaterTemp)
                 {
                     return EngineStatus.HOT_OIL_AND_WATER;
                 }
-                else if (averageWaterTemp > baselineWaterTemp + maxSafeWaterTempOverBaseline)
+                else if (currentWaterTemp > maxSafeWaterTemp)
                 {
                     return EngineStatus.HOT_WATER;
                 }
-                else if (averageOilTemp > baselineOilTemp + maxSafeOilTempOverBaseline)
+                else if (currentOilTemp > maxSafeOilTemp)
                 {
                     return EngineStatus.HOT_OIL;
                 }
-                else
-                {
-                    return EngineStatus.ALL_CLEAR;
-                }
-                // low oil pressure not implemented
+                return EngineStatus.ALL_CLEAR;
             }
         }
 

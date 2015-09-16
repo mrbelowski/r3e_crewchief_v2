@@ -109,25 +109,25 @@ namespace CrewChiefV2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10")]
-        public float max_safe_water_temp_over_baseline {
+        [global::System.Configuration.DefaultSettingValueAttribute("95")]
+        public float max_safe_water_temp {
             get {
-                return ((float)(this["max_safe_water_temp_over_baseline"]));
+                return ((float)(this["max_safe_water_temp"]));
             }
             set {
-                this["max_safe_water_temp_over_baseline"] = value;
+                this["max_safe_water_temp"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("15")]
-        public float max_safe_oil_temp_over_baseline {
+        [global::System.Configuration.DefaultSettingValueAttribute("120")]
+        public float max_safe_oil_temp {
             get {
-                return ((float)(this["max_safe_oil_temp_over_baseline"]));
+                return ((float)(this["max_safe_oil_temp"]));
             }
             set {
-                this["max_safe_oil_temp_over_baseline"] = value;
+                this["max_safe_oil_temp"] = value;
             }
         }
         

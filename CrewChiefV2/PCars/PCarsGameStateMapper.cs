@@ -275,6 +275,7 @@ namespace CrewChiefV2.PCars
             currentGameState.EngineData.EngineWaterTemp = shared.mWaterTempCelsius;
             currentGameState.EngineData.EngineRpm = shared.mRPM;
             currentGameState.EngineData.MaxEngineRpm = shared.mMaxRPM;
+            currentGameState.EngineData.MinutesIntoSessionBeforeMonitoring = 2;
 
             currentGameState.FuelData.FuelCapacity = shared.mFuelCapacity;
             currentGameState.FuelData.FuelLeft = currentGameState.FuelData.FuelCapacity * shared.mFuelLevel;
