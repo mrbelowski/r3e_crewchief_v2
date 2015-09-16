@@ -58,7 +58,6 @@ namespace CrewChiefV2.PCars
             currentGameState.SessionData.SectorNumber = (int)viewedParticipant.mCurrentSector;
             currentGameState.SessionData.Position = (int)viewedParticipant.mRacePosition;
             currentGameState.SessionData.IsNewSector = previousGameState == null || viewedParticipant.mCurrentSector != previousGameState.SessionData.SectorNumber;
-            currentGameState.SessionData.SectorNumber = (int)viewedParticipant.mCurrentSector;
             if (currentGameState.SessionData.IsNewSector)
             {
                 if (currentGameState.SessionData.SectorNumber == 1)
@@ -101,7 +100,7 @@ namespace CrewChiefV2.PCars
 
             // current session data
             currentGameState.SessionData.SessionType = mapToSessionType(shared);
-            currentGameState.SessionData.SessionPhase = mapToSessionPhase(currentGameState.SessionData.SessionType, shared.mSessionState, shared.mRaceState);
+            currentGameState.SessionData.SessionPhase = mapToSessionPhase(currentGameState.SessionData.SessionType, shared.mSessionState, shared.mRaceState, shared.mNumParticipants);
             float sessionTimeRemaining = -1;
             int numberOfLapsInSession = (int)shared.mLapsInEvent;
             if (shared.mEventTimeRemaining > 0)
@@ -124,7 +123,7 @@ namespace CrewChiefV2.PCars
                 currentGameState.SessionData.IsNewSession = true;
                 currentGameState.SessionData.TrackLength = shared.mTrackLength;
                 currentGameState.SessionData.SessionNumberOfLaps = numberOfLapsInSession;
-                
+
                 foreach (pCarsAPIParticipantStruct participantStruct in shared.mParticipantData)
                 {
                     if (participantStruct.mIsActive)
@@ -147,13 +146,13 @@ namespace CrewChiefV2.PCars
                     Console.WriteLine("New session phase, was " + lastSessionPhase + " now " + currentGameState.SessionData.SessionPhase);
                     if (currentGameState.SessionData.SessionPhase == SessionPhase.Green)
                     {
-                        // just gone green, so get the session data
-                        currentGameState.SessionData.NumCarsAtStartOfSession = shared.mNumParticipants;
+                        // just gone green, so get the session data                        
                         if (currentGameState.SessionData.SessionHasFixedTime)
                         {
                             currentGameState.SessionData.SessionRunTime = sessionTimeRemaining;
                         }
                         currentGameState.SessionData.SessionNumberOfLaps = numberOfLapsInSession;
+                        currentGameState.SessionData.NumCarsAtStartOfSession = shared.mNumParticipants;
                         currentGameState.SessionData.SessionStartPosition = (int)shared.mParticipantData[shared.mViewedParticipantIndex].mRacePosition;
                         Console.WriteLine("Just gone green, session details...");
                         Console.WriteLine("SessionType " + currentGameState.SessionData.SessionType);
@@ -476,8 +475,12 @@ namespace CrewChiefV2.PCars
             }
         }
 
-        private SessionPhase mapToSessionPhase(SessionType sessionType, uint sessionState, uint raceState)
+        private SessionPhase mapToSessionPhase(SessionType sessionType, uint sessionState, uint raceState, int numParticipants)
         {
+            if (numParticipants < 1)
+            {
+                return SessionPhase.Unavailable;
+            }
             if (sessionType == SessionType.Race)
             {
                 if (raceState == (uint)eRaceState.RACESTATE_NOT_STARTED)

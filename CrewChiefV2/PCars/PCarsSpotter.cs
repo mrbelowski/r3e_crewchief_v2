@@ -128,9 +128,14 @@ namespace CrewChiefV2.PCars
 
             float currentSpeed = currentState.mSpeed;
             float previousSpeed = lastState.mSpeed;
+            // knock 10 metres off the track length to avoid farting about with positions wrapping relative to each other - 
+            // we only use the track length here for belt n braces checking
+            float trackLengthToUse = currentState.mTrackLength - 10;
             if (enabled && currentState.mParticipantData.Count() > 1 && currentState.mViewedParticipantIndex >= 0)
             {
                 pCarsAPIParticipantStruct playerData = currentState.mParticipantData[currentState.mViewedParticipantIndex];
+                Boolean playerIsInQuickNDirtyCheckZone = playerData.mCurrentLapDistance < trackLengthToUse;
+
                 if (currentSpeed > minSpeedForSpotterToOperate && currentState.mPitMode == (uint) ePitMode.PIT_MODE_NONE)
                 {
                     int carsOnLeft = 0;
@@ -148,6 +153,13 @@ namespace CrewChiefV2.PCars
                             pCarsAPIParticipantStruct opponentData = currentState.mParticipantData[i];
                             if (opponentData.mIsActive && opponentData.mWorldPosition[0] != 0 && opponentData.mWorldPosition[2] != 0)
                             {
+                                // if we think this opponent car isn't even on the same 10 metre chunk of track to us, ignore it
+                                Boolean opponentIsInQuickNDirtyCheckZone = playerData.mCurrentLapDistance < trackLengthToUse;
+                                if (playerIsInQuickNDirtyCheckZone && opponentIsInQuickNDirtyCheckZone &&
+                                    Math.Abs(playerData.mCurrentLapDistance - opponentData.mCurrentLapDistance) > 10)
+                                {
+                                    continue;
+                                }
                                 Side side = getSide(currentState.mOrientation[1], playerData.mWorldPosition, opponentData.mWorldPosition);
                                 if (side == Side.left)
                                 {
