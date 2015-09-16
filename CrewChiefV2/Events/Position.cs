@@ -12,6 +12,12 @@ namespace CrewChiefV2.Events
         public static String folderPole = "position/pole";
         public static String folderStub = "position/p";
         public static String folderLast = "position/last";
+        public static String folderAhead = "position/ahead";
+        public static String folderBehind = "position/behind";
+        public static String folderLapsAhead = "position/laps_ahead";
+        public static String folderLapsBehind = "position/laps_behind"; 
+        public static String folderOneLapAhead = "position/one_lap_ahead";
+        public static String folderOneLapBehind = "position/one_lap_down";
 
         private String folderConsistentlyLast = "position/consistently_last";
         private String folderGoodStart = "position/good_start";

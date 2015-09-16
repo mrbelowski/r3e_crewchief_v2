@@ -57,9 +57,9 @@ namespace CrewChiefV2
 
         private SharedMemoryLoader sharedMemoryLoader;
 
-        public GameStateData currentGameState;
+        public GameStateData currentGameState = null;
 
-        public GameStateData previousGameState;
+        public GameStateData previousGameState = null;
 
         private Boolean mapped = false;
 
@@ -83,6 +83,7 @@ namespace CrewChiefV2
             eventsList.Add("DamageReporting", new DamageReporting(audioPlayer));
             eventsList.Add("PushNow", new PushNow(audioPlayer));
             eventsList.Add("DriverNames", new DriverNames(audioPlayer));
+            eventsList.Add("FlagsMonitor", new FlagsMonitor(audioPlayer));
             sessionEndMessages = new SessionEndMessages(audioPlayer);
         }
 
@@ -281,6 +282,10 @@ namespace CrewChiefV2
                         stateCleared = false;
                         Object sharedMemoryData = sharedMemoryLoader.ReadSharedMemory();
                         gameStateMapper.versionCheck(sharedMemoryData);
+                        if (currentGameState != null)
+                        {
+                            previousGameState = currentGameState;
+                        }
                         previousGameState = currentGameState;                        
                         currentGameState = gameStateMapper.mapToGameStateData(sharedMemoryData, previousGameState);
                         if (currentGameState != null)
@@ -318,7 +323,7 @@ namespace CrewChiefV2
                                     List<String> phoneticDriverNames = DriveNameHelper.getPhoneticDriverNames(currentGameState.getOpponentLastNames());
                                     if (speechRecogniser != null && speechRecogniser.initialised)
                                     {
-                                        speechRecogniser.addNames(DriveNameHelper.getPhoneticDriverNames(currentGameState.getOpponentLastNames()));
+                                        speechRecogniser.addNames(phoneticDriverNames);
                                     }
                                     audioPlayer.cacheDriverNames(phoneticDriverNames);
                                 }

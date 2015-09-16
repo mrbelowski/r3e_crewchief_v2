@@ -158,6 +158,7 @@ namespace CrewChiefV2.RaceRoom
             }
 
             //------------------------ Session data -----------------------
+            currentGameState.SessionData.Flag = FlagEnum.UNKNOWN;
             currentGameState.SessionData.SessionTimeRemaining = shared.SessionTimeRemaining;
             currentGameState.SessionData.CompletedLaps = shared.CompletedLaps;     
             currentGameState.SessionData.LapTimeBest = shared.LapTimeBest;

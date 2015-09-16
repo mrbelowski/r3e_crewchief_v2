@@ -23,13 +23,13 @@ namespace CrewChiefV2.PCars
             {
                 if (!initialised)
                 {
-                    Console.WriteLine("Initialising pcars shared memory");
                     try
                     {
                         memoryMappedFile = MemoryMappedFile.OpenExisting("$pcars$");
                         sharedmemorysize = Marshal.SizeOf(typeof(pCarsAPIStruct));
                         sharedMemoryReadBuffer = new byte[sharedmemorysize];
                         initialised = true;
+                        Console.WriteLine("Initialised pcars shared memory");
                     }
                     catch (Exception ex)
                     {

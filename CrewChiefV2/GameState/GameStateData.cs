@@ -37,6 +37,12 @@ namespace CrewChiefV2.GameState
     {
         UNKNOWN, NONE, TRIVIAL, MINOR, MAJOR, DESTROYED
     }
+    public enum FlagEnum
+    {
+        // note that chequered isn't used at the moment
+        GREEN, YELLOW, DOUBLE_YELLOW, BLUE, WHITE, BLACK, CHEQUERED, UNKNOWN
+    }
+
 
     public class TransmissionData
     {
@@ -106,6 +112,8 @@ namespace CrewChiefV2.GameState
 
     public class SessionData
     {
+        public FlagEnum Flag = FlagEnum.GREEN;
+
         public Boolean IsNewSession = false;
 
         public Boolean SessionHasFixedTime = false;
@@ -215,6 +223,12 @@ namespace CrewChiefV2.GameState
         public Boolean IsRacingSameCarInFront = true;
 
         public Boolean IsRacingSameCarBehind = true;
+
+        public float SessionTimeAtEndOfLastSector1 = 0;
+
+        public float SessionTimeAtEndOfLastSector2 = 0;
+
+        public float SessionTimeAtEndOfLastSector3 = 0;
     }
 
     public class PositionAndMotionData
@@ -240,9 +254,56 @@ namespace CrewChiefV2.GameState
 
         public int CompletedLaps = 0;
 
-        public int SectorNumber = 0;
+        public int CurrentSectorNumber = 0;
 
         public Boolean IsPitting = false;
+        
+        public float SessionTimeAtEndOfLastSector1 = 0;
+
+        public float SessionTimeAtEndOfLastSector2 = 0;
+
+        public float SessionTimeAtEndOfLastSector3 = 0;
+
+        public int LapsCompletedAtEndOfLastSector1 = 0;
+
+        public int LapsCompletedAtEndOfLastSector2 = 0;
+
+        public int LapsCompletedAtEndOfLastSector3 = 0;
+
+        // TODO: the logic in this method is bascially bollocks
+        public OpponentDelta getTimeDifferenceToPlayer(SessionData playerSessionData)
+        {
+            if (playerSessionData.SectorNumber == 1)
+            {
+                return new OpponentDelta(playerSessionData.SessionTimeAtEndOfLastSector3 - SessionTimeAtEndOfLastSector3,
+                    playerSessionData.CompletedLaps - LapsCompletedAtEndOfLastSector3);
+            }
+            else if (playerSessionData.SectorNumber == 2)
+            {
+                return new OpponentDelta(playerSessionData.SessionTimeAtEndOfLastSector1 - SessionTimeAtEndOfLastSector1,
+                     playerSessionData.CompletedLaps - LapsCompletedAtEndOfLastSector1);
+            } 
+            else if (playerSessionData.SectorNumber == 3)
+            {
+                return new OpponentDelta(playerSessionData.SessionTimeAtEndOfLastSector2 - SessionTimeAtEndOfLastSector2,
+                     playerSessionData.CompletedLaps - LapsCompletedAtEndOfLastSector2);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public class OpponentDelta
+        {
+            public float time;
+            public int lapDifference;
+            public OpponentDelta(float time, int lapDifference)
+            {
+                this.time = time;
+                this.lapDifference = lapDifference;
+            }
+        }
     }
 
     public class ControlData
