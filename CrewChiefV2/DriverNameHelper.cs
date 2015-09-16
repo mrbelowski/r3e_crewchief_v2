@@ -9,11 +9,25 @@ using System.Text;
  */
 namespace CrewChiefV2
 {
-    class DriveNameHelper
+    class DriverNameHelper
     {
         private static Dictionary<String, String> nameToPhonetic = new Dictionary<String, String>();
 
         private static String folder = @"C:\projects\crewchief_c_sharp\CrewChiefV2\CrewChiefV2\sounds\driver_names";
+
+        static Dictionary<String, String> phoneticNamesForSession = new Dictionary<String, String>();
+
+        public static String getPhoneticForRealName(String realName)
+        {
+            if (phoneticNamesForSession.ContainsKey(realName))
+            {
+                return phoneticNamesForSession[realName];
+            }
+            else
+            {
+                return realName;
+            }
+        }
 
         private static void readNamesToPhoneticsFile()
         {
@@ -40,6 +54,7 @@ namespace CrewChiefV2
         public static List<String> getPhoneticDriverNames(List<String> driverNames)
         {
             readNamesToPhoneticsFile();
+            phoneticNamesForSession.Clear();
             List<String> phoneticNames = new List<String>();
             foreach (String driverName in driverNames)
             {
@@ -52,6 +67,10 @@ namespace CrewChiefV2
                 if (!phoneticNames.Contains(phoneticName))
                 {
                     phoneticNames.Add(phoneticName);
+                }
+                if (!phoneticNamesForSession.ContainsKey(driverName))
+                {
+                    phoneticNamesForSession.Add(driverName, phoneticName);
                 }
             }
             return phoneticNames;

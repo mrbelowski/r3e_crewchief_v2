@@ -44,8 +44,7 @@ namespace CrewChiefV2.Events
                 {
                     foreach (KeyValuePair<int, OpponentData> entry in currentGameState.OpponentData)
                     {
-                        // TODO: this doesn't work when the name is replaced with a phonetic...
-                        if (voiceMessage.Contains(entry.Value.DriverLastName))
+                        if (voiceMessage.Contains(DriverNameHelper.getPhoneticForRealName(entry.Value.DriverLastName)))
                         {
                             Console.WriteLine("Got opponent name, " + entry.Value.DriverLastName);
                             int position = entry.Value.Position;

@@ -320,7 +320,7 @@ namespace CrewChiefV2
                                 {
                                     //DriveNameHelper.addNamesToPhoneticsFile(currentGameState.getOpponentLastNames());
                                     //DriveNameHelper.addPhoneticNamesFolders();
-                                    List<String> phoneticDriverNames = DriveNameHelper.getPhoneticDriverNames(currentGameState.getOpponentLastNames());
+                                    List<String> phoneticDriverNames = DriverNameHelper.getPhoneticDriverNames(currentGameState.getOpponentLastNames());
                                     if (speechRecogniser != null && speechRecogniser.initialised)
                                     {
                                         speechRecogniser.addNames(phoneticDriverNames);
