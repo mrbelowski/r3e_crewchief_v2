@@ -44,6 +44,7 @@ namespace CrewChiefV2.Events
                 {
                     foreach (KeyValuePair<int, OpponentData> entry in currentGameState.OpponentData)
                     {
+                        // TODO: this doesn't work when the name is replaced with a phonetic...
                         if (voiceMessage.Contains(entry.Value.DriverLastName))
                         {
                             Console.WriteLine("Got opponent name, " + entry.Value.DriverLastName);
@@ -65,7 +66,7 @@ namespace CrewChiefV2.Events
                                     List<String> messages2 = new List<String>();
                                     messages2.Add(QueuedMessage.folderNameNumbersStub + opponentDelta.lapDifference);
                                     messages2.Add(Position.folderLapsBehind);
-                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentPosition", new QueuedMessage(messages2, 0, null));
+                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentTimeDelta", new QueuedMessage(messages2, 0, null));
                                 } 
                                 else if (opponentDelta.lapDifference == -1)
                                 {
@@ -76,7 +77,7 @@ namespace CrewChiefV2.Events
                                     List<String> messages2 = new List<String>();
                                     messages2.Add(QueuedMessage.folderNameNumbersStub + opponentDelta.lapDifference);
                                     messages2.Add(Position.folderLapsAhead);
-                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentPosition", new QueuedMessage(messages2, 0, null));
+                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentTimeDelta", new QueuedMessage(messages2, 0, null));
                                 }
                                 else
                                 {
@@ -86,7 +87,7 @@ namespace CrewChiefV2.Events
                                     {
                                         messageAfterTimespan = Position.folderBehind;
                                     }
-                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentPosition", new QueuedMessage(null, messageAfterTimespan, delta, 0, null));
+                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentTimeDelta", new QueuedMessage(null, messageAfterTimespan, delta, 0, null));
                                 }                                
                             }
                             
