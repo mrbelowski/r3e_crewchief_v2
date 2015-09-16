@@ -97,7 +97,7 @@ namespace CrewChiefV2.PCars
             currentGameState.SessionData.TrackLayout = shared.mTrackVariation;
             
             // now check if this is a new session...
-            if (lastSessionPhase != currentGameState.SessionData.SessionPhase || lastSessionType != currentGameState.SessionData.SessionType ||
+            if (lastSessionType != currentGameState.SessionData.SessionType ||
                 lastSessionHasFixedTime != currentGameState.SessionData.SessionHasFixedTime || lastSessionTrack != currentGameState.SessionData.TrackName ||
                 lastSessionTrackLayout != currentGameState.SessionData.TrackLayout || lastSessionLapsCompleted > currentGameState.SessionData.CompletedLaps ||
                 lastSessionNumberOfLaps != numberOfLapsInSession)
@@ -105,7 +105,7 @@ namespace CrewChiefV2.PCars
                 Console.WriteLine("New session");                
                 currentGameState.SessionData.IsNewSession = true;
                 currentGameState.SessionData.TrackLength = shared.mTrackLength;
-
+                currentGameState.SessionData.SessionNumberOfLaps = numberOfLapsInSession;
                 
                 int opponentSlotId = 0;
                 foreach (pCarsAPIParticipantStruct participantStruct in shared.mParticipantData)

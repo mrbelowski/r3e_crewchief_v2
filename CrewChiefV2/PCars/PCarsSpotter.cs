@@ -22,6 +22,11 @@ namespace CrewChiefV2.PCars
         // how long is a car? we use 3.5 meters by default here. Too long and we'll get 'hold your line' messages
         // when we're clearly directly behind the car
         private float carLength = UserSettings.GetUserSettings().getFloat("spotter_car_length");
+
+        // before saying 'clear', we need to be carLength + this value from the other car
+        private float gapNeededForClear = UserSettings.GetUserSettings().getFloat("spotter_gap_for_clear");
+
+        private float longCarLength;
         
         // don't play spotter messages if we're going < 10ms
         private float minSpeedForSpotterToOperate = UserSettings.GetUserSettings().getFloat("min_speed_for_spotter");
@@ -89,6 +94,7 @@ namespace CrewChiefV2.PCars
             this.audioPlayer = audioPlayer;
             this.enabled = initialEnabledState;
             this.initialEnabledState = initialEnabledState;
+            this.longCarLength = carLength + gapNeededForClear;
         }
 
         public void clearState()
@@ -298,7 +304,7 @@ namespace CrewChiefV2.PCars
         {
             float rawXCoordinate = opponentWorldPosition[0] - playerWorldPosition[0];
             float rawYCoordinate = opponentWorldPosition[2] - playerWorldPosition[2];
-            if (rawXCoordinate > carLength && rawYCoordinate > carLength)
+            if (rawXCoordinate > carLength && rawYCoordinate > longCarLength)
             {
                 return Side.none;
             }
@@ -313,22 +319,43 @@ namespace CrewChiefV2.PCars
             // We assume that both cars have similar orientations (or at least, any orientation difference isn't going to be relevant)
             float alignedXCoordinate = ((float)Math.Cos(playerRotation) * rawXCoordinate) + ((float)Math.Sin(playerRotation) * rawYCoordinate);
             float alignedYCoordinate = ((float)Math.Cos(playerRotation) * rawYCoordinate) - ((float)Math.Sin(playerRotation) * rawXCoordinate);
-            
-            if (Math.Abs(alignedYCoordinate) < carLength && Math.Abs(alignedXCoordinate) < trackWidth && Math.Abs(alignedXCoordinate) > carWidth)
+
+
+            // when checking for an overlap, use the 'short' (actual) car length if we're not already overlapping on that side.
+            // If we're already overlapping, use the 'long' car length - this means we don't call 'clear' till there's a small gap
+            if (Math.Abs(alignedXCoordinate) < trackWidth && Math.Abs(alignedXCoordinate) > carWidth)
             {
+                // we're not directly behind / ahead, but are within a track width of this car
                 if (alignedXCoordinate < 0)
                 {
-                    return Side.right;
+                    if (hasCarRight)
+                    {
+                        if (Math.Abs(alignedYCoordinate) < longCarLength)
+                        {
+                            return Side.right;
+                        }
+                    }
+                    else if (Math.Abs(alignedYCoordinate) < carLength)
+                    {
+                        return Side.right;
+                    }
                 }
                 else
                 {
-                    return Side.left;
+                    if (hasCarLeft)
+                    {
+                        if (Math.Abs(alignedYCoordinate) < longCarLength)
+                        {
+                            return Side.left;
+                        }
+                    }
+                    else if (Math.Abs(alignedYCoordinate) < carLength)
+                    {
+                        return Side.left;
+                    }
                 }
             }
-            else
-            {
-                return Side.none;
-            }
+            return Side.none;
         }
 
         public void enableSpotter()
