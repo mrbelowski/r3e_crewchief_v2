@@ -64,15 +64,23 @@ namespace CrewChiefV2.Events
                 playedGetReady = true;
                 audioPlayer.closeChannel();
             }
-            if (!playedGreenGreenGreen && previousGameState != null && currentGameState.SessionData.SessionType == SessionType.Race && 
-                (currentGameState.SessionData.SessionPhase == SessionPhase.Green && 
-                    (previousGameState.SessionData.SessionPhase == SessionPhase.Formation || 
+            /*if (!playedGreenGreenGreen && previousGameState != null && currentGameState.SessionData.SessionType == SessionType.Race &&
+                (currentGameState.SessionData.SessionPhase == SessionPhase.Green &&
+                    (previousGameState.SessionData.SessionPhase == SessionPhase.Formation ||
                      previousGameState.SessionData.SessionPhase == SessionPhase.Countdown)))
+            {*/
+            if (!playedGreenGreenGreen && previousGameState != null &&
+                currentGameState.SessionData.SessionType == SessionType.Race &&
+                currentGameState.SessionData.SessionPhase == SessionPhase.Green)
             {
-                audioPlayer.openChannel();
-                audioPlayer.playClipImmediately(folderGreenGreenGreen, new QueuedMessage(0, this));
-                audioPlayer.closeChannel();
-                playedGreenGreenGreen = true;
+                if (previousGameState.SessionData.SessionPhase == SessionPhase.Formation ||
+                 previousGameState.SessionData.SessionPhase == SessionPhase.Countdown)
+                {
+                    audioPlayer.openChannel();
+                    audioPlayer.playClipImmediately(folderGreenGreenGreen, new QueuedMessage(0, this));
+                    audioPlayer.closeChannel();
+                    playedGreenGreenGreen = true;
+                }
             }
             if (currentGameState.SessionData.SessionType == SessionType.Race && currentGameState.SessionData.IsNewLap && currentGameState.SessionData.CompletedLaps > 0)
             {

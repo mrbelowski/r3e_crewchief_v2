@@ -143,7 +143,6 @@ namespace CrewChiefV2.PCars
             {
                 if (lastSessionPhase != currentGameState.SessionData.SessionPhase)
                 {
-                    Console.WriteLine("New session phase, was " + lastSessionPhase + " now " + currentGameState.SessionData.SessionPhase);
                     if (currentGameState.SessionData.SessionPhase == SessionPhase.Green)
                     {
                         // just gone green, so get the session data                        
@@ -152,8 +151,15 @@ namespace CrewChiefV2.PCars
                             currentGameState.SessionData.SessionRunTime = sessionTimeRemaining;
                         }
                         currentGameState.SessionData.SessionNumberOfLaps = numberOfLapsInSession;
-                        currentGameState.SessionData.NumCarsAtStartOfSession = shared.mNumParticipants;
                         currentGameState.SessionData.SessionStartPosition = (int)shared.mParticipantData[shared.mViewedParticipantIndex].mRacePosition;
+                        currentGameState.SessionData.NumCarsAtStartOfSession = shared.mNumParticipants;
+                        currentGameState.SessionData.TrackLength = shared.mTrackLength;
+                        if (previousGameState != null)
+                        {
+                            currentGameState.OpponentData = previousGameState.OpponentData;
+                            currentGameState.SessionData.SessionStartTime = previousGameState.SessionData.SessionStartTime;
+                        }
+
                         Console.WriteLine("Just gone green, session details...");
                         Console.WriteLine("SessionType " + currentGameState.SessionData.SessionType);
                         Console.WriteLine("SessionPhase " + currentGameState.SessionData.SessionPhase);
@@ -172,7 +178,7 @@ namespace CrewChiefV2.PCars
                 }
                 // copy persistent data from the previous game state
                 //
-                if (previousGameState != null)
+                else if (previousGameState != null)
                 {
                     currentGameState.SessionData.SessionStartTime = previousGameState.SessionData.SessionStartTime;
                     currentGameState.SessionData.SessionRunTime = previousGameState.SessionData.SessionRunTime;
@@ -185,19 +191,19 @@ namespace CrewChiefV2.PCars
                     currentGameState.SessionData.PitWindowStart = previousGameState.SessionData.PitWindowStart;
                     currentGameState.SessionData.PitWindowEnd = previousGameState.SessionData.PitWindowEnd;
                     currentGameState.SessionData.HasMandatoryPitStop = previousGameState.SessionData.HasMandatoryPitStop;
-                    currentGameState.OpponentData = previousGameState.OpponentData;
-                }
-                if (currentGameState.SessionData.SessionHasFixedTime)
-                {
-                    currentGameState.SessionData.SessionRunningTime = currentGameState.SessionData.SessionRunTime - shared.mEventTimeRemaining / 1000;
-                }
-                else
-                {
-                    currentGameState.SessionData.SessionRunningTime = (float)(DateTime.Now - currentGameState.SessionData.SessionStartTime).TotalSeconds;
-                }
+                    currentGameState.OpponentData = previousGameState.OpponentData;                   
+                }                
             }            
             
             //------------------- Variable session data ---------------------------
+            if (currentGameState.SessionData.SessionHasFixedTime)
+            {
+                currentGameState.SessionData.SessionRunningTime = currentGameState.SessionData.SessionRunTime - shared.mEventTimeRemaining / 1000;
+            }
+            else
+            {
+                currentGameState.SessionData.SessionRunningTime = (float)(DateTime.Now - currentGameState.SessionData.SessionStartTime).TotalSeconds;
+            }
             currentGameState.SessionData.Flag = mapToFlagEnum(shared.mHighestFlagColour);
             currentGameState.SessionData.NumCars = shared.mNumParticipants;
             currentGameState.SessionData.CurrentLapIsValid = !shared.mLapInvalidated;                
@@ -385,7 +391,8 @@ namespace CrewChiefV2.PCars
             }
         }
 
-        private void upateOpponentData(OpponentData opponentData, uint position, uint completedLaps, uint sector, Boolean isPitting, float sessionRunningTime)
+        private void upateOpponentData(OpponentData opponentData, uint position, uint completedLaps,
+            uint sector, Boolean isPitting, float sessionRunningTime)
         {
             opponentData.IsPitting = isPitting;
             opponentData.Position = (int)position;

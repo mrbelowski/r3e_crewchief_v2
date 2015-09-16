@@ -282,14 +282,14 @@ namespace CrewChiefV2
                         stateCleared = false;
                         Object sharedMemoryData = sharedMemoryLoader.ReadSharedMemory();
                         gameStateMapper.versionCheck(sharedMemoryData);
-                        if (currentGameState != null)
+                        GameStateData nextGameState = gameStateMapper.mapToGameStateData(sharedMemoryData, currentGameState);
+                        if (nextGameState != null)
                         {
-                            previousGameState = currentGameState;
-                        }
-                        previousGameState = currentGameState;                        
-                        currentGameState = gameStateMapper.mapToGameStateData(sharedMemoryData, previousGameState);
-                        if (currentGameState != null)
-                        {
+                            if (currentGameState != null)
+                            {
+                                previousGameState = currentGameState;
+                            }
+                            currentGameState = nextGameState;
                             if (!sessionFinished && currentGameState.SessionData.SessionPhase == SessionPhase.Finished)
                             {
                                 audioPlayer.purgeQueues();

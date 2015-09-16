@@ -155,12 +155,12 @@ namespace CrewChiefV2.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("3.6")]
-        public float spotter_car_length {
+        public float r3e_spotter_car_length {
             get {
-                return ((float)(this["spotter_car_length"]));
+                return ((float)(this["r3e_spotter_car_length"]));
             }
             set {
-                this["spotter_car_length"] = value;
+                this["r3e_spotter_car_length"] = value;
             }
         }
         
@@ -682,13 +682,25 @@ namespace CrewChiefV2.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool launch_pcars {
             get {
                 return ((bool)(this["launch_pcars"]));
             }
             set {
                 this["launch_pcars"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("4")]
+        public float pcars_spotter_car_length {
+            get {
+                return ((float)(this["pcars_spotter_car_length"]));
+            }
+            set {
+                this["pcars_spotter_car_length"] = value;
             }
         }
     }

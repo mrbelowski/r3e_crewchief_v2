@@ -35,7 +35,7 @@
     <Setting Name="speech_recognition_location" Type="System.String" Scope="User">
       <Value Profile="(Default)">en-GB</Value>
     </Setting>
-    <Setting Name="spotter_car_length" Type="System.Single" Scope="User">
+    <Setting Name="r3e_spotter_car_length" Type="System.Single" Scope="User">
       <Value Profile="(Default)">3.6</Value>
     </Setting>
     <Setting Name="spotter_gap_for_clear" Type="System.Single" Scope="User">
@@ -168,7 +168,10 @@
       <Value Profile="(Default)">-x86</Value>
     </Setting>
     <Setting Name="launch_pcars" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="pcars_spotter_car_length" Type="System.Single" Scope="User">
+      <Value Profile="(Default)">4</Value>
     </Setting>
   </Settings>
 </SettingsFile>

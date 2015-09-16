@@ -77,6 +77,8 @@ namespace CrewChiefV2.Events
                 currentGameState.SessionData.SessionRunningTime > startMessageTime)
             {
                 playedRaceStartMessage = true;
+                Console.WriteLine("Race start message... isLast = " + isLast +
+                    " session start pos = " + currentGameState.SessionData.SessionStartPosition + " current pos = " + currentGameState.SessionData.Position);
                 if (isLast || currentGameState.SessionData.SessionStartPosition + 1 < currentGameState.SessionData.Position)
                 {
                     audioPlayer.queueClip(folderBadStart, 0, this);
