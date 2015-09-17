@@ -4,41 +4,10 @@ Changelog
 ---------
 Version 3.0.0: Major internal rework and rewiring; added project cars; loads and loads of other stuff
 
-Version 2.6.0: Some internal changes to make the queue listener more efficient and its trigger time more predictable; added timer to spotter so it closes the channel if it's had more than 2 seconds of unusuable data; chopped of some of the lead-in in the spotter wav files; added a new shorter channel open bleep for spotter calls. This version requires a new sound pack.
-
-Version 2.5.3: Some CPU overhead fixes for low powered systems using the 'disable_immediate_messages' mode; reworked the spotter logic and moved spotter into a separate Thread - it's a lot more reliable now; some other tweaks and fixes. No new sound pack for this version
-
-Version 2.5.2: Fixed another queue issue that could cause the radio channel to hang open if a delayed message is queued during a spotter call; fixed broken check for race position change that caused the push-now and gap reporting events to play when they shouldn't; made lap-time message more likely to play; don't queue or validate some messages (like tyre wear) once the leader's finished the race. No new sound pack for this version
-
-Version 2.5.1: Restructured some of the queue and spotter code to remove errors and make the interrupting and queuing process more effective; fixed issue in damage reporter so it's less likely to spam message; added check for RaceRoom decreasing, rather than increasing, the number of completed laps during a race (yes, is does do this from time to time...); a few other minor fixes. No new sound pack for this version
-
-Version 2.5.0: Added tyre wear monitoring - tyre wear status updates on crossing the start/finish line (if the wear state isn't 'good' and it's changed from last lap), automatically reports tyre wear status when entering the pits, reports estimated tyre life left (in minutes or laps depending on the race type), responds to "how's my tyre wear"; allow the audio player to use a full physical path to the sound files (i.e. c:\some\path) instead of just a path relative to the app's runtime folder; pop a dialog box with warning message when closing the properties form with unsaved changes; fixed 2 crash bugs; added a few more spotter sounds.  This update requires a new sound pack
-
-Version 2.4.1: Don't allow gap messages to play if the session's ended; fixed missing sounds in bundled sound pack. No new sound pack for this version
-
-Version 2.4: Added finishing position to non-podium finish message; make off-track warnings less frequent in races; added "you're leading" and "you're last" responses for when you ask about the gap in front / behind and there is no gap cos you're first or last; revised track cut warning messages; added 'hot lap' mode for laptimes / gaps in hot lap sessions; added additional checks to gap messages to ensure they're not played if you're not racing the same car ahead / behind; revised laptime worsening messages. This update requires a new sound pack
-
-Version 2.3.0: Reworked lap times event to give more helpful data on race / qual / practice pace and laptimes, and to respond more consistently and accurately to the "how's my pace?" question; added a session end event for practice and qualifying sessions; reworked session / race end detection code; don't read out the gap ahead / behind in races if it's less than a tenth; added good / ok / bad / terrible start messages; added options to disable some of the race messages; fixed issue with pitstops where it'd still warn you to pit even while you were actually pitting. This update requires a new sound pack
-
-Version 2.2.3: Fixed pearl of wisdom position (was being set to play before the associated even most of the time); removed lots of unnecessary debug messages. No new sound pack for this version
-
-Version 2.2.2: Fixed race time getting set to 0 for some online races (caused missing pit window warnings and maybe some other issues); fixed some errors caused be weird end-of-race data (NumberOfLaps being set to a large number in time-only races); fixed missing exception messages on error; added error checking to R3E process launch; added logging to tyre temps; added option to disable tyre temp warnings; some tweaks to tyre temp logic ("how's my tyre temps" now responds with the instantaneous tyre temp data, not the cumulative average for that lap); don't play messages with numbers in them if the number isn't part of the range the app can play (basically gaps / laps / times > 59 seconds / laps / minutes); don't say pace is OK if we're > 1 second off the leader's pace; some other internal fixes (should hopefully fix the missing race end messages); make events aware of pit in and out laps so there are no confusing pace / laptime / gap / position updates when you're pitting. No new sound pack for this version
-
-Version 2.2.1: fixed broken tyre temps monitor (was always saying they were good); don't play "fastest lap in the race" if we're actually in practice or qually
-
-Version 2.2.0: Added separate acknowledge messages for toggling spotter & updates; fixed issues with race time / laps remaining near the end of the race (the sound clips weren't very good); added options to run R3E automatically when you start the app and option to run the app (and R3E) as soon as the app is loaded
-
-Version 2.1.0: Added "plenty of fuel" response; added "you've not served your penalty" for when you botch a drive-through or stop-go; fixed bug in race time to go response (was saying "zero minutes" which it shouldn't); added lots of missing channel close calls to voice responses; tweaked the properties UI and added a 'clear console' button to the main UI; Added race and practice / qual responses for "how's my pace". In prac / qual this is the time gap to the class leader, in race the 'pace' is an assessment of your last lap time (assuming it's valid) relative to the best lap of the class leader. Might not be that helpful, will probably need some changes (feedback welcome)
-
-Version 2.0.2: tidied up properties interface and added some help text popups to properties that need them
-
-Version 2.0.1: Added "you have served your penalty" event - the app now tells you if you've served your penalty (you can still ask it if you want); Fixed voice recognition timeout for always-on and toggle-button mode (this wasn't my fault, honest - the API docs are incorrect for the default the MS speech engine's InitialSilenceTimeout value)
-
-Version 2.0.0: Added voice recognition, UI, properties handling, bug fixes, improvements, lots of new awesome, some new bugs
 
 Quick start
 -----------
-You need to install .net 4 or above to use the app. Download the CrewChiefV3_with_sounds.zip file, extract it somewhere (anywhere, the app's not fussy), and run the enclosed CrewChiefV3.exe. Click the "Start Application" button. Then fire up R3E and be amazed at my poor voice acting.
+You need to install .net 4 or above to use the app. Download the CrewChiefV3_with_sounds.zip file, extract it somewhere (anywhere, the app's not fussy), and run the enclosed CrewChiefV3.exe. Select a game from the list at the top right. Click the "Start Application" button. Then fire up the game and be amazed at my poor voice acting.
 
 
 Running with voice recognition
@@ -55,7 +24,7 @@ You need to speak clearly and your mic needs to be properly set up - you might n
 
 I've not finished implementing this but currently the app understands and responds to the following commands:
 
-"how is my [fuel / tyre temps / tyre wear / body work / aero / engine / transmission / pace]"
+"how is my [fuel / tyre temps / tyre wear / body work / aero / engine / transmission / pace / engine temps]"
 "what's my [gap in front / gap ahead / gap behind / last lap / last lap time / lap time / position]"
 "keep quiet / I know what I'm doing / leave me alone" (switches off messages)
 "keep me informed / keep me posted / keep me updated" (switches messages back on)
@@ -63,6 +32,8 @@ I've not finished implementing this but currently the app understands and respon
 "spot / don't spot" (switches the spotter on and off - note even in "leave me alone" mode the spotter still operates unless you explicitly switch it off)
 "do I still have a penalty / do I have a penalty / have I served my penalty"
 "do I have to pit / do I need to pit / do I have a mandatory pit stop / do I have a mandatory stop / do I have to make a pit stop"
+"where's [opponent driver last name]"
+"who's [ahead / behind]" (this one only works if you have the driver name recording)
 
 
 Other button assignments
@@ -82,12 +53,18 @@ Custom controllers
 This is untested. If your controller doesn't show up in the list of available controllers you can set the "custom_controller_guid" property to the GUID of your controller device. If this is a valid controller GUID the app will attempt to initialise it an add it to the list of available controllers.
 
 
+Program start arguments
+-----------------------
+If you want to have the game pre-selected, start the app like this for PCars: [full path]\CrewChiefV3.exe PCARS_64BIT. Or use R3E or PCARS_32BIT.
+This can be used in conjunction with the launch_pcars / launch_raceroom / [game]_launch_exe / [game]_launch_params and run_immediately options to set crew chief up to start the game selected in the app launch argument, and start its own process. I'll provide examples of this approach soon. 
+
+
 Updating the app
 ----------------
 The app, the voice recognition packs, and the sound pack are all separate. To install a new version simply download the CrewChiefV3_with_no_sounds and unzip it over the top of your existing installation. If the sound pack also needs to be updated, when you run the app you'll get an error in the console window telling you to update the sound pack. To do this, download the latest sound pack and replace the existing one with this new one. 
 
-At the time of writing, the sound pack can be downloaded here  : https://drive.google.com/file/d/0B4KQS820QNFbQTZHX2tlWVdMTFk/view?usp=sharing
-the application can be downloaded here                         : https://drive.google.com/file/d/0B4KQS820QNFbd21UNnI4RFMtV1k/view?usp=sharing
-the full app with sounds can be downloaded here                : https://drive.google.com/file/d/0B4KQS820QNFbZjBpamNsdWxhZUE/view?usp=sharing
+At the time of writing, the sound pack can be downloaded here  : [to be done]
+the application can be downloaded here                         : [to be done]
+the full app with sounds can be downloaded here                : [to be done]
 the 64bit speech recognition installers can be downloaded here : https://drive.google.com/file/d/0B4KQS820QNFbY05tVnhiNVFnYkU/view?usp=sharing
 the 32bit speech recognition installers can be downloaded here : https://drive.google.com/file/d/0B4KQS820QNFbRVJrVjU4X1NxSEU/view?usp=sharing
