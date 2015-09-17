@@ -244,6 +244,9 @@ namespace CrewChiefV3.GameState
 
     public class OpponentData
     {
+        // set this to false if this opponent drops out of the race (i.e. leaves a server)
+        public Boolean IsActive = true;
+
         public String DriverFirstName = null;
 
         public String DriverLastName = null;

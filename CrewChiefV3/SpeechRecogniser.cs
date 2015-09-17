@@ -238,7 +238,7 @@ namespace CrewChiefV3
                 nameGB.Append(nameChoices);
                 namesGrammar = new Grammar(nameGB);
                 sre.LoadGrammar(namesGrammar);
-                Console.WriteLine("loaded names");
+                Console.WriteLine("loaded names: " + String.Join(", ", names));
                 loadedDriverNames = names;
             }
             else

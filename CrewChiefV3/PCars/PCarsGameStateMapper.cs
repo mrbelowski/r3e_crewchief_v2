@@ -235,21 +235,21 @@ namespace CrewChiefV3.PCars
             opponentSlotId = 0;
             foreach (pCarsAPIParticipantStruct participantStruct in shared.mParticipantData)
             {
-                if (participantStruct.mIsActive)
+                if (currentGameState.OpponentData.ContainsKey(opponentSlotId))
                 {
-                    if (shared.mViewedParticipantIndex != opponentSlotId)
+                    if (currentGameState.OpponentData[opponentSlotId].IsActive && participantStruct.mIsActive)
                     {
-                        if (currentGameState.OpponentData.ContainsKey(opponentSlotId))
-                        {
-                            upateOpponentData(currentGameState.OpponentData[opponentSlotId], participantStruct.mRacePosition, participantStruct.mCurrentLap - 1,
+                        upateOpponentData(currentGameState.OpponentData[opponentSlotId], participantStruct.mRacePosition, participantStruct.mCurrentLap - 1,
                                 participantStruct.mCurrentSector, false, currentGameState.SessionData.SessionRunningTime);
-                        }
                     }
-                    opponentSlotId++;
+                    else
+                    {
+                        currentGameState.OpponentData[opponentSlotId].IsActive = false;
+                    }
                 }
+                opponentSlotId++;
             }
-
-
+            
             currentGameState.PitData.InPitlane = shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_INTO_PITS ||
                 shared.mPitMode == (int)ePitMode.PIT_MODE_IN_PIT ||
                 shared.mPitMode == (int)ePitMode.PIT_MODE_DRIVING_OUT_OF_PITS ||

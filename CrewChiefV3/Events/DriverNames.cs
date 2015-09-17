@@ -47,50 +47,56 @@ namespace CrewChiefV3.Events
                         if (voiceMessage.Contains(DriverNameHelper.getPhoneticForRealName(entry.Value.DriverLastName)))
                         {
                             Console.WriteLine("Got opponent name, " + entry.Value.DriverLastName);
-                            int position = entry.Value.Position;
-                            OpponentData.OpponentDelta opponentDelta = entry.Value.getTimeDifferenceToPlayer(currentGameState.SessionData);                            
-                            List<String> messages = new List<String>();
-                            messages.Add(Position.folderStub);
-                            messages.Add(QueuedMessage.folderNameNumbersStub + position);
-                            audioPlayer.openChannel();
-                            audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentPosition", new QueuedMessage(messages, 0, null));
-                            if (opponentDelta != null && (opponentDelta.lapDifference != 0 || Math.Abs(opponentDelta.time) > 0.05))
+                            if (entry.Value.IsActive)
                             {
-                                if (opponentDelta.lapDifference == 1)
+                                int position = entry.Value.Position;
+                                OpponentData.OpponentDelta opponentDelta = entry.Value.getTimeDifferenceToPlayer(currentGameState.SessionData);
+                                List<String> messages = new List<String>();
+                                messages.Add(Position.folderStub);
+                                messages.Add(QueuedMessage.folderNameNumbersStub + position);
+                                audioPlayer.openChannel();
+                                audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentPosition", new QueuedMessage(messages, 0, null));
+                                if (opponentDelta != null && (opponentDelta.lapDifference != 0 || Math.Abs(opponentDelta.time) > 0.05))
                                 {
-                                    audioPlayer.playClipImmediately(Position.folderOneLapBehind, new QueuedMessage(0, null));
-                                }
-                                else if (opponentDelta.lapDifference > 1)
-                                {
-                                    List<String> messages2 = new List<String>();
-                                    messages2.Add(QueuedMessage.folderNameNumbersStub + opponentDelta.lapDifference);
-                                    messages2.Add(Position.folderLapsBehind);
-                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentTimeDelta", new QueuedMessage(messages2, 0, null));
-                                } 
-                                else if (opponentDelta.lapDifference == -1)
-                                {
-                                    audioPlayer.playClipImmediately(Position.folderOneLapAhead, new QueuedMessage(0, null));
-                                }
-                                else if (opponentDelta.lapDifference < -1)
-                                {
-                                    List<String> messages2 = new List<String>();
-                                    messages2.Add(QueuedMessage.folderNameNumbersStub + opponentDelta.lapDifference);
-                                    messages2.Add(Position.folderLapsAhead);
-                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentTimeDelta", new QueuedMessage(messages2, 0, null));
-                                }
-                                else
-                                {
-                                    String messageAfterTimespan = Position.folderAhead;
-                                    TimeSpan delta = TimeSpan.FromSeconds(Math.Abs(opponentDelta.time));
-                                    if (opponentDelta.time > 0)
+                                    if (opponentDelta.lapDifference == 1)
                                     {
-                                        messageAfterTimespan = Position.folderBehind;
+                                        audioPlayer.playClipImmediately(Position.folderOneLapBehind, new QueuedMessage(0, null));
                                     }
-                                    audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentTimeDelta", new QueuedMessage(null, messageAfterTimespan, delta, 0, null));
-                                }                                
+                                    else if (opponentDelta.lapDifference > 1)
+                                    {
+                                        List<String> messages2 = new List<String>();
+                                        messages2.Add(QueuedMessage.folderNameNumbersStub + opponentDelta.lapDifference);
+                                        messages2.Add(Position.folderLapsBehind);
+                                        audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentTimeDelta", new QueuedMessage(messages2, 0, null));
+                                    }
+                                    else if (opponentDelta.lapDifference == -1)
+                                    {
+                                        audioPlayer.playClipImmediately(Position.folderOneLapAhead, new QueuedMessage(0, null));
+                                    }
+                                    else if (opponentDelta.lapDifference < -1)
+                                    {
+                                        List<String> messages2 = new List<String>();
+                                        messages2.Add(QueuedMessage.folderNameNumbersStub + opponentDelta.lapDifference);
+                                        messages2.Add(Position.folderLapsAhead);
+                                        audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentTimeDelta", new QueuedMessage(messages2, 0, null));
+                                    }
+                                    else
+                                    {
+                                        String messageAfterTimespan = Position.folderAhead;
+                                        TimeSpan delta = TimeSpan.FromSeconds(Math.Abs(opponentDelta.time));
+                                        if (opponentDelta.time > 0)
+                                        {
+                                            messageAfterTimespan = Position.folderBehind;
+                                        }
+                                        audioPlayer.playClipImmediately(QueuedMessage.compoundMessageIdentifier + "_opponentTimeDelta", new QueuedMessage(null, messageAfterTimespan, delta, 0, null));
+                                    }
+                                }
+                                audioPlayer.closeChannel();
                             }
-                            
-                            audioPlayer.closeChannel();
+                            else
+                            {
+                                Console.WriteLine("Driver "+ entry.Value.DriverLastName + " is no longer active in this session");
+                            }                            
                             foundDriver = true;
                             break;
                         }
@@ -99,7 +105,7 @@ namespace CrewChiefV3.Events
                 else if (voiceMessage.StartsWith(SpeechRecogniser.WHOS_BEHIND) && !currentGameState.isLast())
                 {
                     OpponentData opponent = currentGameState.getOpponentAtPosition(currentGameState.SessionData.Position + 1);
-                    if (audioPlayer.hasDriverName(opponent.DriverLastName))
+                    if (audioPlayer.hasDriverName(opponent.DriverLastName) && opponent.IsActive)
                     {
                         audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(QueuedMessage.driverNameIdentifier + opponent.DriverLastName, new QueuedMessage(0, null));
@@ -110,7 +116,7 @@ namespace CrewChiefV3.Events
                 else if (voiceMessage.StartsWith(SpeechRecogniser.WHOS_IN_FRONT) && currentGameState.SessionData.Position > 1)
                 {
                     OpponentData opponent = currentGameState.getOpponentAtPosition(currentGameState.SessionData.Position - 1);
-                    if (audioPlayer.hasDriverName(opponent.DriverLastName))
+                    if (audioPlayer.hasDriverName(opponent.DriverLastName) && opponent.IsActive)
                     {
                         audioPlayer.openChannel();
                         audioPlayer.playClipImmediately(QueuedMessage.driverNameIdentifier + opponent.DriverLastName, new QueuedMessage(0, null));
