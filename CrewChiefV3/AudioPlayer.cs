@@ -77,7 +77,7 @@ namespace CrewChiefV3
 
         MediaPlayer backgroundPlayer;
 
-        private String soundFilesPath;
+        public String soundFilesPath;
 
         private String backgroundFilesPath;
 
@@ -105,7 +105,7 @@ namespace CrewChiefV3
         {
             this.crewChief = crewChief;
         }
-
+        
         public void initialise()
         {
             if (soundFolderName.Length > 3 && (soundFolderName.Substring(1, 2) == @":\" || soundFolderName.Substring(1, 2) == @":/"))

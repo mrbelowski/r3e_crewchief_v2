@@ -13,8 +13,6 @@ namespace CrewChiefV3
     {
         private static Dictionary<String, String> nameToPhonetic = new Dictionary<String, String>();
 
-        private static String folder = @"C:\projects\crewchief_c_sharp\CrewChiefV3\CrewChiefV3\sounds\driver_names";
-
         static Dictionary<String, String> phoneticNamesForSession = new Dictionary<String, String>();
 
         public static String getPhoneticForRealName(String realName)
@@ -29,11 +27,11 @@ namespace CrewChiefV3
             }
         }
 
-        private static void readNamesToPhoneticsFile()
+        private static void readNamesToPhoneticsFile(String soundsFolderName)
         {
             int counter = 0;
             string line;
-            StreamReader file = new StreamReader(folder + @"\names.txt");
+            StreamReader file = new StreamReader(soundsFolderName +@"\driver_names\names.txt");
             while ((line = file.ReadLine()) != null)
             {
                 String[] split = line.Split(new char[] {':'});
@@ -51,9 +49,9 @@ namespace CrewChiefV3
             file.Close();
         }
 
-        public static List<String> getPhoneticDriverNames(List<String> driverNames)
+        public static List<String> getPhoneticDriverNames(List<String> driverNames, String soundsFolderName)
         {
-            readNamesToPhoneticsFile();
+            readNamesToPhoneticsFile(soundsFolderName);
             phoneticNamesForSession.Clear();
             List<String> phoneticNames = new List<String>();
             foreach (String driverName in driverNames)

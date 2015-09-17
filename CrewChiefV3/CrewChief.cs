@@ -317,7 +317,8 @@ namespace CrewChiefV3
                                 {
                                     //DriveNameHelper.addNamesToPhoneticsFile(currentGameState.getOpponentLastNames());
                                     //DriveNameHelper.addPhoneticNamesFolders();
-                                    List<String> phoneticDriverNames = DriverNameHelper.getPhoneticDriverNames(currentGameState.getOpponentLastNames());
+                                    List<String> phoneticDriverNames = DriverNameHelper.getPhoneticDriverNames(
+                                        currentGameState.getOpponentLastNames(), audioPlayer.soundFilesPath);
                                     if (speechRecogniser != null && speechRecogniser.initialised)
                                     {
                                         speechRecogniser.addNames(phoneticDriverNames);
