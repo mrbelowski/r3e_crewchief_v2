@@ -1,7 +1,9 @@
-CrewChief version 2.
+CrewChief version 3.
 
 Changelog
 ---------
+Version 3.0.0: Major internal rework and rewiring; added project cars; loads and loads of other stuff
+
 Version 2.6.0: Some internal changes to make the queue listener more efficient and its trigger time more predictable; added timer to spotter so it closes the channel if it's had more than 2 seconds of unusuable data; chopped of some of the lead-in in the spotter wav files; added a new shorter channel open bleep for spotter calls. This version requires a new sound pack.
 
 Version 2.5.3: Some CPU overhead fixes for low powered systems using the 'disable_immediate_messages' mode; reworked the spotter logic and moved spotter into a separate Thread - it's a lot more reliable now; some other tweaks and fixes. No new sound pack for this version
@@ -36,16 +38,16 @@ Version 2.0.0: Added voice recognition, UI, properties handling, bug fixes, impr
 
 Quick start
 -----------
-You need to install .net 4 or above to use the app. Download the CrewChiefV2_with_sounds.zip file, extract it somewhere (anywhere, the app's not fussy), and run the enclosed CrewChiefV2.exe. Click the "Start Application" button. Then fire up R3E and be amazed at my poor voice acting.
+You need to install .net 4 or above to use the app. Download the CrewChiefV3_with_sounds.zip file, extract it somewhere (anywhere, the app's not fussy), and run the enclosed CrewChiefV3.exe. Click the "Start Application" button. Then fire up R3E and be amazed at my poor voice acting.
 
 
 Running with voice recognition
 ------------------------------
-If you want to use voice recognition, download the correct speech recognition installers for your system (speech_recognition_32bit.zip or speech_recognition_64bit.zip). Run SpeechPlatformRuntime.msi (this is the MS speech recognition engine), then run MSSpeech_SR_en-GB_TELE.msi or MSSpeech_SR_en-US_TELE.msi depending on your preferred accent (these are the 'cultural info' installers). If you want to use US speech recognition (MSSpeech_SR_en-US_TELE.msi) you must modify the "speech_recognition_location" property to "en-US". This can be done by editing CrewChiefV2.exe.config, or by modifying the property value in the application's Properties area. If you're happy with en-GB you don't need to do anything other than run the 2 speech recognition installers.
+If you want to use voice recognition, download the correct speech recognition installers for your system (speech_recognition_32bit.zip or speech_recognition_64bit.zip). Run SpeechPlatformRuntime.msi (this is the MS speech recognition engine), then run MSSpeech_SR_en-GB_TELE.msi or MSSpeech_SR_en-US_TELE.msi depending on your preferred accent (these are the 'cultural info' installers). If you want to use US speech recognition (MSSpeech_SR_en-US_TELE.msi) you must modify the "speech_recognition_location" property to "en-US". This can be done by editing CrewChiefV3.exe.config, or by modifying the property value in the application's Properties area. If you're happy with en-GB you don't need to do anything other than run the 2 speech recognition installers.
 
 For speech recognition, you need a microphone configured as the default "Recording" device in Windows.
 
-To get started, run CrewChiefV2.exe and choose a "Voice recognition mode". There are 3 modes (the radio buttons at the bottom right). "Disabled" means that the app won't attempt any speech recognition. "Hold button" means you have to hold down a button while you speak, and release the button when you're finished. "Toggle button" means you press a button once to start the speech recognition, and the app will continue to listen and process your spoken requests until you press the button again to switch it off (while the app is listening you can make as many voice requests as you like, you don't need to toggle speech recognition off and back on again if you want to ask another question). "Always on" means the app is always listening for and processing speech commands. Selecting "Disabled" or "Always on" from this list makes the app ignore the button assigned to "Talk to crew chief".
+To get started, run CrewChiefV3.exe and choose a "Voice recognition mode". There are 3 modes (the radio buttons at the bottom right). "Disabled" means that the app won't attempt any speech recognition. "Hold button" means you have to hold down a button while you speak, and release the button when you're finished. "Toggle button" means you press a button once to start the speech recognition, and the app will continue to listen and process your spoken requests until you press the button again to switch it off (while the app is listening you can make as many voice requests as you like, you don't need to toggle speech recognition off and back on again if you want to ask another question). "Always on" means the app is always listening for and processing speech commands. Selecting "Disabled" or "Always on" from this list makes the app ignore the button assigned to "Talk to crew chief".
 
 If you want to use Hold button or Toggle button mode, select a controller device ("Available controllers" list, bottom left), choose "Talk to crew chief" in the "Available actions" list and click "Assign control". Then press the button you want to assign to your radio button. 
 
@@ -70,7 +72,7 @@ You can assign the 'toggle spotter on/off' and 'toggle race updates on/off' to s
 
 Properties
 ----------
-When you first run the app it will create a user configuration folder in /Users/[username]/AppData/local/CrewChiefV2 (for example, on my system this is in C:\Users\Jim\AppData\Local\CrewChiefV2). This folder holds your application settings. The settings can be accessed by clicking the "Properties" button in the app. This displays a popup window where you can tweak stuff if you want to. This interface is a bit rubbish but should let you tweak settings if you want to, although the properties are all (currently) undocumented. If you do change something in this interface, the app needs to restart to pick up the change - the "Save and restart" button should do this.
+When you first run the app it will create a user configuration folder in /Users/[username]/AppData/local/CrewChiefV3 (for example, on my system this is in C:\Users\Jim\AppData\Local\CrewChiefV3). This folder holds your application settings. The settings can be accessed by clicking the "Properties" button in the app. This displays a popup window where you can tweak stuff if you want to. This interface is a bit rubbish but should let you tweak settings if you want to, although the properties are all (currently) undocumented. If you do change something in this interface, the app needs to restart to pick up the change - the "Save and restart" button should do this.
 
 Each property has a "reset to default" button, or if you get completely stuck you can close the app and delete the user configuration folder and it should reset everything.
 
@@ -82,7 +84,7 @@ This is untested. If your controller doesn't show up in the list of available co
 
 Updating the app
 ----------------
-The app, the voice recognition packs, and the sound pack are all separate. To install a new version simply download the CrewChiefV2_with_no_sounds and unzip it over the top of your existing installation. If the sound pack also needs to be updated, when you run the app you'll get an error in the console window telling you to update the sound pack. To do this, download the latest sound pack and replace the existing one with this new one. 
+The app, the voice recognition packs, and the sound pack are all separate. To install a new version simply download the CrewChiefV3_with_no_sounds and unzip it over the top of your existing installation. If the sound pack also needs to be updated, when you run the app you'll get an error in the console window telling you to update the sound pack. To do this, download the latest sound pack and replace the existing one with this new one. 
 
 At the time of writing, the sound pack can be downloaded here  : https://drive.google.com/file/d/0B4KQS820QNFbQTZHX2tlWVdMTFk/view?usp=sharing
 the application can be downloaded here                         : https://drive.google.com/file/d/0B4KQS820QNFbd21UNnI4RFMtV1k/view?usp=sharing
