@@ -55,20 +55,20 @@ namespace CrewChiefV2
         public GameEnum gameEnum;
         public String friendlyName;
         public String processName;
-        public String sharedMemoryLoaderName;
+        public String gameDataReaderName;
         public String gameStateMapperName;
         public String spotterName;
         public String gameStartCommandProperty;
         public String gameStartCommandOptionsProperty;
         public String gameStartEnabledProperty;
 
-        public GameDefinition(GameEnum gameEnum, String friendlyName, String processName, String sharedMemoryLoaderName, String gameStateMapperName, 
+        public GameDefinition(GameEnum gameEnum, String friendlyName, String processName, String gameDataReaderName, String gameStateMapperName, 
             String spotterName, String gameStartCommandProperty, String gameStartCommandOptionsProperty, String gameStartEnabledProperty)
         {
             this.gameEnum = gameEnum;
             this.friendlyName = friendlyName;
             this.processName = processName;
-            this.sharedMemoryLoaderName = sharedMemoryLoaderName;
+            this.gameDataReaderName = gameDataReaderName;
             this.gameStateMapperName = gameStateMapperName;
             this.spotterName = spotterName;
             this.gameStartCommandProperty = gameStartCommandProperty;

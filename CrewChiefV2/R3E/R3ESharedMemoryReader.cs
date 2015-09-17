@@ -10,7 +10,7 @@ using System.Text;
 
 namespace CrewChiefV2.RaceRoom
 {
-    class R3ESharedMemoryReader : SharedMemoryLoader
+    class R3ESharedMemoryReader : GameDataReader
     {
         private MemoryMappedFile _file;
         private MemoryMappedViewAccessor _view;
@@ -32,7 +32,7 @@ namespace CrewChiefV2.RaceRoom
             }            
         }
 
-        public Object ReadSharedMemory()
+        public Object ReadGameData()
         {
             lock (this)
             {

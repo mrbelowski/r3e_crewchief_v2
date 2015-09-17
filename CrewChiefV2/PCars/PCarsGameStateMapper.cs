@@ -39,7 +39,7 @@ namespace CrewChiefV2.PCars
             uint currentVersion = ((pCarsAPIStruct)memoryMappedFileStruct).mVersion;
             if (currentVersion != expectedVersion)
             {
-                throw new SharedMemoryReadException("Expected shared data version " + expectedVersion + " but got version " + currentVersion);
+                throw new GameDataReadException("Expected shared data version " + expectedVersion + " but got version " + currentVersion);
             }
         }
 

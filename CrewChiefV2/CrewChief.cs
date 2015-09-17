@@ -55,7 +55,7 @@ namespace CrewChiefV2
 
         private GameStateMapper gameStateMapper;
 
-        private SharedMemoryLoader sharedMemoryLoader;
+        private GameDataReader gameDataReader;
 
         public GameStateData currentGameState = null;
 
@@ -104,9 +104,9 @@ namespace CrewChiefV2
 
         public void Dispose()
         {
-            if (sharedMemoryLoader != null)
+            if (gameDataReader != null)
             {
-                sharedMemoryLoader.Dispose();
+                gameDataReader.Dispose();
             }
             audioPlayer.stopMonitor();
             if (speechRecogniser != null)
@@ -222,7 +222,7 @@ namespace CrewChiefV2
                 if (now > nextRunTime && spotter != null)
                 {
                     lastSpotterState = currentSpotterState;
-                    currentSpotterState = sharedMemoryLoader.ReadSharedMemory();
+                    currentSpotterState = gameDataReader.ReadGameData();
                     if (lastSpotterState != null)
                     {
                         spotter.trigger(lastSpotterState, currentSpotterState);
@@ -237,7 +237,7 @@ namespace CrewChiefV2
         public Boolean Run()
         {
             gameStateMapper = (GameStateMapper)Activator.CreateInstance(Type.GetType(gameDefinition.gameStateMapperName));
-            sharedMemoryLoader = (SharedMemoryLoader)Activator.CreateInstance(Type.GetType(gameDefinition.sharedMemoryLoaderName));
+            gameDataReader = (GameDataReader)Activator.CreateInstance(Type.GetType(gameDefinition.gameDataReaderName));
             if (gameDefinition.spotterName != null)
             {
                 spotter = (Spotter)Activator.CreateInstance(Type.GetType(gameDefinition.spotterName), 
@@ -268,7 +268,7 @@ namespace CrewChiefV2
                     nextEventTrigger = nextEventTrigger.Add(_timeInterval);
                     if (Utilities.IsGameRunning(gameDefinition.processName))
                     {
-                        mapped = sharedMemoryLoader.Initialise();
+                        mapped = gameDataReader.Initialise();
                     }
                     else if (UserSettings.GetUserSettings().getBoolean(gameDefinition.gameStartEnabledProperty) && !attemptedToRunGame)
                     {
@@ -280,15 +280,12 @@ namespace CrewChiefV2
                     if (mapped)
                     {
                         stateCleared = false;
-                        Object sharedMemoryData = sharedMemoryLoader.ReadSharedMemory();
-                        gameStateMapper.versionCheck(sharedMemoryData);
-                        GameStateData nextGameState = gameStateMapper.mapToGameStateData(sharedMemoryData, currentGameState);
+                        Object rawGameData = gameDataReader.ReadGameData();
+                        gameStateMapper.versionCheck(rawGameData);
+                        GameStateData nextGameState = gameStateMapper.mapToGameStateData(rawGameData, currentGameState);
                         if (nextGameState != null)
                         {
-                            if (currentGameState != null)
-                            {
-                                previousGameState = currentGameState;
-                            }
+                            previousGameState = currentGameState;
                             currentGameState = nextGameState;
                             if (!sessionFinished && currentGameState.SessionData.SessionPhase == SessionPhase.Finished)
                             {
@@ -358,10 +355,10 @@ namespace CrewChiefV2
                                     runSpotterThread = false;
                                 }
                             }
-                        }
-                        else if (spotter != null)
-                        {
-                            spotter.pause();
+                            else if (spotter != null)
+                            {
+                                spotter.pause();
+                            }
                         }
                     }
                 }

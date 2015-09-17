@@ -5,16 +5,16 @@ using System.Text;
 
 namespace CrewChiefV2
 {
-    class SharedMemoryReadException : Exception
+    class GameDataReadException : Exception
     {
         public Exception cause;
         public String message;
-        public SharedMemoryReadException(String message, Exception cause)
+        public GameDataReadException(String message, Exception cause)
         {
             this.message = message;
             this.cause = cause;
         }
-        public SharedMemoryReadException(String message)
+        public GameDataReadException(String message)
         {
             this.message = message;
         }

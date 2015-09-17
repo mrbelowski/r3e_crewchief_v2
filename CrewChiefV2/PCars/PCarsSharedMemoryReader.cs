@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CrewChiefV2.PCars
 {
-    class PCarsSharedMemoryReader : SharedMemoryLoader
+    class PCarsSharedMemoryReader : GameDataReader
     {
         private MemoryMappedFile memoryMappedFile;
         private GCHandle handle;
@@ -40,7 +40,7 @@ namespace CrewChiefV2.PCars
             }            
         }
 
-        public Object ReadSharedMemory()
+        public Object ReadGameData()
         {
             lock (this)
             {
@@ -49,7 +49,7 @@ namespace CrewChiefV2.PCars
                 {
                     if (!Initialise())
                     {
-                        throw new SharedMemoryReadException("Failed to initialise shared memory");
+                        throw new GameDataReadException("Failed to initialise shared memory");
                     }
                 }
                 try
@@ -68,7 +68,7 @@ namespace CrewChiefV2.PCars
                 }
                 catch (Exception ex)
                 {
-                    throw new SharedMemoryReadException(ex.Message, ex);
+                    throw new GameDataReadException(ex.Message, ex);
                 }
             }            
         }

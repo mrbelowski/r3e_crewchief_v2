@@ -21,36 +21,36 @@ namespace CrewChiefV2
         }
 
         public static void runGame(String launchExe, String launchParams)
-        {
-            if (launchExe.Contains(" "))
+        {            
+            try
             {
-                if (!launchExe.StartsWith("\""))
+                Console.WriteLine("Attempting to run game using " + launchExe + " " + launchParams);
+                if (launchExe.Contains(" "))
                 {
-                    launchExe = "\"" + launchExe;
+                    if (!launchExe.StartsWith("\""))
+                    {
+                        launchExe = "\"" + launchExe;
+                    }
+                    if (!launchExe.EndsWith("\""))
+                    {
+                        launchExe = launchExe + "\"";
+                    }
                 }
-                if (!launchExe.EndsWith("\""))
+                using (Process process = new Process())
                 {
-                    launchExe = launchExe + "\"";
-                }
-            }
-            Console.WriteLine("Attempting to run game using " + launchExe + " " + launchParams);
-            using (Process process = new Process())
-            {
-                ProcessStartInfo startInfo = new ProcessStartInfo(launchExe);
-                startInfo.Arguments = launchParams;
-                process.StartInfo = startInfo;
-                try
-                {
+                    ProcessStartInfo startInfo = new ProcessStartInfo(launchExe);
+                    startInfo.Arguments = launchParams;
+                    process.StartInfo = startInfo;
                     process.Start();
                 }
-                catch (InvalidOperationException e)
-                {
-                    Console.WriteLine("InvalidOperationException starting game: " + e.Message);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Exception starting game: " + e.Message);
-                }
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.WriteLine("InvalidOperationException starting game: " + e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception starting game: " + e.Message);
             }
         }
     }

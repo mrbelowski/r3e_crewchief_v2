@@ -86,7 +86,7 @@
     <Compile Include="GameDefinition.cs" />
     <Compile Include="PCars\PCarsSpotter.cs" />
     <Compile Include="R3E\R3ESharedMemoryReader.cs" />
-    <Compile Include="SharedMemoryLoader.cs" />
+    <Compile Include="GameDataReader.cs" />
     <Compile Include="PCars\PCarsStruct.cs" />
     <Compile Include="PCars\PCarsSharedMemoryReader.cs" />
     <Compile Include="PCars\PCarsGameStateMapper.cs" />
@@ -107,7 +107,7 @@
     <Compile Include="PCars\_eNums\eTyres.cs" />
     <Compile Include="PCars\_eNums\eVector.cs" />
     <Compile Include="PCars\_eNums\_EnumGetDescription.cs" />
-    <Compile Include="SharedMemoryReadException.cs" />
+    <Compile Include="GameDataReadException.cs" />
     <Compile Include="UserInterface\FloatPropertyControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

@@ -5,11 +5,11 @@ using System.Text;
 
 namespace CrewChiefV2
 {
-    interface SharedMemoryLoader
+    interface GameDataReader
     {
         Boolean Initialise();
 
-        Object ReadSharedMemory();
+        Object ReadGameData();
 
         void Dispose();
     }
